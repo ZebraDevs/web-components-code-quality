@@ -6,6 +6,38 @@ This action is designed to format and test Flutter repositories on pull requests
 
 Follow the instructions below to integrate this action into your workflow.
 
+```yml
+name: CI - Pull Request
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Code Quality
+        uses: ZebraDevs/web-components-code-quality@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+```
+
 ## Inputs
 
 | Name                | Description                                                       | Required | Default |

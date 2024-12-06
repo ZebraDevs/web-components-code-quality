@@ -24,7 +24,6 @@ jobs:
           cache: npm
 
       - name: Code Quality
-        id: wc-code-quality
         uses: ./
         with:
           token: ${{ secrets.PAT }}
