@@ -1,29 +1,21 @@
-name: Continuous Integration
+name: CI - Pull Request
 
 on:
-  pull_request:
-    branches:
-      - main
-  push:
-    branches:
-      - main
+  pull_request_target:
 
 permissions:
   contents: write
   issues: write
 
 jobs:
-  web-components-code-quality:
-    name: Web Components Code Quality
+  code-quality:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        id: checkout
+      - name: Checkout Branch
         uses: actions/checkout@v4
 
       - name: Setup Node.js
-        id: setup-node
         uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
