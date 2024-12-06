@@ -29935,8 +29935,8 @@ async function run() {
         const runCodeFormatting = (0, core_1.getBooleanInput)("run-code-formatting");
         const runTests = (0, core_1.getBooleanInput)("run-tests");
         // const runCoverage: boolean = getBooleanInput('run-coverage');
-        // const coveragePassScore: string = getInput('coverage-pass-score');
-        // const createComment: boolean = getBooleanInput('create-comment');
+        // const coveragePassScore: string = getInput('coverage-pass-score')
+        // const createComment: boolean = getBooleanInput('create-comment')
         // if (runStaticAnalysis) { then run static analysis script }
         const analyzeStr = runStaticAnalysis
             ? await (0, analyze_1.analyze)()

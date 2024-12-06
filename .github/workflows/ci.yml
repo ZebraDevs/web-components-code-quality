@@ -13,8 +13,8 @@ permissions:
   issues: write
 
 jobs:
-  test-typescript:
-    name: TypeScript Tests
+  web-components-code-quality:
+    name: Web Components Code Quality
     runs-on: ubuntu-latest
 
     steps:
@@ -28,31 +28,6 @@ jobs:
         with:
           node-version-file: .node-version
           cache: npm
-
-      - name: Install Dependencies
-        id: npm-ci
-        run: npm ci
-
-      - name: Check Format
-        id: npm-format-check
-        run: npm run format:check
-
-      - name: Lint
-        id: npm-lint
-        run: npm run lint
-
-      - name: Test
-        id: npm-ci-test
-        run: npm run ci-test
-
-  web-components-code-quality:
-    name: Web Components Code Quality
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        id: checkout
-        uses: actions/checkout@v4
 
       - name: Code Quality
         id: wc-code-quality
