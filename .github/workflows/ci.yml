@@ -58,4 +58,4 @@ jobs:
         id: wc-code-quality
         uses: ./
         with:
-          token: ${{ secrets.FINE_GRAINED_PAT }}
+          token: ${{ secrets.PAT }}
