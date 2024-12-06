@@ -1,21 +1,22 @@
 {
-  "name": "typescript-action",
-  "description": "GitHub Actions TypeScript template",
-  "version": "0.0.0",
-  "author": "",
-  "private": true,
-  "homepage": "https://github.com/actions/typescript-action",
+  "name": "web-components-code-quality",
+  "description": "This action is designed to format and test Web Component repositories on pull requests. It helps ensure that your code meets the required quality standards.",
+  "version": "0.0.1",
+  "author": "Zebra Technologies",
+  "private": false,
+  "homepage": "https://github.com/ZebraDevs/web-components-code-quality",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/typescript-action.git"
+    "url": "git+https://github.com/ZebraDevs/web-components-code-quality.git"
   },
   "bugs": {
-    "url": "https://github.com/actions/typescript-action/issues"
+    "url": "https://github.com/ZebraDevs/web-components-code-quality/issues"
   },
   "keywords": [
     "actions",
     "node",
-    "setup"
+    "web components",
+    "code quality"
   ],
   "exports": {
     ".": "./dist/index.js"
@@ -67,13 +68,15 @@
     ]
   },
   "dependencies": {
-    "@actions/core": "^1.11.1"
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.0",
+    "parse-lcov": "^1.0.4"
   },
   "devDependencies": {
     "@github/local-action": "^2.2.0",
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.14",
-    "@types/node": "^22.9.0",
+    "@types/node": "^22.10.1",
     "@typescript-eslint/eslint-plugin": "^8.14.0",
     "@typescript-eslint/parser": "^8.14.0",
     "@vercel/ncc": "^0.38.3",
