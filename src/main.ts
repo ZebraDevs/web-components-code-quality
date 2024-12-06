@@ -50,14 +50,14 @@ export async function run(): Promise<void> {
       ? await testing()
       : undefined
 
-    const coverageStr: stepResponse | undefined = runCoverage
-      ? await coverage()
-      : undefined
+    // const coverageStr: stepResponse | undefined = runCoverage
+    //   ? await coverage()
+    //   : undefined
 
     const commentBody = `## Static Analysis = ${analyzeStr?.output}\n
     ## Code Formatting = ${runCodeFormattingStr?.output}\n
-    ## Testing = ${testingStr?.output}\n
-    ## Coverage = ${coverageStr?.output}\n`
+    ## Testing = ${testingStr?.output}\n`
+    //    ## Coverage = ${coverageStr?.output}\n`
 
     await octokit.rest.issues.createComment({
       issue_number: context.issue.number,
