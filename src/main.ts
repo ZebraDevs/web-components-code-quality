@@ -31,9 +31,9 @@ export async function run(): Promise<void> {
     const runStaticAnalysis: boolean = getBooleanInput('run-static-analysis')
     const runCodeFormatting: boolean = getBooleanInput('run-code-formatting')
     const runTests: boolean = getBooleanInput('run-tests')
-    // const runCoverage: boolean = getBooleanInput('run-coverage')
-    // const coveragePassScore: string = getInput('coverage-pass-score')
-    // const createComment: boolean = getBooleanInput('create-comment')
+    // const runCoverage: boolean = getBooleanInput('run-coverage');
+    // const coveragePassScore: string = getInput('coverage-pass-score');
+    // const createComment: boolean = getBooleanInput('create-comment');
 
     // if (runStaticAnalysis) { then run static analysis script }
     const analyzeStr: stepResponse | undefined = runStaticAnalysis
