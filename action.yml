@@ -1,54 +1,54 @@
-name: 'Web Components Code Quality'
+name: "Web Components Code Quality"
 description:
-  'This action is designed to format and test Web Component repositories on pull
-  requests. It helps ensure that your code meets the required quality standards.'
-author: 'Zebra Technologies'
+  "This action is designed to format and test Web Component repositories on pull
+  requests. It helps ensure that your code meets the required quality standards."
+author: "Zebra Technologies"
 
 # Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
   icon: compass
-  color: 'blue'
+  color: "blue"
 
 # Define your inputs here.
 inputs:
   token:
-    description: 'Token used for pushing fixes and commenting on PRs'
+    description: "Token used for pushing fixes and commenting on PRs"
     required: true
 
   working-directory:
-    description: 'The working directory'
+    description: "The working directory"
     required: false
-    default: '.'
+    default: "."
 
   run-static-analysis:
-    description: 'Whether to run static analysis'
+    description: "Whether to run static analysis"
     required: false
-    default: 'true'
+    default: "true"
 
   run-code-formatting:
-    description: 'Whether to run code formatting'
+    description: "Whether to run code formatting"
     required: false
-    default: 'true'
+    default: "true"
 
   run-tests:
-    description: 'Whether to run tests'
+    description: "Whether to run tests"
     required: false
-    default: 'true'
+    default: "true"
 
   run-coverage:
-    description: 'Whether to run coverage'
+    description: "Whether to run coverage"
     required: false
-    default: 'true'
+    default: "true"
 
   create-comment:
-    description: 'Whether to create a comment on the PR'
+    description: "Whether to create a comment on the PR"
     required: false
-    default: 'true'
+    default: "true"
 
   coverage-pass-score:
-    description: 'The minimum coverage score required to pass'
+    description: "The minimum coverage score required to pass"
     required: false
-    default: '80'
+    default: "80"
 
 # Define your outputs here.
 # outputs:
