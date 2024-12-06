@@ -4,7 +4,7 @@ import { getOctokit, context } from '@actions/github'
 import { analyze } from './scripts/analyze'
 import { formatting } from './scripts/formatting'
 import { testing } from './scripts/testing'
-import { coverage } from './scripts/coverage'
+// import { coverage } from './scripts/coverage'
 
 export type stepResponse = { output: string; error: boolean }
 
@@ -31,7 +31,7 @@ export async function run(): Promise<void> {
     const runStaticAnalysis: boolean = getBooleanInput('run-static-analysis')
     const runCodeFormatting: boolean = getBooleanInput('run-code-formatting')
     const runTests: boolean = getBooleanInput('run-tests')
-    const runCoverage: boolean = getBooleanInput('run-coverage')
+    // const runCoverage: boolean = getBooleanInput('run-coverage')
     // const coveragePassScore: string = getInput('coverage-pass-score')
     // const createComment: boolean = getBooleanInput('create-comment')
 

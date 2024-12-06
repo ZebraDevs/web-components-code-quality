@@ -1,19 +1,19 @@
-import { setFailed } from '@actions/core'
-import parseLCOV from 'parse-lcov'
-import { stepResponse } from 'src/main'
+// import { setFailed } from '@actions/core'
+// import parseLCOV from 'parse-lcov'
+// import { stepResponse } from 'src/main'
 
-// TODO: Adapt the step to use parseLCOV
-//
-//
+// // TODO: Adapt the step to use parseLCOV
+// //
+// //
 
-export const coverage = async (): Promise<stepResponse> => {
-  try {
-    return { output: 'RETURN COVERAGE', error: false }
-  } catch (error) {
-    if (error instanceof Error) setFailed(error.message)
-    return { output: 'Coverage failed', error: true }
-  }
-}
+// export const coverage = async (): Promise<stepResponse> => {
+//   try {
+//     return { output: 'RETURN COVERAGE', error: false }
+//   } catch (error) {
+//     if (error instanceof Error) setFailed(error.message)
+//     return { output: 'Coverage failed', error: true }
+//   }
+// }
 
 // import { readFileSync } from 'node:fs'
 // import { endGroup, startGroup } from '@actions/core'
