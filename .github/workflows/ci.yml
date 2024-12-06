@@ -57,4 +57,4 @@ jobs:
         id: test-action
         uses: ./
         with:
-          milliseconds: 2000
+          token: ${{ secrets.GITHUB_TOKEN }}
