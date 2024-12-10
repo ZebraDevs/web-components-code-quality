@@ -29933,13 +29933,13 @@ async function run() {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         const currentDirectory = (0, process_1.cwd)();
         if (workingDirectory && workingDirectory !== currentDirectory) {
-            const chdir = process.chdir;
-            chdir(workingDirectory);
+            (0, process_1.chdir)(workingDirectory);
         }
-        const isLocal = true;
-        const token = isLocal
-            ? process.env.GITHUB_TOKEN
-            : (0, core_1.getInput)("token");
+        const isLocal = false;
+        let token = "";
+        if (process.env.GITHUB_TOKEN) {
+            token = isLocal ? process.env.GITHUB_TOKEN : (0, core_1.getInput)("token");
+        }
         const octokit = (0, github_1.getOctokit)(token);
         const runStaticAnalysis = isLocal
             ? true
@@ -30001,10 +30001,10 @@ const analyze = async () => {
         await (0, exec_1.exec)("npm run analyze", [], {
             listeners: {
                 stdout: (data) => {
-                    cemAnalyzeOut += data;
+                    cemAnalyzeOut += data.toString();
                 },
                 stderr: (data) => {
-                    cemAnalyzeErr += data;
+                    cemAnalyzeErr += data.toString();
                 },
             },
         });
@@ -30016,10 +30016,10 @@ const analyze = async () => {
         await (0, exec_1.exec)("npm run lint", [], {
             listeners: {
                 stdout: (data) => {
-                    eslintOut += data;
+                    eslintOut += data.toString();
                 },
                 stderr: (data) => {
-                    eslintErr += data;
+                    eslintErr += data.toString();
                 },
             },
         });
@@ -30031,10 +30031,10 @@ const analyze = async () => {
         await (0, exec_1.exec)("npm run lint:lit-analyzer", [], {
             listeners: {
                 stdout: (data) => {
-                    litAnalyzeOut += data;
+                    litAnalyzeOut += data.toString();
                 },
                 stderr: (data) => {
-                    litAnalyzeErr += data;
+                    litAnalyzeErr += data.toString();
                 },
             },
         });
@@ -32061,9 +32061,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 /**
  * The entrypoint for the action.
  */
-const main_js_1 = __nccwpck_require__(1730);
+const main_1 = __nccwpck_require__(1730);
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
-(0, main_js_1.run)();
+(0, main_1.run)();
 
 })();
 
