@@ -25,6 +25,7 @@
     "node": ">=21"
   },
   "scripts": {
+    "setup": "npm ci && npm run bundle",
     "analyze": "cem analyze",
     "bundle": "npm run format:write && npm run package",
     "ci-test": "npx jest",
@@ -76,7 +77,8 @@
     "@actions/github": "^6.0.0",
     "actions-toolkit": "^6.0.1",
     "minimist": "^1.2.8",
-    "parse-lcov": "^1.0.4"
+    "parse-lcov": "^1.0.4",
+    "undici-types": "^7.1.0"
   },
   "devDependencies": {
     "@custom-elements-manifest/analyzer": "^0.10.3",

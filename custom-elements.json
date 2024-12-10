@@ -1,0 +1,206 @@
+{
+  "schemaVersion": "1.0.0",
+  "readme": "",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "dist/index.js",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "dist/sourcemap-register.js",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/index.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/main.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "run",
+          "return": {
+            "type": {
+              "text": "Promise<void>"
+            }
+          },
+          "description": "The main function for the action."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "run",
+          "declaration": {
+            "name": "run",
+            "module": "src/main.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "coverage/lcov-report/block-navigation.js",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "coverage/lcov-report/prettify.js",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "coverage/lcov-report/sorter.js",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/scripts/analyze.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "analyze",
+          "return": {
+            "type": {
+              "text": "Promise<stepResponse>"
+            }
+          }
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "analyze",
+          "declaration": {
+            "name": "analyze",
+            "module": "src/scripts/analyze.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/scripts/comment.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "comment",
+          "return": {
+            "type": {
+              "text": "Promise<stepResponse>"
+            }
+          },
+          "parameters": [
+            {
+              "name": "ocotokit",
+              "type": {
+                "text": "ReturnType<typeof getOctokit>"
+              }
+            },
+            {
+              "name": "context",
+              "type": {
+                "text": "Context"
+              }
+            },
+            {
+              "name": "analyzeStr",
+              "type": {
+                "text": "stepResponse | undefined"
+              }
+            },
+            {
+              "name": "runCodeFormattingStr",
+              "type": {
+                "text": "stepResponse | undefined"
+              }
+            },
+            {
+              "name": "testingStr",
+              "type": {
+                "text": "stepResponse | undefined"
+              }
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "comment",
+          "declaration": {
+            "name": "comment",
+            "module": "src/scripts/comment.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/scripts/coverage.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/scripts/formatting.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "formatting",
+          "return": {
+            "type": {
+              "text": "Promise<stepResponse>"
+            }
+          }
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "formatting",
+          "declaration": {
+            "name": "formatting",
+            "module": "src/scripts/formatting.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/scripts/testing.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "testing",
+          "return": {
+            "type": {
+              "text": "Promise<stepResponse>"
+            }
+          }
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "testing",
+          "declaration": {
+            "name": "testing",
+            "module": "src/scripts/testing.ts"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -5,14 +5,14 @@ import { stepResponse } from "src/main";
 export const analyze = async (): Promise<stepResponse> => {
   try {
     // Run custom elements manifest analyzer
-    let cemAnalyzeOut: string = "";
-    let cemAnalyzeErr: string = "";
+    let cemAnalyzeOut = "";
+    let cemAnalyzeErr = "";
     await exec("npm run analyze", [], {
       listeners: {
-        stdout: (data: Buffer) => {
+        stdout: (data) => {
           cemAnalyzeOut += data.toString();
         },
-        stderr: (data: Buffer) => {
+        stderr: (data) => {
           cemAnalyzeErr += data.toString();
         },
       },
@@ -22,14 +22,14 @@ export const analyze = async (): Promise<stepResponse> => {
     debug(`cemAnlyzeErr START\n${cemAnalyzeErr}\n\ncemAnalyzeErr END`);
 
     // Run eslint
-    let eslintOut: string = "";
-    let eslintErr: string = "";
+    let eslintOut = "";
+    let eslintErr = "";
     await exec("npm run lint", [], {
       listeners: {
-        stdout: (data: Buffer) => {
+        stdout: (data) => {
           eslintOut += data.toString();
         },
-        stderr: (data: Buffer) => {
+        stderr: (data) => {
           eslintErr += data.toString();
         },
       },
@@ -39,14 +39,14 @@ export const analyze = async (): Promise<stepResponse> => {
     debug(`eslintErr START\n${eslintErr}\n\neslintErr END`);
 
     // Run lit-analyzer
-    let litAnalyzeOut: string = "";
-    let litAnalyzeErr: string = "";
+    let litAnalyzeOut = "";
+    let litAnalyzeErr = "";
     await exec("npm run lint:lit-analyzer", [], {
       listeners: {
-        stdout: (data: Buffer) => {
+        stdout: (data) => {
           litAnalyzeOut += data.toString();
         },
-        stderr: (data: Buffer) => {
+        stderr: (data) => {
           litAnalyzeErr += data.toString();
         },
       },
@@ -56,7 +56,7 @@ export const analyze = async (): Promise<stepResponse> => {
     debug(`litAnalyzeErr START\n${litAnalyzeErr}\n\nlitAnalyzeErr END`);
 
     return { output: "Static analysis complete", error: false };
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof Error) setFailed(error.message);
     return { output: "Static analysis failed", error: true };
   }

@@ -5,6 +5,7 @@ import { analyze } from "./scripts/analyze";
 import { formatting } from "./scripts/formatting";
 import { testing } from "./scripts/testing";
 import { comment } from "./scripts/comment";
+import { cwd, chdir } from "process";
 // import { coverage } from './scripts/coverage'
 // import minimist from "minimist";
 
@@ -20,26 +21,37 @@ export async function run(): Promise<void> {
 
   try {
     await exec("npm ci");
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof Error) setFailed(error.message);
   }
 
   try {
-    const workingDirectory: string = getInput("working-directory");
+    const workingDirectory = getInput("working-directory");
     // Check if the working directory is different from the current directory
-    if (workingDirectory && workingDirectory !== process.cwd()) {
-      process.chdir(workingDirectory);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const currentDirectory = cwd();
+    if (workingDirectory && workingDirectory !== currentDirectory) {
+      chdir(workingDirectory);
     }
 
-    // const token: string = process.env.GITHUB_TOKEN;
-    const token: string = getInput("token");
+    const isLocal = true;
+    let token = "";
+    if (process.env.GITHUB_TOKEN) {
+      token = isLocal ? process.env.GITHUB_TOKEN : getInput("token");
+    }
     const octokit = getOctokit(token);
-    const runStaticAnalysis: boolean = getBooleanInput("run-static-analysis");
-    const runCodeFormatting: boolean = getBooleanInput("run-code-formatting");
-    const runTests: boolean = getBooleanInput("run-tests");
+    const runStaticAnalysis: boolean = isLocal
+      ? true
+      : getBooleanInput("run-static-analysis");
+    const runCodeFormatting: boolean = isLocal
+      ? true
+      : getBooleanInput("run-code-formatting");
+    const runTests: boolean = isLocal ? true : getBooleanInput("run-tests");
     // const runCoverage: boolean = getBooleanInput('run-coverage');
     // const coveragePassScore: string = getInput('coverage-pass-score');
-    const createComment: boolean = getBooleanInput("create-comment");
+    const createComment: boolean = isLocal
+      ? true
+      : getBooleanInput("create-comment");
 
     // runStaticAnalysis
     const analyzeStr: stepResponse | undefined = runStaticAnalysis
@@ -63,7 +75,13 @@ export async function run(): Promise<void> {
 
     // createComment
     if (createComment) {
-      comment(octokit, context, analyzeStr, runCodeFormattingStr, testingStr);
+      await comment(
+        octokit,
+        context,
+        analyzeStr,
+        runCodeFormattingStr,
+        testingStr,
+      );
     }
   } catch (error) {
     // Fail the workflow run if an error occurs
