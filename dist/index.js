@@ -29937,8 +29937,11 @@ async function run() {
         }
         const isLocal = false;
         let token = "";
-        if (process.env.GITHUB_TOKEN) {
-            token = isLocal ? process.env.GITHUB_TOKEN : (0, core_1.getInput)("token");
+        if (process.env.GITHUB_TOKEN && isLocal) {
+            token = process.env.GITHUB_TOKEN;
+        }
+        else {
+            token = (0, core_1.getInput)("token");
         }
         const octokit = (0, github_1.getOctokit)(token);
         const runStaticAnalysis = isLocal

@@ -36,8 +36,10 @@ export async function run(): Promise<void> {
 
     const isLocal = false;
     let token = "";
-    if (process.env.GITHUB_TOKEN) {
-      token = isLocal ? process.env.GITHUB_TOKEN : getInput("token");
+    if (process.env.GITHUB_TOKEN && isLocal) {
+      token = process.env.GITHUB_TOKEN;
+    } else {
+      token = getInput("token");
     }
     const octokit = getOctokit(token);
     const runStaticAnalysis: boolean = isLocal
