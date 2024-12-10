@@ -34,7 +34,7 @@ export async function run(): Promise<void> {
       chdir(workingDirectory);
     }
 
-    const isLocal = true;
+    const isLocal = false;
     let token = "";
     if (process.env.GITHUB_TOKEN) {
       token = isLocal ? process.env.GITHUB_TOKEN : getInput("token");
