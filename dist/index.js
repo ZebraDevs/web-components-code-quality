@@ -30308,7 +30308,7 @@ const analyze = async () => {
     for (const { label, command } of results) {
         const result = await (0, main_1.runCommand)(command, label);
         if (result) {
-            commentBody += `${main_1.failedEmoji} - ${label}\n`;
+            commentBody += `${main_1.failedEmoji} <details><summary>${label}</summary>${result}</details>\n`;
             errorMessages += `${result}\n`;
         }
         else {
@@ -30340,7 +30340,7 @@ const comment = async (ocotokit, context, analyzeStr, codeFormattingStr, testing
     try {
         const commentBody = `
 ## PR Checks Complete\n
-${analyzeStr?.output}\n
+${analyzeStr?.output}
 ${codeFormattingStr?.output}
 ${testingStr?.output}`;
         //    ## Coverage = ${coverageStr?.output}\n`

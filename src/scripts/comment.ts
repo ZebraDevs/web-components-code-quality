@@ -13,7 +13,7 @@ export const comment = async (
   try {
     const commentBody = `
 ## PR Checks Complete\n
-${analyzeStr?.output}\n
+${analyzeStr?.output}
 ${codeFormattingStr?.output}
 ${testingStr?.output}`;
     //    ## Coverage = ${coverageStr?.output}\n`
