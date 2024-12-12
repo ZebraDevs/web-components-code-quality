@@ -7,7 +7,7 @@ export const testing = async (): Promise<stepResponse> => {
     { label: "TSDoc", command: "npm run docs" },
   ];
 
-  let [commentBody, errorMessages] = await buildComment(commands);
+  const [commentBody, errorMessages] = await buildComment(commands);
 
   if (errorMessages) {
     setFailed(errorMessages.trim());

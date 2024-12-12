@@ -4,7 +4,7 @@ import { stepResponse, buildComment } from "src/main";
 export const formatting = async (): Promise<stepResponse> => {
   const commands = [{ label: "Prettier", command: "npm run prettier" }];
 
-  let [commentBody, errorMessages] = await buildComment(commands);
+  const [commentBody, errorMessages] = await buildComment(commands);
 
   if (errorMessages) {
     setFailed(errorMessages.trim());

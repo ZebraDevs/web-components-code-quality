@@ -30327,7 +30327,7 @@ const analyze = async () => {
         { label: "ESLint", command: "npm run lint" },
         { label: "Lit Analyzer", command: "npm run lint:lit-analyzer" },
     ];
-    let [commentBody, errorMessages] = await (0, main_1.buildComment)(commands);
+    const [commentBody, errorMessages] = await (0, main_1.buildComment)(commands);
     if (errorMessages) {
         (0, core_1.setFailed)(errorMessages.trim());
         return { output: commentBody.trim(), error: true };
@@ -30407,7 +30407,7 @@ const core_1 = __nccwpck_require__(7484);
 const main_1 = __nccwpck_require__(1730);
 const formatting = async () => {
     const commands = [{ label: "Prettier", command: "npm run prettier" }];
-    let [commentBody, errorMessages] = await (0, main_1.buildComment)(commands);
+    const [commentBody, errorMessages] = await (0, main_1.buildComment)(commands);
     if (errorMessages) {
         (0, core_1.setFailed)(errorMessages.trim());
         return { output: commentBody.trim(), error: true };
@@ -30435,7 +30435,7 @@ const testing = async () => {
         { label: "Testing", command: "npm run test -- --coverage" },
         { label: "TSDoc", command: "npm run docs" },
     ];
-    let [commentBody, errorMessages] = await (0, main_1.buildComment)(commands);
+    const [commentBody, errorMessages] = await (0, main_1.buildComment)(commands);
     if (errorMessages) {
         (0, core_1.setFailed)(errorMessages.trim());
         return { output: commentBody.trim(), error: true };

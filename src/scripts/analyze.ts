@@ -8,7 +8,7 @@ export const analyze = async (): Promise<stepResponse> => {
     { label: "Lit Analyzer", command: "npm run lint:lit-analyzer" },
   ];
 
-  let [commentBody, errorMessages] = await buildComment(commands);
+  const [commentBody, errorMessages] = await buildComment(commands);
 
   if (errorMessages) {
     setFailed(errorMessages.trim());
