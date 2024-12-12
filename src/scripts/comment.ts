@@ -7,14 +7,14 @@ export const comment = async (
   ocotokit: ReturnType<typeof getOctokit>,
   context: Context,
   analyzeStr: stepResponse | undefined,
-  runCodeFormattingStr: stepResponse | undefined,
+  codeFormattingStr: stepResponse | undefined,
   testingStr: stepResponse | undefined,
 ): Promise<stepResponse> => {
   try {
     const commentBody = `
     ## PR Checks Complete\n
     ${analyzeStr?.output}\n
-    ${runCodeFormattingStr?.output}\n
+    ${codeFormattingStr?.output}\n
     ${testingStr?.output}\n`;
     //    ## Coverage = ${coverageStr?.output}\n`
 

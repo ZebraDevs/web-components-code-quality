@@ -103,3 +103,5 @@ __tests__/runner/*
 
 # TS Docs
 docs
+
+.vscode

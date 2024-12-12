@@ -7,7 +7,7 @@ import { testing } from "./scripts/testing";
 import { comment } from "./scripts/comment";
 import { cwd, chdir } from "process";
 // import { coverage } from './scripts/coverage'
-// import minimist from "minimist";
+import minimist from "minimist";
 
 export type stepResponse = { output: string; error: boolean };
 export const failedEmoji = "❌";
@@ -18,8 +18,10 @@ export const passedEmoji = "✅";
  * @returns {Promise<void>} Resolves when the action is complete.
  */
 export async function run(): Promise<void> {
-  // const argv = minimist(process.argv);
-  // console.log("ARGV MINIMIST!!!", argv);
+  const argv = minimist(process.argv.slice(2));
+
+  const isLocal =
+    argv._.findLast((x: string) => x == "--local") == "--local" ? true : false;
 
   try {
     await exec("npm ci");
@@ -30,13 +32,12 @@ export async function run(): Promise<void> {
   try {
     const workingDirectory = getInput("working-directory");
     // Check if the working directory is different from the current directory
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const currentDirectory = cwd();
     if (workingDirectory && workingDirectory !== currentDirectory) {
       chdir(workingDirectory);
     }
 
-    const isLocal = true;
+    // get token and octokit
     let token = "";
     if (process.env.GITHUB_TOKEN && isLocal) {
       token = process.env.GITHUB_TOKEN;
@@ -44,31 +45,39 @@ export async function run(): Promise<void> {
       token = getInput("token");
     }
     const octokit = getOctokit(token);
-    const runStaticAnalysis: boolean = isLocal
+
+    // get static analysis input
+    const doStaticAnalysis: boolean = isLocal
       ? true
       : getBooleanInput("run-static-analysis");
-    const runCodeFormatting: boolean = isLocal
+
+    // get code formatting input
+    const doCodeFormatting: boolean = isLocal
       ? true
       : getBooleanInput("run-code-formatting");
-    const runTests: boolean = isLocal ? true : getBooleanInput("run-tests");
+
+    // get tests input
+    const doTests: boolean = isLocal ? true : getBooleanInput("run-tests");
+
     // const runCoverage: boolean = getBooleanInput('run-coverage');
     // const coveragePassScore: string = getInput('coverage-pass-score');
+
     const createComment: boolean = isLocal
       ? true
       : getBooleanInput("create-comment");
 
-    // runStaticAnalysis
-    const analyzeStr: stepResponse | undefined = runStaticAnalysis
+    // run Static Analysis
+    const analyzeStr: stepResponse | undefined = doStaticAnalysis
       ? await analyze()
       : undefined;
 
-    // runCodeFormatting
-    const runCodeFormattingStr: stepResponse | undefined = runCodeFormatting
+    // run Code Formatting
+    const codeFormattingStr: stepResponse | undefined = doCodeFormatting
       ? await formatting()
       : undefined;
 
-    // runTests
-    const testingStr: stepResponse | undefined = runTests
+    // run Tests
+    const testingStr: stepResponse | undefined = doTests
       ? await testing()
       : undefined;
 
@@ -83,7 +92,7 @@ export async function run(): Promise<void> {
         octokit,
         context,
         analyzeStr,
-        runCodeFormattingStr,
+        codeFormattingStr,
         testingStr,
       );
     }
