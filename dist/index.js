@@ -30315,12 +30315,12 @@ const analyze = async () => {
     for (const { label, command } of results) {
         const result = await (0, main_1.runCommand)(command, label);
         if (result) {
-            commentBody += `${main_1.failedEmoji} - ${label}
-<details><summary>See details</summary>${result}</details>\n`;
+            commentBody += `<li>${main_1.failedEmoji} - ${label}
+<details><summary>See details</summary>${result}</details></li>`;
             errorMessages += `${result}\n`;
         }
         else {
-            commentBody += `${main_1.passedEmoji} - ${label}\n`;
+            commentBody += `<li>${main_1.passedEmoji} - ${label}\n</li>`;
         }
     }
     if (errorMessages) {
@@ -30348,9 +30348,11 @@ const comment = async (ocotokit, context, analyzeStr, codeFormattingStr, testing
     try {
         const commentBody = `
 ## PR Checks Complete\n
+<ul>
 ${analyzeStr?.output}
 ${codeFormattingStr?.output}
-${testingStr?.output}`;
+${testingStr?.output}
+</ul>`;
         //    ## Coverage = ${coverageStr?.output}\n`
         const { data: comments } = await ocotokit.rest.issues.listComments({
             issue_number: context.issue.number,
@@ -30401,12 +30403,12 @@ const formatting = async () => {
     try {
         // Run prettier
         await (0, exec_1.exec)("npm run prettier");
-        return { output: `${main_1.passedEmoji} - Formatting`, error: false };
+        return { output: `<li>${main_1.passedEmoji} - Formatting</li>`, error: false };
     }
     catch (error) {
         if (error instanceof Error)
             (0, core_1.setFailed)(error.message);
-        return { output: `${main_1.failedEmoji} - Formatting`, error: true };
+        return { output: `<li>${main_1.failedEmoji} - Formatting</li>`, error: true };
     }
 };
 exports.formatting = formatting;
@@ -30433,11 +30435,11 @@ const testing = async () => {
     for (const { label, command } of results) {
         const result = await (0, main_1.runCommand)(command, label);
         if (result) {
-            commentBody += `${main_1.failedEmoji} - ${label}\n`;
+            commentBody += `<li>${main_1.failedEmoji} - ${label}</li>`;
             errorMessages += `${result}\n`;
         }
         else {
-            commentBody += `${main_1.passedEmoji} - ${label}\n`;
+            commentBody += `<li>${main_1.passedEmoji} - ${label}</li>`;
         }
     }
     if (errorMessages) {

@@ -14,10 +14,10 @@ export const testing = async (): Promise<stepResponse> => {
   for (const { label, command } of results) {
     const result = await runCommand(command, label);
     if (result) {
-      commentBody += `${failedEmoji} - ${label}\n`;
+      commentBody += `<li>${failedEmoji} - ${label}</li>`;
       errorMessages += `${result}\n`;
     } else {
-      commentBody += `${passedEmoji} - ${label}\n`;
+      commentBody += `<li>${passedEmoji} - ${label}</li>`;
     }
   }
 

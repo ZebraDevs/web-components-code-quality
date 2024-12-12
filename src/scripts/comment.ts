@@ -13,9 +13,11 @@ export const comment = async (
   try {
     const commentBody = `
 ## PR Checks Complete\n
+<ul>
 ${analyzeStr?.output}
 ${codeFormattingStr?.output}
-${testingStr?.output}`;
+${testingStr?.output}
+</ul>`;
     //    ## Coverage = ${coverageStr?.output}\n`
 
     const { data: comments } = await ocotokit.rest.issues.listComments({

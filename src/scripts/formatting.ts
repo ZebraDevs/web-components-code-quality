@@ -7,9 +7,9 @@ export const formatting = async (): Promise<stepResponse> => {
     // Run prettier
     await exec("npm run prettier");
 
-    return { output: `${passedEmoji} - Formatting`, error: false };
+    return { output: `<li>${passedEmoji} - Formatting</li>`, error: false };
   } catch (error) {
     if (error instanceof Error) setFailed(error.message);
-    return { output: `${failedEmoji} - Formatting`, error: true };
+    return { output: `<li>${failedEmoji} - Formatting</li>`, error: true };
   }
 };
