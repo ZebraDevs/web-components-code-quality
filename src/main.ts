@@ -1,4 +1,4 @@
-import { getBooleanInput, getInput, setFailed } from "@actions/core";
+import { getBooleanInput, getInput, setFailed, debug } from "@actions/core";
 import { exec } from "@actions/exec";
 import { getOctokit, context } from "@actions/github";
 import { analyze } from "./scripts/analyze";
@@ -12,6 +12,26 @@ import minimist from "minimist";
 export type stepResponse = { output: string; error: boolean };
 export const failedEmoji = "❌";
 export const passedEmoji = "✅";
+
+export const runCommand = async (
+  command: string,
+  label: string,
+): Promise<string | boolean> => {
+  try {
+    await exec(command);
+    return false;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      debug(`${label} failed: ${error.message}`);
+      return error.message;
+    } else if (typeof error === "string") {
+      debug(`${label} failed: ${error}`);
+      return error;
+    } else {
+      return true;
+    }
+  }
+};
 
 /**
  * The main function for the action.

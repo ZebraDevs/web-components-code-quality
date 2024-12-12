@@ -1,26 +1,5 @@
-import { exec } from "@actions/exec";
-import { setFailed, debug } from "@actions/core";
-import { stepResponse, failedEmoji, passedEmoji } from "src/main";
-
-const runCommand = async (
-  command: string,
-  label: string,
-): Promise<string | boolean> => {
-  try {
-    await exec(command);
-    return false;
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      debug(`${label} failed: ${error.message}`);
-      return error.message;
-    } else if (typeof error === "string") {
-      debug(`${label} failed: ${error}`);
-      return error;
-    } else {
-      return true;
-    }
-  }
-};
+import { setFailed } from "@actions/core";
+import { stepResponse, failedEmoji, passedEmoji, runCommand } from "src/main";
 
 export const analyze = async (): Promise<stepResponse> => {
   const results = [

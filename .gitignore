@@ -104,4 +104,5 @@ __tests__/runner/*
 # TS Docs
 docs
 
+# VSCode
 .vscode

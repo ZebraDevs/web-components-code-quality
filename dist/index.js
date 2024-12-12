@@ -30178,7 +30178,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.passedEmoji = exports.failedEmoji = void 0;
+exports.runCommand = exports.passedEmoji = exports.failedEmoji = void 0;
 exports.run = run;
 const core_1 = __nccwpck_require__(7484);
 const exec_1 = __nccwpck_require__(5236);
@@ -30192,6 +30192,26 @@ const process_1 = __nccwpck_require__(932);
 const minimist_1 = __importDefault(__nccwpck_require__(994));
 exports.failedEmoji = "❌";
 exports.passedEmoji = "✅";
+const runCommand = async (command, label) => {
+    try {
+        await (0, exec_1.exec)(command);
+        return false;
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            (0, core_1.debug)(`${label} failed: ${error.message}`);
+            return error.message;
+        }
+        else if (typeof error === "string") {
+            (0, core_1.debug)(`${label} failed: ${error}`);
+            return error;
+        }
+        else {
+            return true;
+        }
+    }
+};
+exports.runCommand = runCommand;
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
@@ -30275,28 +30295,8 @@ async function run() {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.analyze = void 0;
-const exec_1 = __nccwpck_require__(5236);
 const core_1 = __nccwpck_require__(7484);
 const main_1 = __nccwpck_require__(1730);
-const runCommand = async (command, label) => {
-    try {
-        await (0, exec_1.exec)(command);
-        return false;
-    }
-    catch (error) {
-        if (error instanceof Error) {
-            (0, core_1.debug)(`${label} failed: ${error.message}`);
-            return error.message;
-        }
-        else if (typeof error === "string") {
-            (0, core_1.debug)(`${label} failed: ${error}`);
-            return error;
-        }
-        else {
-            return true;
-        }
-    }
-};
 const analyze = async () => {
     const results = [
         { label: "Custom Elements Manifest Analyzer", command: "npm run analyze" },
@@ -30306,7 +30306,7 @@ const analyze = async () => {
     let commentBody = "\n";
     let errorMessages = "";
     for (const { label, command } of results) {
-        const result = await runCommand(command, label);
+        const result = await (0, main_1.runCommand)(command, label);
         if (result) {
             commentBody += `${main_1.failedEmoji} - ${label}\n`;
             errorMessages += `${result}\n`;
@@ -30397,20 +30397,31 @@ exports.formatting = formatting;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.testing = void 0;
-const exec_1 = __nccwpck_require__(5236);
 const core_1 = __nccwpck_require__(7484);
+const main_1 = __nccwpck_require__(1730);
 const testing = async () => {
-    try {
-        // Run tests and generate coverage
-        await (0, exec_1.exec)("npm run test -- --coverage");
-        // Test tsdoc
-        await (0, exec_1.exec)("npm run docs");
-        return { output: "Testing complete", error: false };
+    const results = [
+        { label: "Testing", command: "npm run test -- --coverage" },
+        { label: "TSDoc", command: "npm run docs" },
+    ];
+    let commentBody = "\n";
+    let errorMessages = "";
+    for (const { label, command } of results) {
+        const result = await (0, main_1.runCommand)(command, label);
+        if (result) {
+            commentBody += `${main_1.failedEmoji} - ${label}\n`;
+            errorMessages += `${result}\n`;
+        }
+        else {
+            commentBody += `${main_1.passedEmoji} - ${label}\n`;
+        }
     }
-    catch (error) {
-        if (error instanceof Error)
-            (0, core_1.setFailed)(error.message);
-        return { output: "Testing failed", error: true };
+    if (errorMessages) {
+        (0, core_1.setFailed)(errorMessages.trim());
+        return { output: commentBody.trim(), error: true };
+    }
+    else {
+        return { output: commentBody.trim(), error: false };
     }
 };
 exports.testing = testing;
