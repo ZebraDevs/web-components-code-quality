@@ -14,7 +14,7 @@ export const testing = async (): Promise<stepResponse> => {
     const result = await runCommand(command, label);
     if (result) {
       commentBody += `<li>${failedEmoji} - ${label}</li>`;
-      errorMessages += `${result}\n`;
+      errorMessages += `${result}`;
     } else {
       commentBody += `<li>${passedEmoji} - ${label}</li>`;
     }
