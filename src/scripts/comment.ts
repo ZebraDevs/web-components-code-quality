@@ -11,9 +11,11 @@ export const comment = async (
   testingStr: stepResponse | undefined,
 ): Promise<stepResponse> => {
   try {
-    const commentBody = `## Static Analysis = ${analyzeStr?.output}\n
-    ## Code Formatting = ${runCodeFormattingStr?.output}\n
-    ## Testing = ${testingStr?.output}\n`;
+    const commentBody = `
+    ## PR Checks Complete\n
+    ${analyzeStr?.output}\n
+    ${runCodeFormattingStr?.output}\n
+    ${testingStr?.output}\n`;
     //    ## Coverage = ${coverageStr?.output}\n`
 
     await ocotokit.rest.issues.createComment({
@@ -22,9 +24,9 @@ export const comment = async (
       repo: context.repo.repo,
       body: commentBody,
     });
-    return { output: "RETURN COVERAGE", error: false };
+    return { output: "Comment successful", error: false };
   } catch (error) {
     if (error instanceof Error) setFailed(error.message);
-    return { output: "Coverage failed", error: true };
+    return { output: "Comment failed", error: true };
   }
 };

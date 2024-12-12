@@ -10,6 +10,8 @@ import { cwd, chdir } from "process";
 // import minimist from "minimist";
 
 export type stepResponse = { output: string; error: boolean };
+export const failedEmoji = "❌";
+export const passedEmoji = "✅";
 
 /**
  * The main function for the action.
@@ -34,7 +36,7 @@ export async function run(): Promise<void> {
       chdir(workingDirectory);
     }
 
-    const isLocal = false;
+    const isLocal = true;
     let token = "";
     if (process.env.GITHUB_TOKEN && isLocal) {
       token = process.env.GITHUB_TOKEN;

@@ -29935,7 +29935,7 @@ async function run() {
         if (workingDirectory && workingDirectory !== currentDirectory) {
             (0, process_1.chdir)(workingDirectory);
         }
-        const isLocal = false;
+        const isLocal = true;
         let token = "";
         if (process.env.GITHUB_TOKEN && isLocal) {
             token = process.env.GITHUB_TOKEN;
@@ -29996,7 +29996,12 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.analyze = void 0;
 const exec_1 = __nccwpck_require__(5236);
 const core_1 = __nccwpck_require__(7484);
+const failedEmoji = "❌";
+const passedEmoji = "✅";
 const analyze = async () => {
+    let commentBody = `
+  
+  `;
     try {
         // Run custom elements manifest analyzer
         let cemAnalyzeOut = "";
@@ -30011,8 +30016,8 @@ const analyze = async () => {
                 },
             },
         });
-        (0, core_1.debug)(`cemAnlyzeOut START\n${cemAnalyzeOut}\n\ncemAnalyzeOut END`);
-        (0, core_1.debug)(`cemAnlyzeErr START\n${cemAnalyzeErr}\n\ncemAnalyzeErr END`);
+        (0, core_1.debug)(`cemAnlyzeOut START\n${cemAnalyzeOut}\ncemAnalyzeOut END`);
+        (0, core_1.debug)(`cemAnlyzeErr START\n${cemAnalyzeErr}\ncemAnalyzeErr END`);
         // Run eslint
         let eslintOut = "";
         let eslintErr = "";
@@ -30026,8 +30031,8 @@ const analyze = async () => {
                 },
             },
         });
-        (0, core_1.debug)(`eslintOut START\n${eslintOut}\n\neslintOut END`);
-        (0, core_1.debug)(`eslintErr START\n${eslintErr}\n\neslintErr END`);
+        (0, core_1.debug)(`eslintOut START\n${eslintOut}\neslintOut END`);
+        (0, core_1.debug)(`eslintErr START\n${eslintErr}\neslintErr END`);
         // Run lit-analyzer
         let litAnalyzeOut = "";
         let litAnalyzeErr = "";
@@ -30041,9 +30046,13 @@ const analyze = async () => {
                 },
             },
         });
-        (0, core_1.debug)(`litAnalyzeOut START\n${litAnalyzeOut}\n\nlitAnalyzeOut END`);
-        (0, core_1.debug)(`litAnalyzeErr START\n${litAnalyzeErr}\n\nlitAnalyzeErr END`);
-        return { output: "Static analysis complete", error: false };
+        if (litAnalyzeOut.includes("Found 0 problems")) {
+            commentBody += `${passedEmoji} - Lit Analyzer\n
+      `;
+        }
+        (0, core_1.debug)(`litAnalyzeOut START\n${litAnalyzeOut}\nlitAnalyzeOut END`);
+        (0, core_1.debug)(`litAnalyzeErr START\n${litAnalyzeErr}\nlitAnalyzeErr END`);
+        return { output: commentBody, error: false };
     }
     catch (error) {
         if (error instanceof Error)
@@ -30066,9 +30075,11 @@ exports.comment = void 0;
 const core_1 = __nccwpck_require__(7484);
 const comment = async (ocotokit, context, analyzeStr, runCodeFormattingStr, testingStr) => {
     try {
-        const commentBody = `## Static Analysis = ${analyzeStr?.output}\n
-    ## Code Formatting = ${runCodeFormattingStr?.output}\n
-    ## Testing = ${testingStr?.output}\n`;
+        const commentBody = `
+    ## PR Checks Complete\n
+    ${analyzeStr?.output}\n
+    ${runCodeFormattingStr?.output}\n
+    ${testingStr?.output}\n`;
         //    ## Coverage = ${coverageStr?.output}\n`
         await ocotokit.rest.issues.createComment({
             issue_number: context.issue.number,
@@ -30076,12 +30087,12 @@ const comment = async (ocotokit, context, analyzeStr, runCodeFormattingStr, test
             repo: context.repo.repo,
             body: commentBody,
         });
-        return { output: "RETURN COVERAGE", error: false };
+        return { output: "Comment successful", error: false };
     }
     catch (error) {
         if (error instanceof Error)
             (0, core_1.setFailed)(error.message);
-        return { output: "Coverage failed", error: true };
+        return { output: "Comment failed", error: true };
     }
 };
 exports.comment = comment;
