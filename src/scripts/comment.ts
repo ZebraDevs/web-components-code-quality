@@ -14,16 +14,33 @@ export const comment = async (
     const commentBody = `
 ## PR Checks Complete\n
 ${analyzeStr?.output}\n
-${codeFormattingStr?.output}\n
-${testingStr?.output}\n`;
+${codeFormattingStr?.output}
+${testingStr?.output}`;
     //    ## Coverage = ${coverageStr?.output}\n`
 
-    await ocotokit.rest.issues.createComment({
+    const { data: comments } = await ocotokit.rest.issues.listComments({
       issue_number: context.issue.number,
       owner: context.repo.owner,
       repo: context.repo.repo,
-      body: commentBody,
     });
+    const comment = comments.find((comment) =>
+      comment.body!.includes("PR Checks Complete"),
+    );
+    if (comment) {
+      await ocotokit.rest.issues.updateComment({
+        comment_id: comment.id,
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        body: commentBody,
+      });
+    } else {
+      await ocotokit.rest.issues.createComment({
+        issue_number: context.issue.number,
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        body: commentBody,
+      });
+    }
     return { output: "Comment successful", error: false };
   } catch (error) {
     if (error instanceof Error) setFailed(error.message);
