@@ -5,7 +5,7 @@ import { analyze } from "./scripts/analyze";
 import { formatting } from "./scripts/formatting";
 import { testing } from "./scripts/testing";
 import { comment } from "./scripts/comment";
-import { cwd, chdir, listeners } from "process";
+import { cwd, chdir } from "process";
 // import { coverage } from './scripts/coverage'
 import minimist from "minimist";
 

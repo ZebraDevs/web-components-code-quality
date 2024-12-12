@@ -1,4 +1,3 @@
-import { exec } from "@actions/exec";
 import { setFailed } from "@actions/core";
 import { stepResponse, failedEmoji, passedEmoji, runCommand } from "src/main";
 

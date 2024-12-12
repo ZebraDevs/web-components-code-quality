@@ -25,9 +25,9 @@ ${testingStr?.output}
       owner: context.repo.owner,
       repo: context.repo.repo,
     });
-    const comment = comments.find((comment) =>
-      comment.body!.includes("PR Checks Complete"),
-    );
+    const comment = comments.find((comment) => {
+      if (comment.body) comment.body.includes("PR Checks Complete");
+    });
     if (comment) {
       await ocotokit.rest.issues.updateComment({
         comment_id: comment.id,
