@@ -30360,8 +30360,7 @@ ${testingStr?.output}
             repo: context.repo.repo,
         });
         const comment = comments.find((comment) => {
-            if (comment.body != undefined)
-                comment.body.includes("PR Checks Complete");
+            comment.body?.includes("PR Checks Complete");
         });
         if (comment) {
             await ocotokit.rest.issues.updateComment({
