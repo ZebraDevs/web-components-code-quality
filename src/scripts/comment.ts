@@ -12,10 +12,10 @@ export const comment = async (
 ): Promise<stepResponse> => {
   try {
     const commentBody = `
-    ## PR Checks Complete\n
-    ${analyzeStr?.output}\n
-    ${codeFormattingStr?.output}\n
-    ${testingStr?.output}\n`;
+## PR Checks Complete\n
+${analyzeStr?.output}\n
+${codeFormattingStr?.output}\n
+${testingStr?.output}\n`;
     //    ## Coverage = ${coverageStr?.output}\n`
 
     await ocotokit.rest.issues.createComment({

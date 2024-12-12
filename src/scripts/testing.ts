@@ -5,7 +5,7 @@ import { stepResponse } from "src/main";
 export const testing = async (): Promise<stepResponse> => {
   try {
     // Run tests and generate coverage
-    await exec("npm run test -- --coverage --debug");
+    await exec("npm run test -- --coverage");
 
     // Test tsdoc
     await exec("npm run docs");

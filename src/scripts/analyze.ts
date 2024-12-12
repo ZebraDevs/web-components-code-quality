@@ -13,8 +13,12 @@ const runCommand = async (
     if (error instanceof Error) {
       debug(`${label} failed: ${error.message}`);
       return error.message;
+    } else if (typeof error === "string") {
+      debug(`${label} failed: ${error}`);
+      return error;
+    } else {
+      return true;
     }
-    return true;
   }
 };
 
