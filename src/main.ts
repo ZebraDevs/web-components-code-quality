@@ -5,7 +5,7 @@ import { analyze } from "./scripts/analyze";
 import { formatting } from "./scripts/formatting";
 import { testing } from "./scripts/testing";
 import { comment } from "./scripts/comment";
-import { cwd, chdir } from "process";
+import { cwd, chdir, listeners } from "process";
 // import { coverage } from './scripts/coverage'
 import minimist from "minimist";
 
@@ -17,16 +17,23 @@ export const runCommand = async (
   command: string,
   label: string,
 ): Promise<string | boolean> => {
+  let output = "";
   try {
-    await exec(command);
+    await exec(command, [], {
+      listeners: {
+        stdout: (data) => {
+          output += data.toString();
+        },
+      },
+    });
     return false;
   } catch (error: unknown) {
     if (error instanceof Error) {
       debug(`${label} failed: ${error.message}`);
-      return error.message;
+      return output;
     } else if (typeof error === "string") {
       debug(`${label} failed: ${error}`);
-      return error;
+      return output;
     } else {
       return true;
     }

@@ -30193,18 +30193,25 @@ const minimist_1 = __importDefault(__nccwpck_require__(994));
 exports.failedEmoji = "❌";
 exports.passedEmoji = "✅";
 const runCommand = async (command, label) => {
+    let output = "";
     try {
-        await (0, exec_1.exec)(command);
+        await (0, exec_1.exec)(command, [], {
+            listeners: {
+                stdout: (data) => {
+                    output += data.toString();
+                },
+            },
+        });
         return false;
     }
     catch (error) {
         if (error instanceof Error) {
             (0, core_1.debug)(`${label} failed: ${error.message}`);
-            return error.message;
+            return output;
         }
         else if (typeof error === "string") {
             (0, core_1.debug)(`${label} failed: ${error}`);
-            return error;
+            return output;
         }
         else {
             return true;
