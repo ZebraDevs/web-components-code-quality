@@ -16,7 +16,7 @@ export const analyze = async (): Promise<stepResponse> => {
     if (result) {
       commentBody += `<li>${failedEmoji} - ${label}
 <details><summary>See details</summary>${result}</details></li>`;
-      errorMessages += `${result}\n`;
+      errorMessages += `${result}`;
     } else {
       commentBody += `<li>${passedEmoji} - ${label}\n</li>`;
     }

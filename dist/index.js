@@ -30317,7 +30317,7 @@ const analyze = async () => {
         if (result) {
             commentBody += `<li>${main_1.failedEmoji} - ${label}
 <details><summary>See details</summary>${result}</details></li>`;
-            errorMessages += `${result}\n`;
+            errorMessages += `${result}`;
         }
         else {
             commentBody += `<li>${main_1.passedEmoji} - ${label}\n</li>`;
@@ -30359,7 +30359,10 @@ ${testingStr?.output}
             owner: context.repo.owner,
             repo: context.repo.repo,
         });
-        const comment = comments.find((comment) => comment.body.includes("PR Checks Complete"));
+        const comment = comments.find((comment) => {
+            if (comment.body)
+                comment.body.includes("PR Checks Complete");
+        });
         if (comment) {
             await ocotokit.rest.issues.updateComment({
                 comment_id: comment.id,
