@@ -1,24 +1,13 @@
 import { setFailed } from "@actions/core";
-import { stepResponse, failedEmoji, passedEmoji, runCommand } from "src/main";
+import { stepResponse, buildComment } from "src/main";
 
 export const testing = async (): Promise<stepResponse> => {
-  const results = [
+  const commands = [
     { label: "Testing", command: "npm run test -- --coverage" },
     { label: "TSDoc", command: "npm run docs" },
   ];
 
-  let commentBody = "\n";
-  let errorMessages = "";
-
-  for (const { label, command } of results) {
-    const result = await runCommand(command, label);
-    if (result) {
-      commentBody += `<li>${failedEmoji} - ${label}</li>`;
-      errorMessages += `${result}`;
-    } else {
-      commentBody += `<li>${passedEmoji} - ${label}</li>`;
-    }
-  }
+  let [commentBody, errorMessages] = await buildComment(commands);
 
   if (errorMessages) {
     setFailed(errorMessages.trim());

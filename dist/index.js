@@ -30178,7 +30178,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.runCommand = exports.passedEmoji = exports.failedEmoji = void 0;
+exports.runCommand = exports.buildComment = exports.passedEmoji = exports.failedEmoji = void 0;
 exports.run = run;
 const core_1 = __nccwpck_require__(7484);
 const exec_1 = __nccwpck_require__(5236);
@@ -30192,6 +30192,23 @@ const process_1 = __nccwpck_require__(932);
 const minimist_1 = __importDefault(__nccwpck_require__(994));
 exports.failedEmoji = "❌";
 exports.passedEmoji = "✅";
+const buildComment = async (commands) => {
+    let commentBody = "\n";
+    let errorMessages = "";
+    for (const { label, command } of commands) {
+        const result = await (0, exports.runCommand)(command, label);
+        if (result) {
+            commentBody += `<li>${exports.failedEmoji} - ${label}
+<details><summary>See details</summary>${result}</details></li>`;
+            errorMessages += `${result}`;
+        }
+        else {
+            commentBody += `<li>${exports.passedEmoji} - ${label}\n</li>`;
+        }
+    }
+    return [commentBody, errorMessages];
+};
+exports.buildComment = buildComment;
 const runCommand = async (command, label) => {
     let output = "";
     try {
@@ -30305,24 +30322,12 @@ exports.analyze = void 0;
 const core_1 = __nccwpck_require__(7484);
 const main_1 = __nccwpck_require__(1730);
 const analyze = async () => {
-    const results = [
+    const commands = [
         { label: "Custom Elements Manifest Analyzer", command: "npm run analyze" },
         { label: "ESLint", command: "npm run lint" },
         { label: "Lit Analyzer", command: "npm run lint:lit-analyzer" },
     ];
-    let commentBody = "\n";
-    let errorMessages = "";
-    for (const { label, command } of results) {
-        const result = await (0, main_1.runCommand)(command, label);
-        if (result) {
-            commentBody += `<li>${main_1.failedEmoji} - ${label}
-<details><summary>See details</summary>${result}</details></li>`;
-            errorMessages += `${result}`;
-        }
-        else {
-            commentBody += `<li>${main_1.passedEmoji} - ${label}\n</li>`;
-        }
-    }
+    let [commentBody, errorMessages] = await (0, main_1.buildComment)(commands);
     if (errorMessages) {
         (0, core_1.setFailed)(errorMessages.trim());
         return { output: commentBody.trim(), error: true };
@@ -30398,19 +30403,17 @@ exports.comment = comment;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.formatting = void 0;
-const exec_1 = __nccwpck_require__(5236);
 const core_1 = __nccwpck_require__(7484);
 const main_1 = __nccwpck_require__(1730);
 const formatting = async () => {
-    try {
-        // Run prettier
-        await (0, exec_1.exec)("npm run prettier");
-        return { output: `<li>${main_1.passedEmoji} - Formatting</li>`, error: false };
+    const commands = [{ label: "Prettier", command: "npm run prettier" }];
+    let [commentBody, errorMessages] = await (0, main_1.buildComment)(commands);
+    if (errorMessages) {
+        (0, core_1.setFailed)(errorMessages.trim());
+        return { output: commentBody.trim(), error: true };
     }
-    catch (error) {
-        if (error instanceof Error)
-            (0, core_1.setFailed)(error.message);
-        return { output: `<li>${main_1.failedEmoji} - Formatting</li>`, error: true };
+    else {
+        return { output: commentBody.trim(), error: false };
     }
 };
 exports.formatting = formatting;
@@ -30428,22 +30431,11 @@ exports.testing = void 0;
 const core_1 = __nccwpck_require__(7484);
 const main_1 = __nccwpck_require__(1730);
 const testing = async () => {
-    const results = [
+    const commands = [
         { label: "Testing", command: "npm run test -- --coverage" },
         { label: "TSDoc", command: "npm run docs" },
     ];
-    let commentBody = "\n";
-    let errorMessages = "";
-    for (const { label, command } of results) {
-        const result = await (0, main_1.runCommand)(command, label);
-        if (result) {
-            commentBody += `<li>${main_1.failedEmoji} - ${label}</li>`;
-            errorMessages += `${result}`;
-        }
-        else {
-            commentBody += `<li>${main_1.passedEmoji} - ${label}</li>`;
-        }
-    }
+    let [commentBody, errorMessages] = await (0, main_1.buildComment)(commands);
     if (errorMessages) {
         (0, core_1.setFailed)(errorMessages.trim());
         return { output: commentBody.trim(), error: true };

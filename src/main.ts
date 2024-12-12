@@ -13,6 +13,24 @@ export type stepResponse = { output: string; error: boolean };
 export const failedEmoji = "❌";
 export const passedEmoji = "✅";
 
+export const buildComment = async (
+  commands: { label: string; command: string }[],
+): Promise<string[]> => {
+  let commentBody = "\n";
+  let errorMessages = "";
+  for (const { label, command } of commands) {
+    const result = await runCommand(command, label);
+    if (result) {
+      commentBody += `<li>${failedEmoji} - ${label}
+<details><summary>See details</summary>${result}</details></li>`;
+      errorMessages += `${result}`;
+    } else {
+      commentBody += `<li>${passedEmoji} - ${label}\n</li>`;
+    }
+  }
+  return [commentBody, errorMessages];
+};
+
 export const runCommand = async (
   command: string,
   label: string,
