@@ -30190,6 +30190,7 @@ const comment_1 = __nccwpck_require__(8213);
 const process_1 = __nccwpck_require__(932);
 // import { coverage } from './scripts/coverage'
 const minimist_1 = __importDefault(__nccwpck_require__(994));
+const setup_1 = __nccwpck_require__(5301);
 exports.failedEmoji = "❌";
 exports.passedEmoji = "✅";
 const buildComment = async (commands) => {
@@ -30244,13 +30245,6 @@ async function run() {
     const argv = (0, minimist_1.default)(process.argv.slice(2));
     const isLocal = argv._.findLast((x) => x == "--local") == "--local" ? true : false;
     try {
-        await (0, exec_1.exec)("npm ci");
-    }
-    catch (error) {
-        if (error instanceof Error)
-            (0, core_1.setFailed)(error.message);
-    }
-    try {
         const workingDirectory = (0, core_1.getInput)("working-directory");
         // Check if the working directory is different from the current directory
         const currentDirectory = (0, process_1.cwd)();
@@ -30278,9 +30272,12 @@ async function run() {
         const doTests = isLocal ? true : (0, core_1.getBooleanInput)("run-tests");
         // const runCoverage: boolean = getBooleanInput('run-coverage');
         // const coveragePassScore: string = getInput('coverage-pass-score');
+        // get comment input
         const createComment = isLocal
             ? true
             : (0, core_1.getBooleanInput)("create-comment");
+        // run set up
+        const setupStr = await (0, setup_1.setup)();
         // run Static Analysis
         const analyzeStr = doStaticAnalysis
             ? await (0, analyze_1.analyze)()
@@ -30299,7 +30296,7 @@ async function run() {
         //   : undefined
         // createComment
         if (createComment) {
-            await (0, comment_1.comment)(octokit, github_1.context, analyzeStr, codeFormattingStr, testingStr);
+            await (0, comment_1.comment)(octokit, github_1.context, setupStr, analyzeStr, codeFormattingStr, testingStr);
         }
     }
     catch (error) {
@@ -30349,16 +30346,17 @@ exports.analyze = analyze;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.comment = void 0;
 const core_1 = __nccwpck_require__(7484);
-const comment = async (ocotokit, context, analyzeStr, codeFormattingStr, testingStr) => {
+const comment = async (ocotokit, context, setupStr, analyzeStr, codeFormattingStr, testingStr) => {
     try {
         const commentBody = `
 ## PR Checks Complete\n
 <ul>
+${setupStr?.output}
 ${analyzeStr?.output}
 ${codeFormattingStr?.output}
 ${testingStr?.output}
 </ul>`;
-        //    ## Coverage = ${coverageStr?.output}\n`
+        // ## Coverage = ${coverageStr?.output}\n`
         const { data: comments } = await ocotokit.rest.issues.listComments({
             issue_number: context.issue.number,
             owner: context.repo.owner,
@@ -30421,6 +30419,31 @@ exports.formatting = formatting;
 
 /***/ }),
 
+/***/ 5301:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.setup = void 0;
+const core_1 = __nccwpck_require__(7484);
+const main_1 = __nccwpck_require__(1730);
+const setup = async () => {
+    const commands = [{ label: "Install Dependencies", command: "npm ci" }];
+    const [commentBody, errorMessages] = await (0, main_1.buildComment)(commands);
+    if (errorMessages) {
+        (0, core_1.setFailed)(errorMessages.trim());
+        return { output: commentBody.trim(), error: true };
+    }
+    else {
+        return { output: commentBody.trim(), error: false };
+    }
+};
+exports.setup = setup;
+
+
+/***/ }),
+
 /***/ 4744:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -30430,9 +30453,39 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.testing = void 0;
 const core_1 = __nccwpck_require__(7484);
 const main_1 = __nccwpck_require__(1730);
+const exec_1 = __nccwpck_require__(5236);
 const testing = async () => {
+    const runCommand = (command) => {
+        return new Promise((resolve, reject) => {
+            (0, exec_1.exec)(command, [], {
+                listeners: {
+                    stdout: (data) => {
+                        resolve(data.toString());
+                    },
+                    stderr: (data) => {
+                        reject(data.toString());
+                    },
+                },
+            }).catch((error) => {
+                reject(error);
+            });
+        });
+    };
+    await runCommand("npm ls @playwright/test | grep @playwright | sed 's/.*@//'")
+        .then((version) => {
+        process.env.PLAYWRIGHT_VERSION = version.trim();
+    })
+        .catch((error) => {
+        (0, core_1.setFailed)(`Failed to get Playwright version: ${error}`);
+        return { output: "", error: true };
+    });
     const commands = [
-        { label: "Testing", command: "npm run test -- --coverage" },
+        // { label: "Testing", command: "npm run test -- --coverage" },
+        {
+            label: "Install PlayWright Browsers",
+            command: "npx playwright install --with-deps",
+        },
+        { label: "Testing", command: "npm run test" },
         { label: "TSDoc", command: "npm run docs" },
     ];
     const [commentBody, errorMessages] = await (0, main_1.buildComment)(commands);

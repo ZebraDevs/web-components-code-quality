@@ -8,6 +8,7 @@ import { comment } from "./scripts/comment";
 import { cwd, chdir } from "process";
 // import { coverage } from './scripts/coverage'
 import minimist from "minimist";
+import { setup } from "./scripts/setup";
 
 export type stepResponse = { output: string; error: boolean };
 export const failedEmoji = "❌";
@@ -69,12 +70,6 @@ export async function run(): Promise<void> {
     argv._.findLast((x: string) => x == "--local") == "--local" ? true : false;
 
   try {
-    await exec("npm ci");
-  } catch (error: unknown) {
-    if (error instanceof Error) setFailed(error.message);
-  }
-
-  try {
     const workingDirectory = getInput("working-directory");
     // Check if the working directory is different from the current directory
     const currentDirectory = cwd();
@@ -106,10 +101,13 @@ export async function run(): Promise<void> {
 
     // const runCoverage: boolean = getBooleanInput('run-coverage');
     // const coveragePassScore: string = getInput('coverage-pass-score');
-
+    // get comment input
     const createComment: boolean = isLocal
       ? true
       : getBooleanInput("create-comment");
+
+    // run set up
+    const setupStr: stepResponse | undefined = await setup();
 
     // run Static Analysis
     const analyzeStr: stepResponse | undefined = doStaticAnalysis
@@ -136,6 +134,7 @@ export async function run(): Promise<void> {
       await comment(
         octokit,
         context,
+        setupStr,
         analyzeStr,
         codeFormattingStr,
         testingStr,

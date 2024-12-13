@@ -28,7 +28,6 @@
     "setup": "npm i && npm run bundle",
     "analyze": "cem analyze",
     "bundle": "npm run format:write && npm run package",
-    "ci-test": "npx jest",
     "coverage": "npx make-coverage-badge --output-path ./badges/coverage.svg",
     "docs": "npx typedoc --logLevel Warn",
     "format:write": "npx prettier --write .",

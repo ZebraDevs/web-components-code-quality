@@ -6,6 +6,7 @@ import { stepResponse } from "src/main";
 export const comment = async (
   ocotokit: ReturnType<typeof getOctokit>,
   context: Context,
+  setupStr: stepResponse | undefined,
   analyzeStr: stepResponse | undefined,
   codeFormattingStr: stepResponse | undefined,
   testingStr: stepResponse | undefined,
@@ -14,11 +15,12 @@ export const comment = async (
     const commentBody = `
 ## PR Checks Complete\n
 <ul>
+${setupStr?.output}
 ${analyzeStr?.output}
 ${codeFormattingStr?.output}
 ${testingStr?.output}
 </ul>`;
-    //    ## Coverage = ${coverageStr?.output}\n`
+    // ## Coverage = ${coverageStr?.output}\n`
 
     const { data: comments } = await ocotokit.rest.issues.listComments({
       issue_number: context.issue.number,

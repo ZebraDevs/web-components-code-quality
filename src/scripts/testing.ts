@@ -1,9 +1,41 @@
 import { setFailed } from "@actions/core";
 import { stepResponse, buildComment } from "src/main";
+import { exec } from "@actions/exec";
 
 export const testing = async (): Promise<stepResponse> => {
+  const runCommand = (command: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      exec(command, [], {
+        listeners: {
+          stdout: (data: Buffer) => {
+            resolve(data.toString());
+          },
+          stderr: (data: Buffer) => {
+            reject(data.toString());
+          },
+        },
+      }).catch((error: any) => {
+        reject(error);
+      });
+    });
+  };
+
+  await runCommand("npm ls @playwright/test | grep @playwright | sed 's/.*@//'")
+    .then((version) => {
+      process.env.PLAYWRIGHT_VERSION = version.trim();
+    })
+    .catch((error) => {
+      setFailed(`Failed to get Playwright version: ${error}`);
+      return { output: "", error: true };
+    });
+
   const commands = [
-    { label: "Testing", command: "npm run test -- --coverage" },
+    // { label: "Testing", command: "npm run test -- --coverage" },
+    {
+      label: "Install PlayWright Browsers",
+      command: "npx playwright install --with-deps",
+    },
+    { label: "Testing", command: "npm run test" },
     { label: "TSDoc", command: "npm run docs" },
   ];
 
