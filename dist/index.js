@@ -30251,7 +30251,7 @@ async function run() {
         if (workingDirectory && workingDirectory !== currentDirectory) {
             (0, process_1.chdir)(workingDirectory);
         }
-        // get token and octokit
+        // get the token and octokit
         let token = "";
         if (process.env.GITHUB_TOKEN && isLocal) {
             token = process.env.GITHUB_TOKEN;
@@ -30429,7 +30429,9 @@ exports.setup = void 0;
 const core_1 = __nccwpck_require__(7484);
 const main_1 = __nccwpck_require__(1730);
 const setup = async () => {
-    const commands = [{ label: "Install Dependencies", command: "npm ci" }];
+    const commands = [
+        { label: "Install Dependencies", command: "npm i --ignore-scripts" },
+    ];
     const [commentBody, errorMessages] = await (0, main_1.buildComment)(commands);
     if (errorMessages) {
         (0, core_1.setFailed)(errorMessages.trim());

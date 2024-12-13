@@ -77,7 +77,7 @@ export async function run(): Promise<void> {
       chdir(workingDirectory);
     }
 
-    // get token and octokit
+    // get the token and octokit
     let token = "";
     if (process.env.GITHUB_TOKEN && isLocal) {
       token = process.env.GITHUB_TOKEN;
