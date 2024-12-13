@@ -30318,9 +30318,6 @@ const eslint = async (command) => {
                 stdout: (data) => {
                     outputStr += data.toString();
                 },
-                stderr: (data) => {
-                    outputStr += data.toString();
-                },
             },
         });
     }
@@ -30328,28 +30325,26 @@ const eslint = async (command) => {
         error = true;
         (0, core_1.setFailed)(`Failed ${command.label}: ${error}`);
     }
-    if (error) {
+    const lines = outputStr.split("\n");
+    const table = lines
+        .map((line) => {
+        const match = line.match(/^(.*?):(\d+):(\d+): (.*)$/);
+        if (match) {
+            const [_, file, line, column, message] = match;
+            return `<tr><td>${file}</td><td>${line}</td><td>${column}</td><td>${message}</td></tr>`;
+        }
+        return "";
+    })
+        .join("");
+    const problemCount = lines.filter((line) => line.match(/^(.*?):(\d+):(\d+): (.*)$/)).length;
+    if (problemCount > 0) {
         response.error = true;
-        // Parse the output to find errors and problems
-        const lines = outputStr.split("\n");
-        const table = lines
-            .map((line) => {
-            const match = line.match(/^(.*?):(\d+):(\d+): (.*)$/);
-            if (match) {
-                const [_, file, line, column, message] = match;
-                return `<tr><td>${file}</td><td>${line}</td><td>${column}</td><td>${message}</td></tr>`;
-            }
-            return "";
-        })
-            .join("");
-        const problemCount = lines.filter((line) => line.match(/^(.*?):(\d+):(\d+): (.*)$/)).length;
-        response.output = `<p>${problemCount} problem${problemCount !== 1 ? "s" : ""} found</p><details><summary>See Details</summary><table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table></details>`;
-        return response;
+        response.output = `<li>${exports.failedEmoji} - ${command.label}: ${problemCount} problem${problemCount !== 1 ? "s" : ""} found\n<details><summary>See Details</summary><table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table></details></li>`;
     }
     else {
         response.output = `<li>${exports.passedEmoji} - ${command.label}\n</li>`;
-        return response;
     }
+    return response;
 };
 
 
