@@ -74,6 +74,7 @@
   "dependencies": {
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.0",
+    "@playwright/test": "^1.49.1",
     "actions-toolkit": "^6.0.1",
     "minimist": "^1.2.8",
     "octokit": "^4.0.2",

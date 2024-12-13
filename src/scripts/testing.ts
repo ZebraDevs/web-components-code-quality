@@ -3,7 +3,7 @@ import { stepResponse, buildComment } from "src/main";
 import { exec } from "@actions/exec";
 
 export const testing = async (): Promise<stepResponse> => {
-  const runCommand = (command: string): Promise<string> => {
+  const runCommand = async (command: string): Promise<string> => {
     return new Promise((resolve, reject) => {
       exec(command, [], {
         listeners: {
@@ -11,10 +11,10 @@ export const testing = async (): Promise<stepResponse> => {
             resolve(data.toString());
           },
           stderr: (data: Buffer) => {
-            reject(data.toString());
+            reject(new Error(data.toString()));
           },
         },
-      }).catch((error: any) => {
+      }).catch((error: Error) => {
         reject(error);
       });
     });

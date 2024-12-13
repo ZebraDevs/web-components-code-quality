@@ -30455,7 +30455,7 @@ const core_1 = __nccwpck_require__(7484);
 const main_1 = __nccwpck_require__(1730);
 const exec_1 = __nccwpck_require__(5236);
 const testing = async () => {
-    const runCommand = (command) => {
+    const runCommand = async (command) => {
         return new Promise((resolve, reject) => {
             (0, exec_1.exec)(command, [], {
                 listeners: {
@@ -30463,7 +30463,7 @@ const testing = async () => {
                         resolve(data.toString());
                     },
                     stderr: (data) => {
-                        reject(data.toString());
+                        reject(new Error(data.toString()));
                     },
                 },
             }).catch((error) => {
