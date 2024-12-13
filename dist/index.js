@@ -30453,22 +30453,30 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.testing = void 0;
 const core_1 = __nccwpck_require__(7484);
 const main_1 = __nccwpck_require__(1730);
-const exec_1 = __nccwpck_require__(5236);
+// import { exec } from "@actions/exec";
+const child_process_1 = __nccwpck_require__(5317);
 const testing = async () => {
     const runCommand = async (command) => {
         return new Promise((resolve, reject) => {
-            (0, exec_1.exec)(command, [], {
-                listeners: {
-                    stdout: (data) => {
-                        resolve(data.toString());
-                    },
-                    stderr: (data) => {
-                        reject(new Error(data.toString()));
-                    },
-                },
-            }).catch((error) => {
+            try {
+                const output = (0, child_process_1.execSync)(command, { encoding: "utf-8" });
+                resolve(output);
+            }
+            catch (error) {
                 reject(error);
-            });
+            }
+            // exec(command, [], {
+            //   listeners: {
+            //     stdout: (data: Buffer) => {
+            //       resolve(data.toString());
+            //     },
+            //     stderr: (data: Buffer) => {
+            //       reject(new Error(data.toString()));
+            //     },
+            //   },
+            // }).catch((error: Error) => {
+            //   reject(error);
+            // });
         });
     };
     await runCommand("npm ls @playwright/test | grep @playwright | sed 's/.*@//'")

@@ -1,22 +1,29 @@
 import { setFailed } from "@actions/core";
 import { stepResponse, buildComment } from "src/main";
-import { exec } from "@actions/exec";
+// import { exec } from "@actions/exec";
+import { execSync } from "child_process";
 
 export const testing = async (): Promise<stepResponse> => {
   const runCommand = async (command: string): Promise<string> => {
     return new Promise((resolve, reject) => {
-      exec(command, [], {
-        listeners: {
-          stdout: (data: Buffer) => {
-            resolve(data.toString());
-          },
-          stderr: (data: Buffer) => {
-            reject(new Error(data.toString()));
-          },
-        },
-      }).catch((error: Error) => {
+      try {
+        const output = execSync(command, { encoding: "utf-8" });
+        resolve(output);
+      } catch (error) {
         reject(error);
-      });
+      }
+      // exec(command, [], {
+      //   listeners: {
+      //     stdout: (data: Buffer) => {
+      //       resolve(data.toString());
+      //     },
+      //     stderr: (data: Buffer) => {
+      //       reject(new Error(data.toString()));
+      //     },
+      //   },
+      // }).catch((error: Error) => {
+      //   reject(error);
+      // });
     });
   };
 
