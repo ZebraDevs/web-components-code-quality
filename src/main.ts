@@ -10,6 +10,8 @@ import { cwd, chdir } from "process";
 import minimist from "minimist";
 import { setup } from "./scripts/setup";
 
+export type Command = { label: string; command: string };
+
 export type stepResponse = { output: string; error: boolean };
 export const failedEmoji = "❌";
 export const passedEmoji = "✅";
@@ -114,6 +116,10 @@ export async function run(): Promise<void> {
       ? await analyze()
       : undefined;
 
+    const eslintStr: stepResponse | undefined = doStaticAnalysis
+      ? await eslint({ label: "ESLint", command: "npm run lint" })
+      : undefined;
+
     // run Code Formatting
     const codeFormattingStr: stepResponse | undefined = doCodeFormatting
       ? await formatting()
@@ -136,6 +142,7 @@ export async function run(): Promise<void> {
         context,
         setupStr,
         analyzeStr,
+        eslintStr,
         codeFormattingStr,
         testingStr,
       );
@@ -145,3 +152,49 @@ export async function run(): Promise<void> {
     if (error instanceof Error) setFailed(error.message);
   }
 }
+
+const eslint = async (command: Command): Promise<stepResponse> => {
+  let response: stepResponse = { output: "", error: false };
+  let outputStr = "";
+  let error = false;
+  try {
+    await exec(command.command, [], {
+      listeners: {
+        stdout: (data) => {
+          outputStr += data.toString();
+        },
+        stderr: (data) => {
+          outputStr += data.toString();
+        },
+      },
+    });
+  } catch (error) {
+    error = true;
+    setFailed(`Failed ${command.label}: ${error}`);
+  }
+
+  if (error) {
+    response.error = true;
+    // Parse the output to find errors and problems
+    const lines = outputStr.split("\n");
+    const table = lines
+      .map((line) => {
+        const match = line.match(/^(.*?):(\d+):(\d+): (.*)$/);
+        if (match) {
+          const [_, file, line, column, message] = match;
+          return `<tr><td>${file}</td><td>${line}</td><td>${column}</td><td>${message}</td></tr>`;
+        }
+        return "";
+      })
+      .join("");
+
+    const problemCount = lines.filter((line) =>
+      line.match(/^(.*?):(\d+):(\d+): (.*)$/),
+    ).length;
+    response.output = `<p>${problemCount} problem${problemCount !== 1 ? "s" : ""} found</p><details><summary>See Details</summary><table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table></details>`;
+    return response;
+  } else {
+    response.output = `<li>${passedEmoji} - ${command.label}\n</li>`;
+    return response;
+  }
+};

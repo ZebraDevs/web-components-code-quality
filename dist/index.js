@@ -30282,6 +30282,9 @@ async function run() {
         const analyzeStr = doStaticAnalysis
             ? await (0, analyze_1.analyze)()
             : undefined;
+        const eslintStr = doStaticAnalysis
+            ? await eslint({ label: "ESLint", command: "npm run lint" })
+            : undefined;
         // run Code Formatting
         const codeFormattingStr = doCodeFormatting
             ? await (0, formatting_1.formatting)()
@@ -30296,7 +30299,7 @@ async function run() {
         //   : undefined
         // createComment
         if (createComment) {
-            await (0, comment_1.comment)(octokit, github_1.context, setupStr, analyzeStr, codeFormattingStr, testingStr);
+            await (0, comment_1.comment)(octokit, github_1.context, setupStr, analyzeStr, eslintStr, codeFormattingStr, testingStr);
         }
     }
     catch (error) {
@@ -30305,6 +30308,49 @@ async function run() {
             (0, core_1.setFailed)(error.message);
     }
 }
+const eslint = async (command) => {
+    let response = { output: "", error: false };
+    let outputStr = "";
+    let error = false;
+    try {
+        await (0, exec_1.exec)(command.command, [], {
+            listeners: {
+                stdout: (data) => {
+                    outputStr += data.toString();
+                },
+                stderr: (data) => {
+                    outputStr += data.toString();
+                },
+            },
+        });
+    }
+    catch (error) {
+        error = true;
+        (0, core_1.setFailed)(`Failed ${command.label}: ${error}`);
+    }
+    if (error) {
+        response.error = true;
+        // Parse the output to find errors and problems
+        const lines = outputStr.split("\n");
+        const table = lines
+            .map((line) => {
+            const match = line.match(/^(.*?):(\d+):(\d+): (.*)$/);
+            if (match) {
+                const [_, file, line, column, message] = match;
+                return `<tr><td>${file}</td><td>${line}</td><td>${column}</td><td>${message}</td></tr>`;
+            }
+            return "";
+        })
+            .join("");
+        const problemCount = lines.filter((line) => line.match(/^(.*?):(\d+):(\d+): (.*)$/)).length;
+        response.output = `<p>${problemCount} problem${problemCount !== 1 ? "s" : ""} found</p><details><summary>See Details</summary><table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table></details>`;
+        return response;
+    }
+    else {
+        response.output = `<li>${exports.passedEmoji} - ${command.label}\n</li>`;
+        return response;
+    }
+};
 
 
 /***/ }),
@@ -30321,7 +30367,6 @@ const main_1 = __nccwpck_require__(1730);
 const analyze = async () => {
     const commands = [
         { label: "Custom Elements Manifest Analyzer", command: "npm run analyze" },
-        { label: "ESLint", command: "npm run lint" },
         { label: "Lit Analyzer", command: "npm run lint:lit-analyzer" },
     ];
     const [commentBody, errorMessages] = await (0, main_1.buildComment)(commands);
@@ -30334,6 +30379,49 @@ const analyze = async () => {
     }
 };
 exports.analyze = analyze;
+// export const buildComment = async (
+//   commands: { label: string; command: string }[],
+// ): Promise<string[]> => {
+//   let commentBody = "\n";
+//   let errorMessages = "";
+//   for (const { label, command } of commands) {
+//     const result = await runCommand(command, label);
+//     if (result) {
+//       commentBody += `<li>${failedEmoji} - ${label}
+// <details><summary>See details</summary>${result}</details></li>`;
+//       errorMessages += `${result}`;
+//     } else {
+//       commentBody += `<li>${passedEmoji} - ${label}\n</li>`;
+//     }
+//   }
+//   return [commentBody, errorMessages];
+// };
+// export const runCommand = async (
+//   command: string,
+//   label: string,
+// ): Promise<string | boolean> => {
+//   let output = "";
+//   try {
+//     await exec(command, [], {
+//       listeners: {
+//         stdout: (data) => {
+//           output += data.toString();
+//         },
+//       },
+//     });
+//     return false;
+//   } catch (error: unknown) {
+//     if (error instanceof Error) {
+//       debug(`${label} failed: ${error.message}`);
+//       return output;
+//     } else if (typeof error === "string") {
+//       debug(`${label} failed: ${error}`);
+//       return output;
+//     } else {
+//       return true;
+//     }
+//   }
+// };
 
 
 /***/ }),
@@ -30346,13 +30434,14 @@ exports.analyze = analyze;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.comment = void 0;
 const core_1 = __nccwpck_require__(7484);
-const comment = async (ocotokit, context, setupStr, analyzeStr, codeFormattingStr, testingStr) => {
+const comment = async (ocotokit, context, setupStr, analyzeStr, eslintStr, codeFormattingStr, testingStr) => {
     try {
         const commentBody = `
 ## PR Checks Complete\n
 <ul>
 ${setupStr?.output}
 ${analyzeStr?.output}
+${eslintStr?.output}
 ${codeFormattingStr?.output}
 ${testingStr?.output}
 </ul>`;
@@ -30495,7 +30584,7 @@ const testing = async () => {
             label: "Install PlayWright Browsers",
             command: "npx playwright install --with-deps",
         },
-        { label: "Testing", command: "npm run test" },
+        { label: "Testing", command: "npm run test -- --coverage" },
         { label: "TSDoc", command: "npm run docs" },
     ];
     const [commentBody, errorMessages] = await (0, main_1.buildComment)(commands);

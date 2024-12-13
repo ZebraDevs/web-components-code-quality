@@ -42,7 +42,7 @@ export const testing = async (): Promise<stepResponse> => {
       label: "Install PlayWright Browsers",
       command: "npx playwright install --with-deps",
     },
-    { label: "Testing", command: "npm run test" },
+    { label: "Testing", command: "npm run test -- --coverage" },
     { label: "TSDoc", command: "npm run docs" },
   ];
 

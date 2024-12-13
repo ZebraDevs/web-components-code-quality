@@ -8,6 +8,7 @@ export const comment = async (
   context: Context,
   setupStr: stepResponse | undefined,
   analyzeStr: stepResponse | undefined,
+  eslintStr: stepResponse | undefined,
   codeFormattingStr: stepResponse | undefined,
   testingStr: stepResponse | undefined,
 ): Promise<stepResponse> => {
@@ -17,6 +18,7 @@ export const comment = async (
 <ul>
 ${setupStr?.output}
 ${analyzeStr?.output}
+${eslintStr?.output}
 ${codeFormattingStr?.output}
 ${testingStr?.output}
 </ul>`;
