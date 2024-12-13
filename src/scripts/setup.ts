@@ -2,7 +2,9 @@ import { setFailed } from "@actions/core";
 import { stepResponse, buildComment } from "src/main";
 
 export const setup = async (): Promise<stepResponse> => {
-  const commands = [{ label: "Install Dependencies", command: "npm ci" }];
+  const commands = [
+    { label: "Install Dependencies", command: "npm ci --ignore-scripts" },
+  ];
 
   const [commentBody, errorMessages] = await buildComment(commands);
 
