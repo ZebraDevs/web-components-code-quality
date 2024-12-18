@@ -72,7 +72,9 @@ export const litAnalyzer = async (command: Command): Promise<stepResponse> => {
     const lines = outputStr.split("\n");
     const table = lines
       .map((line) => {
-        const match = line.match(/^\s*(\S+)\s+(\d+):\s+(.*)$/);
+        const match = line.match(
+          /^(?<file>\.\/[^\s]+)\n\n\s+(?<message>[^\n]+)\n\s+(?<line>\d+):/,
+        );
         if (match) {
           const [_, file, line, message] = match;
           return `<tr><td>${file}</td><td>${line}</td><td>${message}</td></tr>`;
@@ -82,7 +84,9 @@ export const litAnalyzer = async (command: Command): Promise<stepResponse> => {
       .join("");
 
     const problemCount = lines.filter((line) =>
-      line.match(/^\s*(\S+)\s+(\d+):\s+(.*)$/),
+      line.match(
+        /^(?<file>\.\/[^\s]+)\n\n\s+(?<message>[^\n]+)\n\s+(?<line>\d+):/,
+      ),
     ).length;
 
     response.output = `${failedEmoji} - ${command.label}: ${problemCount} problem${problemCount !== 1 ? "s" : ""} found\n<details><summary>See Details</summary><table><tr><th>File</th><th>Line</th><th>Message</th></tr>${table}</table></details>`;
