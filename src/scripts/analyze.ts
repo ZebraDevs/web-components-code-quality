@@ -73,7 +73,7 @@ export const litAnalyzer = async (command: Command): Promise<stepResponse> => {
     const table = lines
       .map((line) => {
         const match = line.match(
-          /^(?<file>\.\/[^\s]+)\n\n\s+(?<message>[^\n]+)\n\s+(?<line>\d+):/,
+          /(?<file>\.\/[^\s]+)\n\s+(?<message>[^\n]+)\n\s+(?<line>\d+):/m,
         );
         if (match) {
           const [_, file, line, message] = match;
@@ -85,7 +85,7 @@ export const litAnalyzer = async (command: Command): Promise<stepResponse> => {
 
     const problemCount = lines.filter((line) =>
       line.match(
-        /^(?<file>\.\/[^\s]+)\n\n\s+(?<message>[^\n]+)\n\s+(?<line>\d+):/,
+        /(?<file>\.\/[^\s]+)\n\s+(?<message>[^\n]+)\n\s+(?<line>\d+):/m,
       ),
     ).length;
 

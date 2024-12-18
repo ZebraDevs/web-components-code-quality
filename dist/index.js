@@ -30388,7 +30388,7 @@ const litAnalyzer = async (command) => {
         const lines = outputStr.split("\n");
         const table = lines
             .map((line) => {
-            const match = line.match(/^(?<file>\.\/[^\s]+)\n\n\s+(?<message>[^\n]+)\n\s+(?<line>\d+):/);
+            const match = line.match(/(?<file>\.\/[^\s]+)\n\s+(?<message>[^\n]+)\n\s+(?<line>\d+):/m);
             if (match) {
                 const [_, file, line, message] = match;
                 return `<tr><td>${file}</td><td>${line}</td><td>${message}</td></tr>`;
@@ -30396,7 +30396,7 @@ const litAnalyzer = async (command) => {
             return "";
         })
             .join("");
-        const problemCount = lines.filter((line) => line.match(/^(?<file>\.\/[^\s]+)\n\n\s+(?<message>[^\n]+)\n\s+(?<line>\d+):/)).length;
+        const problemCount = lines.filter((line) => line.match(/(?<file>\.\/[^\s]+)\n\s+(?<message>[^\n]+)\n\s+(?<line>\d+):/m)).length;
         response.output = `${main_1.failedEmoji} - ${command.label}: ${problemCount} problem${problemCount !== 1 ? "s" : ""} found\n<details><summary>See Details</summary><table><tr><th>File</th><th>Line</th><th>Message</th></tr>${table}</table></details>`;
         return response;
     }
