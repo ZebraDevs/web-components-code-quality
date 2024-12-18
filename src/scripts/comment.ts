@@ -9,19 +9,21 @@ export const comment = async (
   setupStr: stepResponse | undefined,
   analyzeStr: stepResponse | undefined,
   eslintStr: stepResponse | undefined,
+  litAnalyzerStr: stepResponse | undefined,
   codeFormattingStr: stepResponse | undefined,
   testingStr: stepResponse | undefined,
 ): Promise<stepResponse> => {
   try {
     const commentBody = `
-## PR Checks Complete\n
-<ul>
-${setupStr?.output}
-${analyzeStr?.output}
-${eslintStr?.output}
-${codeFormattingStr?.output}
-${testingStr?.output}
-</ul>`;
+  ## PR Checks Complete\n
+  <ul>
+    <li>${setupStr?.output}</li>
+    <li>${analyzeStr?.output}</li>
+    <li>${eslintStr?.output}</li>
+    <li>${litAnalyzerStr?.output}</li>
+    <li>${codeFormattingStr?.output}</li>
+    <li>${testingStr?.output}</li>
+  </ul>`;
     // ## Coverage = ${coverageStr?.output}\n`
 
     const { data: comments } = await ocotokit.rest.issues.listComments({

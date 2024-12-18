@@ -30199,12 +30199,12 @@ const buildComment = async (commands) => {
     for (const { label, command } of commands) {
         const result = await (0, exports.runCommand)(command, label);
         if (result) {
-            commentBody += `<li>${exports.failedEmoji} - ${label}
-<details><summary>See details</summary>${result}</details></li>`;
+            commentBody += `${exports.failedEmoji} - ${label}
+<details><summary>See details</summary>${result}</details>`;
             errorMessages += `${result}`;
         }
         else {
-            commentBody += `<li>${exports.passedEmoji} - ${label}\n</li>`;
+            commentBody += `${exports.passedEmoji} - ${label}\n`;
         }
     }
     return [commentBody, errorMessages];
@@ -30283,7 +30283,13 @@ async function run() {
             ? await (0, analyze_1.analyze)()
             : undefined;
         const eslintStr = doStaticAnalysis
-            ? await eslint({ label: "ESLint", command: "npm run lint" })
+            ? await (0, analyze_1.eslint)({ label: "ESLint", command: "npm run lint" })
+            : undefined;
+        const litAnalyzerStr = doStaticAnalysis
+            ? await (0, analyze_1.litAnalyzer)({
+                label: "Lit Analyzer",
+                command: "npm run lint:lit-analyzer",
+            })
             : undefined;
         // run Code Formatting
         const codeFormattingStr = doCodeFormatting
@@ -30299,7 +30305,7 @@ async function run() {
         //   : undefined
         // createComment
         if (createComment) {
-            await (0, comment_1.comment)(octokit, github_1.context, setupStr, analyzeStr, eslintStr, codeFormattingStr, testingStr);
+            await (0, comment_1.comment)(octokit, github_1.context, setupStr, analyzeStr, eslintStr, litAnalyzerStr, codeFormattingStr, testingStr);
         }
     }
     catch (error) {
@@ -30308,10 +30314,23 @@ async function run() {
             (0, core_1.setFailed)(error.message);
     }
 }
+
+
+/***/ }),
+
+/***/ 9316:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.analyze = exports.litAnalyzer = exports.eslint = void 0;
+const core_1 = __nccwpck_require__(7484);
+const exec_1 = __nccwpck_require__(5236);
+const main_1 = __nccwpck_require__(1730);
 const eslint = async (command) => {
     let response = { output: "", error: false };
     let outputStr = "";
-    let error = false;
     try {
         await (0, exec_1.exec)(command.command, [], {
             listeners: {
@@ -30322,7 +30341,6 @@ const eslint = async (command) => {
         });
     }
     catch (error) {
-        error = true;
         (0, core_1.setFailed)(`Failed ${command.label}: ${error}`);
     }
     const lines = outputStr.split("\n");
@@ -30339,30 +30357,57 @@ const eslint = async (command) => {
     const problemCount = lines.filter((line) => line.match(/^(.*?):(\d+):(\d+): (.*)$/)).length;
     if (problemCount > 0) {
         response.error = true;
-        response.output = `<li>${exports.failedEmoji} - ${command.label}: ${problemCount} problem${problemCount !== 1 ? "s" : ""} found\n<details><summary>See Details</summary><table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table></details></li>`;
+        response.output = `${main_1.failedEmoji} - ${command.label}: ${problemCount} problem${problemCount !== 1 ? "s" : ""} found\n<details><summary>See Details</summary><table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table></details>`;
     }
     else {
-        response.output = `<li>${exports.passedEmoji} - ${command.label}\n</li>`;
+        response.output = `${main_1.passedEmoji} - ${command.label}\n`;
     }
     return response;
 };
-
-
-/***/ }),
-
-/***/ 9316:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.analyze = void 0;
-const core_1 = __nccwpck_require__(7484);
-const main_1 = __nccwpck_require__(1730);
+exports.eslint = eslint;
+// const customElementsManifestAnalyzer = async (
+//   command: Command,
+// ): Promise<stepResponse> => {};
+const litAnalyzer = async (command) => {
+    let response = { output: "", error: false };
+    let outputStr = "";
+    try {
+        await (0, exec_1.exec)(command.command, [], {
+            listeners: {
+                stdout: (data) => {
+                    outputStr += data.toString();
+                },
+            },
+        });
+    }
+    catch (error) {
+        (0, core_1.setFailed)(`Failed ${command.label}: ${error}`);
+    }
+    const lines = outputStr.split("\n");
+    const table = lines
+        .map((line) => {
+        const match = line.match(/^\s*(\S+)\s+(\d+):\s+(.*)$/);
+        if (match) {
+            const [_, file, line, message] = match;
+            return `<tr><td>${file}</td><td>${line}</td><td>${message}</td></tr>`;
+        }
+        return "";
+    })
+        .join("");
+    const problemCount = lines.filter((line) => line.match(/^\s*(\S+)\s+(\d+):\s+(.*)$/)).length;
+    if (problemCount > 0) {
+        response.error = true;
+        response.output = `${main_1.failedEmoji} - ${command.label}: ${problemCount} problem${problemCount !== 1 ? "s" : ""} found\n<details><summary>See Details</summary><table><tr><th>File</th><th>Line</th><th>Message</th></tr>${table}</table></details>`;
+    }
+    else {
+        response.output = `${main_1.passedEmoji} - ${command.label}\n`;
+    }
+    return response;
+};
+exports.litAnalyzer = litAnalyzer;
 const analyze = async () => {
     const commands = [
         { label: "Custom Elements Manifest Analyzer", command: "npm run analyze" },
-        { label: "Lit Analyzer", command: "npm run lint:lit-analyzer" },
     ];
     const [commentBody, errorMessages] = await (0, main_1.buildComment)(commands);
     if (errorMessages) {
@@ -30429,17 +30474,18 @@ exports.analyze = analyze;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.comment = void 0;
 const core_1 = __nccwpck_require__(7484);
-const comment = async (ocotokit, context, setupStr, analyzeStr, eslintStr, codeFormattingStr, testingStr) => {
+const comment = async (ocotokit, context, setupStr, analyzeStr, eslintStr, litAnalyzerStr, codeFormattingStr, testingStr) => {
     try {
         const commentBody = `
-## PR Checks Complete\n
-<ul>
-${setupStr?.output}
-${analyzeStr?.output}
-${eslintStr?.output}
-${codeFormattingStr?.output}
-${testingStr?.output}
-</ul>`;
+  ## PR Checks Complete\n
+  <ul>
+    <li>${setupStr?.output}</li>
+    <li>${analyzeStr?.output}</li>
+    <li>${eslintStr?.output}</li>
+    <li>${litAnalyzerStr?.output}</li>
+    <li>${codeFormattingStr?.output}</li>
+    <li>${testingStr?.output}</li>
+  </ul>`;
         // ## Coverage = ${coverageStr?.output}\n`
         const { data: comments } = await ocotokit.rest.issues.listComments({
             issue_number: context.issue.number,

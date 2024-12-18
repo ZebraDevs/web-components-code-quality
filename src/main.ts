@@ -1,7 +1,7 @@
 import { getBooleanInput, getInput, setFailed, debug } from "@actions/core";
 import { exec } from "@actions/exec";
 import { getOctokit, context } from "@actions/github";
-import { analyze } from "./scripts/analyze";
+import { analyze, eslint, litAnalyzer } from "./scripts/analyze";
 import { formatting } from "./scripts/formatting";
 import { testing } from "./scripts/testing";
 import { comment } from "./scripts/comment";
@@ -24,11 +24,11 @@ export const buildComment = async (
   for (const { label, command } of commands) {
     const result = await runCommand(command, label);
     if (result) {
-      commentBody += `<li>${failedEmoji} - ${label}
-<details><summary>See details</summary>${result}</details></li>`;
+      commentBody += `${failedEmoji} - ${label}
+<details><summary>See details</summary>${result}</details>`;
       errorMessages += `${result}`;
     } else {
-      commentBody += `<li>${passedEmoji} - ${label}\n</li>`;
+      commentBody += `${passedEmoji} - ${label}\n`;
     }
   }
   return [commentBody, errorMessages];
@@ -120,6 +120,13 @@ export async function run(): Promise<void> {
       ? await eslint({ label: "ESLint", command: "npm run lint" })
       : undefined;
 
+    const litAnalyzerStr: stepResponse | undefined = doStaticAnalysis
+      ? await litAnalyzer({
+          label: "Lit Analyzer",
+          command: "npm run lint:lit-analyzer",
+        })
+      : undefined;
+
     // run Code Formatting
     const codeFormattingStr: stepResponse | undefined = doCodeFormatting
       ? await formatting()
@@ -143,6 +150,7 @@ export async function run(): Promise<void> {
         setupStr,
         analyzeStr,
         eslintStr,
+        litAnalyzerStr,
         codeFormattingStr,
         testingStr,
       );
@@ -152,45 +160,3 @@ export async function run(): Promise<void> {
     if (error instanceof Error) setFailed(error.message);
   }
 }
-
-const eslint = async (command: Command): Promise<stepResponse> => {
-  let response: stepResponse = { output: "", error: false };
-  let outputStr = "";
-  let error = false;
-  try {
-    await exec(command.command, [], {
-      listeners: {
-        stdout: (data) => {
-          outputStr += data.toString();
-        },
-      },
-    });
-  } catch (error) {
-    error = true;
-    setFailed(`Failed ${command.label}: ${error}`);
-  }
-
-  const lines = outputStr.split("\n");
-  const table = lines
-    .map((line) => {
-      const match = line.match(/^(.*?):(\d+):(\d+): (.*)$/);
-      if (match) {
-        const [_, file, line, column, message] = match;
-        return `<tr><td>${file}</td><td>${line}</td><td>${column}</td><td>${message}</td></tr>`;
-      }
-      return "";
-    })
-    .join("");
-
-  const problemCount = lines.filter((line) =>
-    line.match(/^(.*?):(\d+):(\d+): (.*)$/),
-  ).length;
-
-  if (problemCount > 0) {
-    response.error = true;
-    response.output = `<li>${failedEmoji} - ${command.label}: ${problemCount} problem${problemCount !== 1 ? "s" : ""} found\n<details><summary>See Details</summary><table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table></details></li>`;
-  } else {
-    response.output = `<li>${passedEmoji} - ${command.label}\n</li>`;
-  }
-  return response;
-};

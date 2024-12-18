@@ -1,11 +1,100 @@
 import { setFailed } from "@actions/core";
 import { exec } from "@actions/exec";
-import { stepResponse, buildComment, Command, passedEmoji } from "src/main";
+import {
+  stepResponse,
+  buildComment,
+  Command,
+  passedEmoji,
+  failedEmoji,
+} from "src/main";
+
+export const eslint = async (command: Command): Promise<stepResponse> => {
+  let response: stepResponse = { output: "", error: false };
+  let outputStr = "";
+  try {
+    await exec(command.command, [], {
+      listeners: {
+        stdout: (data) => {
+          outputStr += data.toString();
+        },
+      },
+    });
+  } catch (error) {
+    setFailed(`Failed ${command.label}: ${error}`);
+  }
+
+  const lines = outputStr.split("\n");
+  const table = lines
+    .map((line) => {
+      const match = line.match(/^(.*?):(\d+):(\d+): (.*)$/);
+      if (match) {
+        const [_, file, line, column, message] = match;
+        return `<tr><td>${file}</td><td>${line}</td><td>${column}</td><td>${message}</td></tr>`;
+      }
+      return "";
+    })
+    .join("");
+
+  const problemCount = lines.filter((line) =>
+    line.match(/^(.*?):(\d+):(\d+): (.*)$/),
+  ).length;
+
+  if (problemCount > 0) {
+    response.error = true;
+    response.output = `${failedEmoji} - ${command.label}: ${problemCount} problem${problemCount !== 1 ? "s" : ""} found\n<details><summary>See Details</summary><table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table></details>`;
+  } else {
+    response.output = `${passedEmoji} - ${command.label}\n`;
+  }
+  return response;
+};
+
+// const customElementsManifestAnalyzer = async (
+//   command: Command,
+// ): Promise<stepResponse> => {};
+
+export const litAnalyzer = async (command: Command): Promise<stepResponse> => {
+  let response: stepResponse = { output: "", error: false };
+  let outputStr = "";
+  try {
+    await exec(command.command, [], {
+      listeners: {
+        stdout: (data) => {
+          outputStr += data.toString();
+        },
+      },
+    });
+  } catch (error) {
+    setFailed(`Failed ${command.label}: ${error}`);
+  }
+
+  const lines = outputStr.split("\n");
+  const table = lines
+    .map((line) => {
+      const match = line.match(/^\s*(\S+)\s+(\d+):\s+(.*)$/);
+      if (match) {
+        const [_, file, line, message] = match;
+        return `<tr><td>${file}</td><td>${line}</td><td>${message}</td></tr>`;
+      }
+      return "";
+    })
+    .join("");
+
+  const problemCount = lines.filter((line) =>
+    line.match(/^\s*(\S+)\s+(\d+):\s+(.*)$/),
+  ).length;
+
+  if (problemCount > 0) {
+    response.error = true;
+    response.output = `${failedEmoji} - ${command.label}: ${problemCount} problem${problemCount !== 1 ? "s" : ""} found\n<details><summary>See Details</summary><table><tr><th>File</th><th>Line</th><th>Message</th></tr>${table}</table></details>`;
+  } else {
+    response.output = `${passedEmoji} - ${command.label}\n`;
+  }
+  return response;
+};
 
 export const analyze = async (): Promise<stepResponse> => {
   const commands = [
     { label: "Custom Elements Manifest Analyzer", command: "npm run analyze" },
-    { label: "Lit Analyzer", command: "npm run lint:lit-analyzer" },
   ];
 
   const [commentBody, errorMessages] = await buildComment(commands);
