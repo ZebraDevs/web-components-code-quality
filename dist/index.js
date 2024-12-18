@@ -30382,27 +30382,28 @@ const litAnalyzer = async (command) => {
     }
     catch (error) {
         (0, core_1.setFailed)(`Failed ${command.label}: ${error}`);
-    }
-    const lines = outputStr.split("\n");
-    const table = lines
-        .map((line) => {
-        const match = line.match(/^\s*(\S+)\s+(\d+):\s+(.*)$/);
-        if (match) {
-            const [_, file, line, message] = match;
-            return `<tr><td>${file}</td><td>${line}</td><td>${message}</td></tr>`;
-        }
-        return "";
-    })
-        .join("");
-    const problemCount = lines.filter((line) => line.match(/^\s*(\S+)\s+(\d+):\s+(.*)$/)).length;
-    if (problemCount > 0) {
         response.error = true;
+    }
+    if (response.error == true) {
+        const lines = outputStr.split("\n");
+        const table = lines
+            .map((line) => {
+            const match = line.match(/^\s*(\S+)\s+(\d+):\s+(.*)$/);
+            if (match) {
+                const [_, file, line, message] = match;
+                return `<tr><td>${file}</td><td>${line}</td><td>${message}</td></tr>`;
+            }
+            return "";
+        })
+            .join("");
+        const problemCount = lines.filter((line) => line.match(/^\s*(\S+)\s+(\d+):\s+(.*)$/)).length;
         response.output = `${main_1.failedEmoji} - ${command.label}: ${problemCount} problem${problemCount !== 1 ? "s" : ""} found\n<details><summary>See Details</summary><table><tr><th>File</th><th>Line</th><th>Message</th></tr>${table}</table></details>`;
+        return response;
     }
     else {
         response.output = `${main_1.passedEmoji} - ${command.label}\n`;
+        return response;
     }
-    return response;
 };
 exports.litAnalyzer = litAnalyzer;
 const analyze = async () => {
