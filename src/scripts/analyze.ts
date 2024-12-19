@@ -81,14 +81,26 @@ export const litAnalyzer = async (command: Command): Promise<stepResponse> => {
     //   })
     //   .join("");
 
-    const problemsLine = lines.filter((line) =>
-      line.match(
-        /^\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|$/,
-      ),
-    );
+    const problemsCountStr = lines
+      .map((line) => {
+        const match = line.match(
+          /^\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|$/,
+        );
+        if (match) {
+          const [filesChecked, filesWithProblems, problems, errors, warnings] =
+            match;
+          return problems;
+        }
+      })
+      .join("");
+    // const problemsLine = lines.filter((line) =>
+    //   line.match(
+    //     /^\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|$/,
+    //   ),
+    // );
 
-    const [i, _, __, problemCountStr, ___, ____] = problemsLine;
-    const problemCount = parseInt(problemCountStr);
+    // const [_, __, problemCountStr, ___, ____] = problemsLine[0].match(/^\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|$/) || [];
+    const problemCount = parseInt(problemsCountStr);
     // const problemCount =
     //   problemsLine.length > 0
     //     ? parseInt(problemsLine[0].match(/(\d+) problem/)![1])
