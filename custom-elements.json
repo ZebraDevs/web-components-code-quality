@@ -25,6 +25,62 @@
       "path": "src/main.ts",
       "declarations": [
         {
+          "kind": "variable",
+          "name": "failedEmoji",
+          "type": {
+            "text": "string"
+          },
+          "default": "\"❌\""
+        },
+        {
+          "kind": "variable",
+          "name": "passedEmoji",
+          "type": {
+            "text": "string"
+          },
+          "default": "\"✅\""
+        },
+        {
+          "kind": "function",
+          "name": "buildComment",
+          "return": {
+            "type": {
+              "text": "Promise<string[]>"
+            }
+          },
+          "parameters": [
+            {
+              "name": "commands",
+              "type": {
+                "text": "{ label: string; command: string }[]"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "function",
+          "name": "runCommand",
+          "return": {
+            "type": {
+              "text": "Promise<string | boolean>"
+            }
+          },
+          "parameters": [
+            {
+              "name": "command",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "name": "label",
+              "type": {
+                "text": "string"
+              }
+            }
+          ]
+        },
+        {
           "kind": "function",
           "name": "run",
           "return": {
@@ -36,6 +92,38 @@
         }
       ],
       "exports": [
+        {
+          "kind": "js",
+          "name": "failedEmoji",
+          "declaration": {
+            "name": "failedEmoji",
+            "module": "src/main.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "passedEmoji",
+          "declaration": {
+            "name": "passedEmoji",
+            "module": "src/main.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "buildComment",
+          "declaration": {
+            "name": "buildComment",
+            "module": "src/main.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "runCommand",
+          "declaration": {
+            "name": "runCommand",
+            "module": "src/main.ts"
+          }
+        },
         {
           "kind": "js",
           "name": "run",
@@ -66,38 +154,42 @@
     },
     {
       "kind": "javascript-module",
-      "path": "docs/assets/hierarchy.js",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "docs/assets/icons.js",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "docs/assets/main.js",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "docs/assets/navigation.js",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "docs/assets/search.js",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
       "path": "src/scripts/analyze.ts",
       "declarations": [
+        {
+          "kind": "function",
+          "name": "eslint",
+          "return": {
+            "type": {
+              "text": "Promise<stepResponse>"
+            }
+          },
+          "parameters": [
+            {
+              "name": "command",
+              "type": {
+                "text": "Command"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "function",
+          "name": "litAnalyzer",
+          "return": {
+            "type": {
+              "text": "Promise<stepResponse>"
+            }
+          },
+          "parameters": [
+            {
+              "name": "command",
+              "type": {
+                "text": "Command"
+              }
+            }
+          ]
+        },
         {
           "kind": "function",
           "name": "analyze",
@@ -109,6 +201,22 @@
         }
       ],
       "exports": [
+        {
+          "kind": "js",
+          "name": "eslint",
+          "declaration": {
+            "name": "eslint",
+            "module": "src/scripts/analyze.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "litAnalyzer",
+          "declaration": {
+            "name": "litAnalyzer",
+            "module": "src/scripts/analyze.ts"
+          }
+        },
         {
           "kind": "js",
           "name": "analyze",
@@ -145,13 +253,31 @@
               }
             },
             {
+              "name": "setupStr",
+              "type": {
+                "text": "stepResponse | undefined"
+              }
+            },
+            {
               "name": "analyzeStr",
               "type": {
                 "text": "stepResponse | undefined"
               }
             },
             {
-              "name": "runCodeFormattingStr",
+              "name": "eslintStr",
+              "type": {
+                "text": "stepResponse | undefined"
+              }
+            },
+            {
+              "name": "litAnalyzerStr",
+              "type": {
+                "text": "stepResponse | undefined"
+              }
+            },
+            {
+              "name": "codeFormattingStr",
               "type": {
                 "text": "stepResponse | undefined"
               }
@@ -203,6 +329,31 @@
           "declaration": {
             "name": "formatting",
             "module": "src/scripts/formatting.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/scripts/setup.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "setup",
+          "return": {
+            "type": {
+              "text": "Promise<stepResponse>"
+            }
+          }
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "setup",
+          "declaration": {
+            "name": "setup",
+            "module": "src/scripts/setup.ts"
           }
         }
       ]

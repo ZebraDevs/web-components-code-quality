@@ -123,7 +123,7 @@ export async function run(): Promise<void> {
     const litAnalyzerStr: stepResponse | undefined = doStaticAnalysis
       ? await litAnalyzer({
           label: "Lit Analyzer",
-          command: "npm run lint:lit-analyzer",
+          command: "npm run lint:lit-analyzer -- --format markdown",
         })
       : undefined;
 
