@@ -1,12 +1,12 @@
 // import { setFailed } from '@actions/core'
 // import parseLCOV from 'parse-lcov'
-// import { stepResponse } from 'src/main'
+// import { StepResponse } from 'src/main'
 
 // // TODO: Adapt the step to use parseLCOV
 // //
 // //
 
-// export const coverage = async (): Promise<stepResponse> => {
+// export const coverage = async (): Promise<StepResponse> => {
 //   try {
 //     return { output: 'RETURN COVERAGE', error: false }
 //   } catch (error) {
@@ -17,7 +17,7 @@
 
 // import { readFileSync } from 'node:fs'
 // import { endGroup, startGroup } from '@actions/core'
-// import { stepResponse } from '../main'
+// import { StepResponse } from '../main'
 // import { debug } from '@actions/core'
 // import { getLcovLines } from './utils'
 
@@ -27,15 +27,15 @@
 //  * Get the coverage report and compare with the previous coverage
 //  * @param prevCoverage - Previous coverage report
 //  * @param coverageDirectory - Directory to store coverage report
-//  * @returns Coverage report as a stepResponse object
+//  * @returns Coverage report as a StepResponse object
 //  */
 // export const coverage = (
 //   prevCoverage: Lcov | undefined,
 //   coverageDirectory: string,
 //   scoreStr: string
-// ): stepResponse => {
+// ): StepResponse => {
 //   startGroup('Checking test coverage')
-//   let response: stepResponse | undefined
+//   let response: StepResponse | undefined
 //   let score = 90
 
 //   try {

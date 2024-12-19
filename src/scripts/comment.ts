@@ -1,32 +1,39 @@
 import { setFailed } from "@actions/core";
 import { getOctokit } from "@actions/github";
 import { Context } from "@actions/github/lib/context";
-import { stepResponse } from "src/main";
+import { StepResponse } from "src/main";
+
+const li = (str: string): string => {
+  return `<li>${str}</li>`;
+};
 
 export const comment = async (
   ocotokit: ReturnType<typeof getOctokit>,
   context: Context,
-  setupStr: stepResponse | undefined,
-  analyzeStr: stepResponse | undefined,
-  eslintStr: stepResponse | undefined,
-  litAnalyzerStr: stepResponse | undefined,
-  codeFormattingStr: stepResponse | undefined,
-  testingStr: stepResponse | undefined,
-): Promise<stepResponse> => {
+  npmIStr: StepResponse | undefined,
+  cemStr: StepResponse | undefined,
+  eslintStr: StepResponse | undefined,
+  litAnalyzerStr: StepResponse | undefined,
+  prettierStr: StepResponse | undefined,
+  playwrightStr: StepResponse | undefined,
+  testingStr: StepResponse | undefined,
+  tsDocStr: StepResponse | undefined,
+): Promise<StepResponse> => {
   try {
     const commentBody = `
   ## PR Checks Complete\n
   <ul>
-    <li>${setupStr?.output}</li>
-    <li>${analyzeStr?.output}</li>
-    <li>${eslintStr?.output}</li>
-    <li>${litAnalyzerStr?.output}</li>
-    <li>${codeFormattingStr?.output}</li>
-    <li>${testingStr?.output}</li>
+    ${npmIStr !== undefined ? li(npmIStr.output) : ""}
+    ${cemStr !== undefined ? li(cemStr.output) : ""}
+    ${eslintStr !== undefined ? li(eslintStr.output) : ""}
+    ${litAnalyzerStr !== undefined ? li(litAnalyzerStr.output) : ""}
+    ${prettierStr !== undefined ? li(prettierStr.output) : ""}
+    ${playwrightStr !== undefined ? li(playwrightStr.output) : ""}
+    ${testingStr !== undefined ? li(testingStr.output) : ""}
+    ${tsDocStr !== undefined ? li(tsDocStr.output) : ""}
   </ul>`;
     // ## Coverage = ${coverageStr?.output}\n`
 
-    console.log(commentBody);
     const { data: comments } = await ocotokit.rest.issues.listComments({
       issue_number: context.issue.number,
       owner: context.repo.owner,

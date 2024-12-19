@@ -30178,110 +30178,131 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.runCommand = exports.buildComment = exports.passedEmoji = exports.failedEmoji = void 0;
+exports.commandComment = exports.buildComment = exports.runCommand = exports.runBashCommand = exports.passedEmoji = exports.failedEmoji = void 0;
 exports.run = run;
 const core_1 = __nccwpck_require__(7484);
 const exec_1 = __nccwpck_require__(5236);
 const github_1 = __nccwpck_require__(3228);
 const analyze_1 = __nccwpck_require__(9316);
-const formatting_1 = __nccwpck_require__(1713);
 const testing_1 = __nccwpck_require__(4744);
 const comment_1 = __nccwpck_require__(8213);
 const process_1 = __nccwpck_require__(932);
 // import { coverage } from './scripts/coverage'
 const minimist_1 = __importDefault(__nccwpck_require__(994));
-const setup_1 = __nccwpck_require__(5301);
+const child_process_1 = __nccwpck_require__(5317);
+const post_1 = __nccwpck_require__(3884);
 exports.failedEmoji = "❌";
 exports.passedEmoji = "✅";
-const buildComment = async (commands) => {
-    let commentBody = "\n";
-    let errorMessages = "";
-    for (const { label, command } of commands) {
-        const result = await (0, exports.runCommand)(command, label);
-        if (result) {
-            commentBody += `${exports.failedEmoji} - ${label}
-<details><summary>See details</summary>${result}</details>`;
-            errorMessages += `${result}`;
+const runBashCommand = async (command) => {
+    return new Promise((resolve, reject) => {
+        try {
+            const output = (0, child_process_1.execSync)(command, { encoding: "utf-8" });
+            resolve(output);
         }
-        else {
-            commentBody += `${exports.passedEmoji} - ${label}\n`;
+        catch (error) {
+            reject(error);
         }
-    }
-    return [commentBody, errorMessages];
+    });
 };
-exports.buildComment = buildComment;
-const runCommand = async (command, label) => {
-    let output = "";
+exports.runBashCommand = runBashCommand;
+const runCommand = async (command) => {
+    let response = { output: "", error: false };
+    let outputStr = "";
     try {
-        await (0, exec_1.exec)(command, [], {
+        await (0, exec_1.exec)(command.command, [], {
             listeners: {
                 stdout: (data) => {
-                    output += data.toString();
+                    outputStr += data.toString();
                 },
             },
         });
-        return false;
     }
     catch (error) {
-        if (error instanceof Error) {
-            (0, core_1.debug)(`${label} failed: ${error.message}`);
-            return output;
-        }
-        else if (typeof error === "string") {
-            (0, core_1.debug)(`${label} failed: ${error}`);
-            return output;
-        }
-        else {
-            return true;
-        }
+        response.error = true;
+        (0, core_1.setFailed)(`Failed ${command.label}: ${error}`);
     }
+    return [response, outputStr];
 };
 exports.runCommand = runCommand;
+const buildComment = async (response, outputStr, label) => {
+    if (response.error == true) {
+        response.output = `${exports.failedEmoji} - ${label}\n<details><summary>See Details</summary>${outputStr}</details>`;
+    }
+    else {
+        response.output = `${exports.passedEmoji} - ${label}\n`;
+    }
+    return response;
+};
+exports.buildComment = buildComment;
+const commandComment = async (command) => {
+    const [response, outputStr] = await (0, exports.runCommand)(command);
+    return await (0, exports.buildComment)(response, outputStr, command.label);
+};
+exports.commandComment = commandComment;
+const checkIfLocal = () => {
+    const argv = (0, minimist_1.default)(process.argv.slice(2));
+    return argv._.findLast((x) => x == "--local") == "--local"
+        ? true
+        : false;
+};
+const getInputs = (isLocal) => {
+    // get the token and octokit
+    let token = "";
+    if (process.env.GITHUB_TOKEN && isLocal) {
+        token = process.env.GITHUB_TOKEN;
+    }
+    else {
+        token = (0, core_1.getInput)("token");
+    }
+    const workingDirectory = (0, core_1.getInput)("working-directory");
+    // get static analysis input
+    const doStaticAnalysis = isLocal
+        ? true
+        : (0, core_1.getBooleanInput)("run-static-analysis");
+    // get code formatting input
+    const doCodeFormatting = isLocal
+        ? true
+        : (0, core_1.getBooleanInput)("run-code-formatting");
+    // get tests input
+    const doTests = isLocal ? true : (0, core_1.getBooleanInput)("run-tests");
+    // const runCoverage: boolean = getBooleanInput('run-coverage');
+    // const coveragePassScore: string = getInput('coverage-pass-score');
+    // get comment input
+    const createComment = isLocal
+        ? true
+        : (0, core_1.getBooleanInput)("create-comment");
+    return [
+        token,
+        workingDirectory,
+        doStaticAnalysis,
+        doCodeFormatting,
+        doTests,
+        createComment,
+    ];
+};
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
  */
 async function run() {
-    const argv = (0, minimist_1.default)(process.argv.slice(2));
-    const isLocal = argv._.findLast((x) => x == "--local") == "--local" ? true : false;
+    const isLocal = checkIfLocal();
     try {
-        const workingDirectory = (0, core_1.getInput)("working-directory");
+        const [token, workingDirectory, doStaticAnalysis, doCodeFormatting, doTests, createComment,] = getInputs(isLocal);
         // Check if the working directory is different from the current directory
         const currentDirectory = (0, process_1.cwd)();
         if (workingDirectory && workingDirectory !== currentDirectory) {
             (0, process_1.chdir)(workingDirectory);
         }
-        // get the token and octokit
-        let token = "";
-        if (process.env.GITHUB_TOKEN && isLocal) {
-            token = process.env.GITHUB_TOKEN;
-        }
-        else {
-            token = (0, core_1.getInput)("token");
-        }
-        const octokit = (0, github_1.getOctokit)(token);
-        // get static analysis input
-        const doStaticAnalysis = isLocal
-            ? true
-            : (0, core_1.getBooleanInput)("run-static-analysis");
-        // get code formatting input
-        const doCodeFormatting = isLocal
-            ? true
-            : (0, core_1.getBooleanInput)("run-code-formatting");
-        // get tests input
-        const doTests = isLocal ? true : (0, core_1.getBooleanInput)("run-tests");
-        // const runCoverage: boolean = getBooleanInput('run-coverage');
-        // const coveragePassScore: string = getInput('coverage-pass-score');
-        // get comment input
-        const createComment = isLocal
-            ? true
-            : (0, core_1.getBooleanInput)("create-comment");
         // run set up
-        const setupStr = await (0, setup_1.setup)();
+        const npmIStr = await (0, exports.commandComment)({
+            label: "Install Dependencies",
+            command: "npm i --ignore-scripts",
+        });
         // run Static Analysis
-        const analyzeStr = doStaticAnalysis
-            ? await (0, analyze_1.analyze)()
-            : undefined;
+        const cemStr = await (0, exports.commandComment)({
+            label: "Custom Elements Manifest",
+            command: "npm run analyze",
+        });
         const eslintStr = doStaticAnalysis
             ? await (0, analyze_1.eslint)({ label: "ESLint", command: "npm run lint" })
             : undefined;
@@ -30292,20 +30313,36 @@ async function run() {
             })
             : undefined;
         // run Code Formatting
-        const codeFormattingStr = doCodeFormatting
-            ? await (0, formatting_1.formatting)()
+        const prettierStr = doCodeFormatting
+            ? await (0, exports.commandComment)({ label: "Prettier", command: "npm run prettier" })
+            : undefined;
+        const playwrightStr = doTests
+            ? await (0, testing_1.playwright)({
+                label: "Install PlayWright Browsers",
+                command: "npx playwright install --with-deps",
+            })
             : undefined;
         // run Tests
         const testingStr = doTests
-            ? await (0, testing_1.testing)()
+            ? await (0, testing_1.testing)({
+                label: "Testing",
+                command: "npm run test -- --coverage",
+            })
             : undefined;
+        const tsDocStr = doTests
+            ? await (0, exports.commandComment)({ label: "TSDoc", command: "npm run docs" })
+            : undefined;
+        const checkModifiedFilesStr = await (0, post_1.checkModifiedFiles)({
+            label: "Check for modified files",
+            command: 'echo "modified=$(if [ -n "$(git status --porcelain)" ]; then echo "true"; else echo "false"; fi)" >> $GITHUB_ENV',
+        });
         // runCoverage
-        // const coverageStr: stepResponse | undefined = runCoverage
+        // const coverageStr: StepResponse | undefined = runCoverage
         //   ? await coverage()
         //   : undefined
         // createComment
         if (createComment) {
-            await (0, comment_1.comment)(octokit, github_1.context, setupStr, analyzeStr, eslintStr, litAnalyzerStr, codeFormattingStr, testingStr);
+            await (0, comment_1.comment)((0, github_1.getOctokit)(token), github_1.context, npmIStr, cemStr, eslintStr, litAnalyzerStr, prettierStr, playwrightStr, testingStr, tsDocStr);
         }
     }
     catch (error) {
@@ -30324,25 +30361,10 @@ async function run() {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.analyze = exports.litAnalyzer = exports.eslint = void 0;
-const core_1 = __nccwpck_require__(7484);
-const exec_1 = __nccwpck_require__(5236);
+exports.litAnalyzer = exports.eslint = void 0;
 const main_1 = __nccwpck_require__(1730);
 const eslint = async (command) => {
-    const response = { output: "", error: false };
-    let outputStr = "";
-    try {
-        await (0, exec_1.exec)(command.command, [], {
-            listeners: {
-                stdout: (data) => {
-                    outputStr += data.toString();
-                },
-            },
-        });
-    }
-    catch (error) {
-        (0, core_1.setFailed)(`Failed ${command.label}: ${error}`);
-    }
+    const [response, outputStr] = await (0, main_1.runCommand)(command);
     const lines = outputStr.split("\n");
     const table = lines
         .map((line) => {
@@ -30365,37 +30387,10 @@ const eslint = async (command) => {
     return response;
 };
 exports.eslint = eslint;
-// const customElementsManifestAnalyzer = async (
-//   command: Command,
-// ): Promise<stepResponse> => {};
 const litAnalyzer = async (command) => {
-    let response = { output: "", error: false };
-    let outputStr = "";
-    try {
-        await (0, exec_1.exec)(command.command, [], {
-            listeners: {
-                stdout: (data) => {
-                    outputStr += data.toString();
-                },
-            },
-        });
-    }
-    catch (error) {
-        (0, core_1.setFailed)(`Failed ${command.label}: ${error}`);
-        response.error = true;
-    }
+    let [response, outputStr] = await (0, main_1.runCommand)(command);
     if (response.error == true) {
         const lines = outputStr.split("\n");
-        // const table = lines
-        //   .map((line) => {
-        //     const match = line.match(/^(.*?):(\d+):(\d+): (.*)$/);
-        //     if (match) {
-        //       const [_, file, line, message] = match;
-        //       return `<tr><td>${file}</td><td>${line}</td><td>${message}</td></tr>`;
-        //     }
-        //     return "";
-        //   })
-        //   .join("");
         const problemsCountStr = lines
             .map((line) => {
             const match = line.match(/^\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|$/);
@@ -30405,17 +30400,8 @@ const litAnalyzer = async (command) => {
             }
         })
             .join("");
-        // const problemsLine = lines.filter((line) =>
-        //   line.match(
-        //     /^\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|$/,
-        //   ),
-        // );
-        // const [_, __, problemCountStr, ___, ____] = problemsLine[0].match(/^\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|$/) || [];
         const problemCount = parseInt(problemsCountStr);
-        // const problemCount =
-        //   problemsLine.length > 0
-        //     ? parseInt(problemsLine[0].match(/(\d+) problem/)![1])
-        //     : 0;
+        outputStr = outputStr.split("...").pop()?.trim() || outputStr;
         response.output = `${main_1.failedEmoji} - ${command.label}: ${problemCount} problem${problemCount !== 1 ? "s" : ""} found\n<details><summary>See Details</summary>${outputStr}</details>`;
         return response;
     }
@@ -30425,63 +30411,6 @@ const litAnalyzer = async (command) => {
     }
 };
 exports.litAnalyzer = litAnalyzer;
-const analyze = async () => {
-    const commands = [
-        { label: "Custom Elements Manifest Analyzer", command: "npm run analyze" },
-    ];
-    const [commentBody, errorMessages] = await (0, main_1.buildComment)(commands);
-    if (errorMessages) {
-        (0, core_1.setFailed)(errorMessages.trim());
-        return { output: commentBody.trim(), error: true };
-    }
-    else {
-        return { output: commentBody.trim(), error: false };
-    }
-};
-exports.analyze = analyze;
-// export const buildComment = async (
-//   commands: { label: string; command: string }[],
-// ): Promise<string[]> => {
-//   let commentBody = "\n";
-//   let errorMessages = "";
-//   for (const { label, command } of commands) {
-//     const result = await runCommand(command, label);
-//     if (result) {
-//       commentBody += `<li>${failedEmoji} - ${label}
-// <details><summary>See details</summary>${result}</details></li>`;
-//       errorMessages += `${result}`;
-//     } else {
-//       commentBody += `<li>${passedEmoji} - ${label}\n</li>`;
-//     }
-//   }
-//   return [commentBody, errorMessages];
-// };
-// export const runCommand = async (
-//   command: string,
-//   label: string,
-// ): Promise<string | boolean> => {
-//   let output = "";
-//   try {
-//     await exec(command, [], {
-//       listeners: {
-//         stdout: (data) => {
-//           output += data.toString();
-//         },
-//       },
-//     });
-//     return false;
-//   } catch (error: unknown) {
-//     if (error instanceof Error) {
-//       debug(`${label} failed: ${error.message}`);
-//       return output;
-//     } else if (typeof error === "string") {
-//       debug(`${label} failed: ${error}`);
-//       return output;
-//     } else {
-//       return true;
-//     }
-//   }
-// };
 
 
 /***/ }),
@@ -30494,20 +30423,24 @@ exports.analyze = analyze;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.comment = void 0;
 const core_1 = __nccwpck_require__(7484);
-const comment = async (ocotokit, context, setupStr, analyzeStr, eslintStr, litAnalyzerStr, codeFormattingStr, testingStr) => {
+const li = (str) => {
+    return `<li>${str}</li>`;
+};
+const comment = async (ocotokit, context, npmIStr, cemStr, eslintStr, litAnalyzerStr, prettierStr, playwrightStr, testingStr, tsDocStr) => {
     try {
         const commentBody = `
   ## PR Checks Complete\n
   <ul>
-    <li>${setupStr?.output}</li>
-    <li>${analyzeStr?.output}</li>
-    <li>${eslintStr?.output}</li>
-    <li>${litAnalyzerStr?.output}</li>
-    <li>${codeFormattingStr?.output}</li>
-    <li>${testingStr?.output}</li>
+    ${npmIStr !== undefined ? li(npmIStr.output) : ""}
+    ${cemStr !== undefined ? li(cemStr.output) : ""}
+    ${eslintStr !== undefined ? li(eslintStr.output) : ""}
+    ${litAnalyzerStr !== undefined ? li(litAnalyzerStr.output) : ""}
+    ${prettierStr !== undefined ? li(prettierStr.output) : ""}
+    ${playwrightStr !== undefined ? li(playwrightStr.output) : ""}
+    ${testingStr !== undefined ? li(testingStr.output) : ""}
+    ${tsDocStr !== undefined ? li(tsDocStr.output) : ""}
   </ul>`;
         // ## Coverage = ${coverageStr?.output}\n`
-        console.log(commentBody);
         const { data: comments } = await ocotokit.rest.issues.listComments({
             issue_number: context.issue.number,
             owner: context.repo.owner,
@@ -30545,54 +30478,28 @@ exports.comment = comment;
 
 /***/ }),
 
-/***/ 1713:
+/***/ 3884:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.formatting = void 0;
+exports.checkModifiedFiles = void 0;
 const core_1 = __nccwpck_require__(7484);
 const main_1 = __nccwpck_require__(1730);
-const formatting = async () => {
-    const commands = [{ label: "Prettier", command: "npm run prettier" }];
-    const [commentBody, errorMessages] = await (0, main_1.buildComment)(commands);
-    if (errorMessages) {
-        (0, core_1.setFailed)(errorMessages.trim());
-        return { output: commentBody.trim(), error: true };
-    }
-    else {
-        return { output: commentBody.trim(), error: false };
-    }
+const checkModifiedFiles = async (command) => {
+    const result = await (0, main_1.runBashCommand)(command.command)
+        .then(async (str) => {
+        const response = { output: "", error: false };
+        return await (0, main_1.buildComment)(response, str, command.label);
+    })
+        .catch((error) => {
+        (0, core_1.setFailed)(`Failed to check for modified files: ${error}`);
+        return { output: error.message, error: true };
+    });
+    return result;
 };
-exports.formatting = formatting;
-
-
-/***/ }),
-
-/***/ 5301:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setup = void 0;
-const core_1 = __nccwpck_require__(7484);
-const main_1 = __nccwpck_require__(1730);
-const setup = async () => {
-    const commands = [
-        { label: "Install Dependencies", command: "npm i --ignore-scripts" },
-    ];
-    const [commentBody, errorMessages] = await (0, main_1.buildComment)(commands);
-    if (errorMessages) {
-        (0, core_1.setFailed)(errorMessages.trim());
-        return { output: commentBody.trim(), error: true };
-    }
-    else {
-        return { output: commentBody.trim(), error: false };
-    }
-};
-exports.setup = setup;
+exports.checkModifiedFiles = checkModifiedFiles;
 
 
 /***/ }),
@@ -30603,60 +30510,42 @@ exports.setup = setup;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.testing = void 0;
+exports.testing = exports.playwright = void 0;
 const core_1 = __nccwpck_require__(7484);
 const main_1 = __nccwpck_require__(1730);
 // import { exec } from "@actions/exec";
-const child_process_1 = __nccwpck_require__(5317);
-const testing = async () => {
-    const runCommand = async (command) => {
-        return new Promise((resolve, reject) => {
-            try {
-                const output = (0, child_process_1.execSync)(command, { encoding: "utf-8" });
-                resolve(output);
-            }
-            catch (error) {
-                reject(error);
-            }
-            // exec(command, [], {
-            //   listeners: {
-            //     stdout: (data: Buffer) => {
-            //       resolve(data.toString());
-            //     },
-            //     stderr: (data: Buffer) => {
-            //       reject(new Error(data.toString()));
-            //     },
-            //   },
-            // }).catch((error: Error) => {
-            //   reject(error);
-            // });
-        });
-    };
-    await runCommand("npm ls @playwright/test | grep @playwright | sed 's/.*@//'")
+const playwright = async (command) => {
+    await (0, main_1.runBashCommand)("npm ls @playwright/test | grep @playwright | sed 's/.*@//'")
         .then((version) => {
         process.env.PLAYWRIGHT_VERSION = version.trim();
     })
         .catch((error) => {
         (0, core_1.setFailed)(`Failed to get Playwright version: ${error}`);
-        return { output: "", error: true };
+        return { output: error.message, error: true };
     });
-    const commands = [
-        // { label: "Testing", command: "npm run test -- --coverage" },
-        {
-            label: "Install PlayWright Browsers",
-            command: "npx playwright install --with-deps",
-        },
-        { label: "Testing", command: "npm run test -- --coverage" },
-        { label: "TSDoc", command: "npm run docs" },
-    ];
-    const [commentBody, errorMessages] = await (0, main_1.buildComment)(commands);
-    if (errorMessages) {
-        (0, core_1.setFailed)(errorMessages.trim());
-        return { output: commentBody.trim(), error: true };
-    }
-    else {
-        return { output: commentBody.trim(), error: false };
-    }
+    return await (0, main_1.commandComment)(command);
+};
+exports.playwright = playwright;
+/// TODO: format this comment
+const testing = async (command) => {
+    const [response, outputStr] = await (0, main_1.runCommand)(command);
+    return await (0, main_1.buildComment)(response, outputStr, command.label);
+    // const commands = [
+    //   // { label: "Testing", command: "npm run test -- --coverage" },
+    //   {
+    //     label: "Install PlayWright Browsers",
+    //     command: "npx playwright install --with-deps",
+    //   },
+    //   { label: "Testing", command: "npm run test -- --coverage" },
+    //   { label: "TSDoc", command: "npm run docs" },
+    // ];
+    // const [commentBody, errorMessages] = await buildComment(commands);
+    // if (errorMessages) {
+    //   setFailed(errorMessages.trim());
+    //   return { output: commentBody.trim(), error: true };
+    // } else {
+    //   return { output: commentBody.trim(), error: false };
+    // }
 };
 exports.testing = testing;
 
