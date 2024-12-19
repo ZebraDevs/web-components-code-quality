@@ -30329,7 +30329,7 @@ const core_1 = __nccwpck_require__(7484);
 const exec_1 = __nccwpck_require__(5236);
 const main_1 = __nccwpck_require__(1730);
 const eslint = async (command) => {
-    let response = { output: "", error: false };
+    const response = { output: "", error: false };
     let outputStr = "";
     try {
         await (0, exec_1.exec)(command.command, [], {
@@ -30397,7 +30397,7 @@ const litAnalyzer = async (command) => {
         //   })
         //   .join("");
         const problemsLine = lines.filter((line) => line.match(/^\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|$/));
-        const [_, __, problemCountStr, ___, ____] = problemsLine;
+        const [i, _, __, problemCountStr, ___, ____] = problemsLine;
         const problemCount = parseInt(problemCountStr);
         // const problemCount =
         //   problemsLine.length > 0
@@ -30494,6 +30494,7 @@ const comment = async (ocotokit, context, setupStr, analyzeStr, eslintStr, litAn
     <li>${testingStr?.output}</li>
   </ul>`;
         // ## Coverage = ${coverageStr?.output}\n`
+        console.log(commentBody);
         const { data: comments } = await ocotokit.rest.issues.listComments({
             issue_number: context.issue.number,
             owner: context.repo.owner,

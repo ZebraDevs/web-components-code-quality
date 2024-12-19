@@ -9,7 +9,7 @@ import {
 } from "src/main";
 
 export const eslint = async (command: Command): Promise<stepResponse> => {
-  let response: stepResponse = { output: "", error: false };
+  const response: stepResponse = { output: "", error: false };
   let outputStr = "";
   try {
     await exec(command.command, [], {
@@ -20,7 +20,7 @@ export const eslint = async (command: Command): Promise<stepResponse> => {
       },
     });
   } catch (error) {
-    setFailed(`Failed ${command.label}: ${error}`);
+    setFailed(`Failed ${command.label}: ${error as string}`);
   }
 
   const lines = outputStr.split("\n");
@@ -87,7 +87,7 @@ export const litAnalyzer = async (command: Command): Promise<stepResponse> => {
       ),
     );
 
-    const [_, __, problemCountStr, ___, ____] = problemsLine;
+    const [i, _, __, problemCountStr, ___, ____] = problemsLine;
     const problemCount = parseInt(problemCountStr);
     // const problemCount =
     //   problemsLine.length > 0

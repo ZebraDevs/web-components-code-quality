@@ -26,6 +26,7 @@ export const comment = async (
   </ul>`;
     // ## Coverage = ${coverageStr?.output}\n`
 
+    console.log(commentBody);
     const { data: comments } = await ocotokit.rest.issues.listComments({
       issue_number: context.issue.number,
       owner: context.repo.owner,
