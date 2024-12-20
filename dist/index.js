@@ -30345,7 +30345,7 @@ async function run() {
                 'git config --global user.email "github-actions@github.com"',
                 "git add -A",
                 'git commit -m "[automated commit] lint format and import sort"',
-                "git wiugfeiuwegf push",
+                "git push",
             ],
         });
         // runCoverage
