@@ -30344,7 +30344,8 @@ async function run() {
                 'git config --global user.email "github-actions@github.com"',
                 "git add -A",
                 'git commit -m "[automated commit] lint format and import sort"',
-                "git push",
+                "git brokenSTRING push",
+                // "git push",
             ],
         });
         // runCoverage
@@ -30526,8 +30527,12 @@ const updateChanges = async (command) => {
                 (0, core_1.setFailed)(`Failed to execute command "${cmd}": ${error}`);
                 response.error = true;
                 response = await (0, main_1.buildComment)(response, error.message, command.label);
+                return;
             });
         }
+    }
+    if (response.error === false) {
+        response = await (0, main_1.buildComment)(response, "", command.label);
     }
     return response;
 };

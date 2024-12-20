@@ -29,8 +29,13 @@ export const updateChanges = async (
         setFailed(`Failed to execute command "${cmd}": ${error as string}`);
         response.error = true;
         response = await buildComment(response, error.message, command.label);
+        return;
       });
     }
+  }
+
+  if (response.error === false) {
+    response = await buildComment(response, "", command.label);
   }
 
   return response;
