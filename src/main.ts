@@ -192,25 +192,27 @@ export async function run(): Promise<void> {
       ? await commandComment({ label: "TSDoc", command: "npm run docs" })
       : undefined;
 
-    const checkModifiedFilesStr: StepResponse | undefined =
+    const [checkModifiedFilesStr, modified]: [StepResponse, boolean] =
       await checkModifiedFiles({
         label: "Check for modified files",
-        command:
-          'echo "modified=$(if [ -n "$(git status --porcelain)" ]; then echo "true"; else echo "false"; fi)" >> $GITHUB_ENV',
+        command: "git status --porcelain",
+        // 'echo "modified=$(if [ -n "$(git status --porcelain)" ]; then echo "true"; else echo "false"; fi)" >> $GITHUB_ENV',
       });
 
     // TODO: THIS DIDN't fail
-    const updateChangesStr: StepResponse | undefined = await updateChanges({
-      label: "Update changes in GitHub repository",
-      command: "",
-      commandList: [
-        'git config --global user.name "github-actions"',
-        'git config --global user.email "github-actions@github.com"',
-        "git add -A",
-        'git commit -m "[automated commit] lint format and import sort"',
-        "git push",
-      ],
-    });
+    const updateChangesStr: StepResponse | undefined = modified
+      ? await updateChanges({
+          label: "Update changes in GitHub repository",
+          command: "",
+          commandList: [
+            'git config --global user.name "github-actions"',
+            'git config --global user.email "github-actions@github.com"',
+            "git add -A",
+            'git commit -m "[automated commit] lint format and import sort"',
+            "git push",
+          ],
+        })
+      : undefined;
 
     // runCoverage
     // const coverageStr: StepResponse | undefined = runCoverage

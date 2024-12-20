@@ -3,11 +3,17 @@ import { buildComment, Command, runBashCommand, StepResponse } from "src/main";
 
 export const checkModifiedFiles = async (
   command: Command,
-): Promise<StepResponse> => {
+): Promise<[StepResponse, boolean]> => {
+  let filesModified = false;
   const result = await runBashCommand(command.command)
     .then(async (str) => {
       const response = { output: "", error: false };
-      return await buildComment(response, str, command.label);
+      if (str.trim() !== "") {
+        filesModified = true;
+        return await buildComment(response, str, command.label);
+      } else {
+        return await buildComment(response, str, command.label);
+      }
     })
     .catch(async (error) => {
       setFailed(`Failed to check for modified files: ${error as string}`);
@@ -15,7 +21,7 @@ export const checkModifiedFiles = async (
       return await buildComment(response, error.message, command.label);
     });
 
-  return result;
+  return [result, filesModified];
 };
 
 export const updateChanges = async (

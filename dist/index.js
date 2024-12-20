@@ -30332,22 +30332,25 @@ async function run() {
         const tsDocStr = doTests
             ? await (0, exports.commandComment)({ label: "TSDoc", command: "npm run docs" })
             : undefined;
-        const checkModifiedFilesStr = await (0, post_1.checkModifiedFiles)({
+        const [checkModifiedFilesStr, modified] = await (0, post_1.checkModifiedFiles)({
             label: "Check for modified files",
-            command: 'echo "modified=$(if [ -n "$(git status --porcelain)" ]; then echo "true"; else echo "false"; fi)" >> $GITHUB_ENV',
+            command: "git status --porcelain",
+            // 'echo "modified=$(if [ -n "$(git status --porcelain)" ]; then echo "true"; else echo "false"; fi)" >> $GITHUB_ENV',
         });
         // TODO: THIS DIDN't fail
-        const updateChangesStr = await (0, post_1.updateChanges)({
-            label: "Update changes in GitHub repository",
-            command: "",
-            commandList: [
-                'git config --global user.name "github-actions"',
-                'git config --global user.email "github-actions@github.com"',
-                "git add -A",
-                'git commit -m "[automated commit] lint format and import sort"',
-                "git push",
-            ],
-        });
+        const updateChangesStr = modified
+            ? await (0, post_1.updateChanges)({
+                label: "Update changes in GitHub repository",
+                command: "",
+                commandList: [
+                    'git config --global user.name "github-actions"',
+                    'git config --global user.email "github-actions@github.com"',
+                    "git add -A",
+                    'git commit -m "[automated commit] lint format and import sort"',
+                    "git push",
+                ],
+            })
+            : undefined;
         // runCoverage
         // const coverageStr: StepResponse | undefined = runCoverage
         //   ? await coverage()
@@ -30506,17 +30509,24 @@ exports.updateChanges = exports.checkModifiedFiles = void 0;
 const core_1 = __nccwpck_require__(7484);
 const main_1 = __nccwpck_require__(1730);
 const checkModifiedFiles = async (command) => {
+    let filesModified = false;
     const result = await (0, main_1.runBashCommand)(command.command)
         .then(async (str) => {
         const response = { output: "", error: false };
-        return await (0, main_1.buildComment)(response, str, command.label);
+        if (str.trim() !== "") {
+            filesModified = true;
+            return await (0, main_1.buildComment)(response, str, command.label);
+        }
+        else {
+            return await (0, main_1.buildComment)(response, str, command.label);
+        }
     })
         .catch(async (error) => {
         (0, core_1.setFailed)(`Failed to check for modified files: ${error}`);
         const response = { output: "", error: true };
         return await (0, main_1.buildComment)(response, error.message, command.label);
     });
-    return result;
+    return [result, filesModified];
 };
 exports.checkModifiedFiles = checkModifiedFiles;
 const updateChanges = async (command) => {
