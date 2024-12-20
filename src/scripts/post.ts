@@ -9,9 +9,11 @@ export const checkModifiedFiles = async (
     .then(async (str) => {
       const response = { output: "", error: false };
       if (str.trim() !== "") {
+        console.log("str 1: ", str);
         filesModified = true;
         return await buildComment(response, str, command.label);
       } else {
+        console.log("str 2: ", str);
         return await buildComment(response, str, command.label);
       }
     })
@@ -29,22 +31,14 @@ export const updateChanges = async (
 ): Promise<StepResponse> => {
   let response: StepResponse = { output: "", error: false };
 
-  if (process.env.MODIFIED === "true") {
-    for (const cmd of command.commandList as string[]) {
-      await runBashCommand(cmd).catch(async (error) => {
-        setFailed(`Failed to execute command "${cmd}": ${error as string}`);
-        response.error = true;
-        response = await buildComment(response, error.message, command.label);
-        return;
-      });
-    }
-  } else {
-    response.error = true;
-    response = await buildComment(
-      response,
-      "process.env.MODIFIED == false",
-      command.label,
-    );
+  for (const cmd of command.commandList as string[]) {
+    console.log("cmd: ", cmd);
+    await runBashCommand(cmd).catch(async (error) => {
+      setFailed(`Failed to execute command "${cmd}": ${error as string}`);
+      response.error = true;
+      response = await buildComment(response, error.message, command.label);
+      return;
+    });
   }
 
   if (response.error === false) {

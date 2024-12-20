@@ -191,14 +191,14 @@ export async function run(): Promise<void> {
     const tsDocStr: StepResponse | undefined = doTests
       ? await commandComment({ label: "TSDoc", command: "npm run docs" })
       : undefined;
-
+    console.log("finished tsDoc");
     const [checkModifiedFilesStr, modified]: [StepResponse, boolean] =
       await checkModifiedFiles({
         label: "Check for modified files",
         command: "git status --porcelain",
         // 'echo "modified=$(if [ -n "$(git status --porcelain)" ]; then echo "true"; else echo "false"; fi)" >> $GITHUB_ENV',
       });
-
+    console.log("modified: ", modified);
     // TODO: THIS DIDN't fail
     const updateChangesStr: StepResponse | undefined = modified
       ? await updateChanges({
@@ -213,6 +213,7 @@ export async function run(): Promise<void> {
           ],
         })
       : undefined;
+    console.log("updateChangesStr: ", updateChangesStr);
 
     // runCoverage
     // const coverageStr: StepResponse | undefined = runCoverage
