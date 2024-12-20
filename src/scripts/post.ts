@@ -32,6 +32,13 @@ export const updateChanges = async (
         return;
       });
     }
+  } else {
+    response.error = true;
+    response = await buildComment(
+      response,
+      "process.env.MODIFIED == false",
+      command.label,
+    );
   }
 
   if (response.error === false) {

@@ -151,12 +151,12 @@ export async function run(): Promise<void> {
       command: "npm i --ignore-scripts",
     });
 
-    // run Static Analysis
     const cemStr: StepResponse | undefined = await commandComment({
       label: "Custom Elements Manifest",
       command: "npm run analyze",
     });
 
+    // run Static Analysis
     const eslintStr: StepResponse | undefined = doStaticAnalysis
       ? await eslint({ label: "ESLint", command: "npm run lint" })
       : undefined;
@@ -173,6 +173,7 @@ export async function run(): Promise<void> {
       ? await commandComment({ label: "Prettier", command: "npm run prettier" })
       : undefined;
 
+    // run Tests
     const playwrightStr: StepResponse | undefined = doTests
       ? await playwright({
           label: "Install PlayWright Browsers",
@@ -180,7 +181,6 @@ export async function run(): Promise<void> {
         })
       : undefined;
 
-    // run Tests
     const testingStr: StepResponse | undefined = doTests
       ? await testing({
           label: "Testing",
@@ -199,6 +199,7 @@ export async function run(): Promise<void> {
           'echo "modified=$(if [ -n "$(git status --porcelain)" ]; then echo "true"; else echo "false"; fi)" >> $GITHUB_ENV',
       });
 
+    // TODO: THIS DIDN't fail
     const updateChangesStr: StepResponse | undefined = await updateChanges({
       label: "Update changes in GitHub repository",
       command: "",
@@ -207,8 +208,7 @@ export async function run(): Promise<void> {
         'git config --global user.email "github-actions@github.com"',
         "git add -A",
         'git commit -m "[automated commit] lint format and import sort"',
-        "git brokenSTRING push",
-        // "git push",
+        "git wiugfeiuwegf push",
       ],
     });
 
