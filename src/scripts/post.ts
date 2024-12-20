@@ -9,10 +9,29 @@ export const checkModifiedFiles = async (
       const response = { output: "", error: false };
       return await buildComment(response, str, command.label);
     })
-    .catch((error) => {
+    .catch(async (error) => {
       setFailed(`Failed to check for modified files: ${error as string}`);
-      return { output: error.message as string, error: true };
+      const response = { output: "", error: true };
+      return await buildComment(response, error.message, command.label);
     });
 
   return result;
+};
+
+export const updateChanges = async (
+  command: Command,
+): Promise<StepResponse> => {
+  let response: StepResponse = { output: "", error: false };
+
+  if (process.env.MODIFIED === "true") {
+    for (const cmd of command.commandList as string[]) {
+      await runBashCommand(cmd).catch(async (error) => {
+        setFailed(`Failed to execute command "${cmd}": ${error as string}`);
+        response.error = true;
+        response = await buildComment(response, error.message, command.label);
+      });
+    }
+  }
+
+  return response;
 };

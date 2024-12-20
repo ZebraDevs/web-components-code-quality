@@ -30336,13 +30336,24 @@ async function run() {
             label: "Check for modified files",
             command: 'echo "modified=$(if [ -n "$(git status --porcelain)" ]; then echo "true"; else echo "false"; fi)" >> $GITHUB_ENV',
         });
+        const updateChangesStr = await (0, post_1.updateChanges)({
+            label: "Update changes in GitHub repository",
+            command: "",
+            commandList: [
+                'git config --global user.name "github-actions"',
+                'git config --global user.email "github-actions@github.com"',
+                "git add -A",
+                'git commit -m "[automated commit] lint format and import sort"',
+                "git push",
+            ],
+        });
         // runCoverage
         // const coverageStr: StepResponse | undefined = runCoverage
         //   ? await coverage()
         //   : undefined
         // createComment
         if (createComment) {
-            await (0, comment_1.comment)((0, github_1.getOctokit)(token), github_1.context, npmIStr, cemStr, eslintStr, litAnalyzerStr, prettierStr, playwrightStr, testingStr, tsDocStr);
+            await (0, comment_1.comment)((0, github_1.getOctokit)(token), github_1.context, npmIStr, cemStr, eslintStr, litAnalyzerStr, prettierStr, playwrightStr, testingStr, tsDocStr, checkModifiedFilesStr, updateChangesStr);
         }
     }
     catch (error) {
@@ -30424,9 +30435,13 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.comment = void 0;
 const core_1 = __nccwpck_require__(7484);
 const li = (str) => {
-    return `<li>${str}</li>`;
+    return `
+<li>
+  ${str}
+</li>
+`;
 };
-const comment = async (ocotokit, context, npmIStr, cemStr, eslintStr, litAnalyzerStr, prettierStr, playwrightStr, testingStr, tsDocStr) => {
+const comment = async (ocotokit, context, npmIStr, cemStr, eslintStr, litAnalyzerStr, prettierStr, playwrightStr, testingStr, tsDocStr, checkModifiedFilesStr, updateChangesStr) => {
     try {
         const commentBody = `
   ## PR Checks Complete\n
@@ -30439,6 +30454,8 @@ const comment = async (ocotokit, context, npmIStr, cemStr, eslintStr, litAnalyze
     ${playwrightStr !== undefined ? li(playwrightStr.output) : ""}
     ${testingStr !== undefined ? li(testingStr.output) : ""}
     ${tsDocStr !== undefined ? li(tsDocStr.output) : ""}
+    ${checkModifiedFilesStr !== undefined ? li(checkModifiedFilesStr.output) : ""}
+    ${updateChangesStr !== undefined ? li(updateChangesStr.output) : ""}
   </ul>`;
         // ## Coverage = ${coverageStr?.output}\n`
         const { data: comments } = await ocotokit.rest.issues.listComments({
@@ -30484,7 +30501,7 @@ exports.comment = comment;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.checkModifiedFiles = void 0;
+exports.updateChanges = exports.checkModifiedFiles = void 0;
 const core_1 = __nccwpck_require__(7484);
 const main_1 = __nccwpck_require__(1730);
 const checkModifiedFiles = async (command) => {
@@ -30493,13 +30510,28 @@ const checkModifiedFiles = async (command) => {
         const response = { output: "", error: false };
         return await (0, main_1.buildComment)(response, str, command.label);
     })
-        .catch((error) => {
+        .catch(async (error) => {
         (0, core_1.setFailed)(`Failed to check for modified files: ${error}`);
-        return { output: error.message, error: true };
+        const response = { output: "", error: true };
+        return await (0, main_1.buildComment)(response, error.message, command.label);
     });
     return result;
 };
 exports.checkModifiedFiles = checkModifiedFiles;
+const updateChanges = async (command) => {
+    let response = { output: "", error: false };
+    if (process.env.MODIFIED === "true") {
+        for (const cmd of command.commandList) {
+            await (0, main_1.runBashCommand)(cmd).catch(async (error) => {
+                (0, core_1.setFailed)(`Failed to execute command "${cmd}": ${error}`);
+                response.error = true;
+                response = await (0, main_1.buildComment)(response, error.message, command.label);
+            });
+        }
+    }
+    return response;
+};
+exports.updateChanges = updateChanges;
 
 
 /***/ }),

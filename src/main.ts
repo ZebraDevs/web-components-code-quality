@@ -8,9 +8,13 @@ import { cwd, chdir } from "process";
 // import { coverage } from './scripts/coverage'
 import minimist from "minimist";
 import { execSync } from "child_process";
-import { checkModifiedFiles } from "./scripts/post";
+import { checkModifiedFiles, updateChanges } from "./scripts/post";
 
-export type Command = { label: string; command: string };
+export type Command = {
+  label: string;
+  command: string;
+  commandList?: string[];
+};
 
 export type StepResponse = { output: string; error: boolean };
 export const failedEmoji = "❌";
@@ -195,6 +199,18 @@ export async function run(): Promise<void> {
           'echo "modified=$(if [ -n "$(git status --porcelain)" ]; then echo "true"; else echo "false"; fi)" >> $GITHUB_ENV',
       });
 
+    const updateChangesStr: StepResponse | undefined = await updateChanges({
+      label: "Update changes in GitHub repository",
+      command: "",
+      commandList: [
+        'git config --global user.name "github-actions"',
+        'git config --global user.email "github-actions@github.com"',
+        "git add -A",
+        'git commit -m "[automated commit] lint format and import sort"',
+        "git push",
+      ],
+    });
+
     // runCoverage
     // const coverageStr: StepResponse | undefined = runCoverage
     //   ? await coverage()
@@ -213,6 +229,8 @@ export async function run(): Promise<void> {
         playwrightStr,
         testingStr,
         tsDocStr,
+        checkModifiedFilesStr,
+        updateChangesStr,
       );
     }
   } catch (error) {

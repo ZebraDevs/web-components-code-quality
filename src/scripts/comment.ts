@@ -4,7 +4,11 @@ import { Context } from "@actions/github/lib/context";
 import { StepResponse } from "src/main";
 
 const li = (str: string): string => {
-  return `<li>${str}</li>`;
+  return `
+<li>
+  ${str}
+</li>
+`;
 };
 
 export const comment = async (
@@ -18,6 +22,8 @@ export const comment = async (
   playwrightStr: StepResponse | undefined,
   testingStr: StepResponse | undefined,
   tsDocStr: StepResponse | undefined,
+  checkModifiedFilesStr: StepResponse | undefined,
+  updateChangesStr: StepResponse | undefined,
 ): Promise<StepResponse> => {
   try {
     const commentBody = `
@@ -31,6 +37,8 @@ export const comment = async (
     ${playwrightStr !== undefined ? li(playwrightStr.output) : ""}
     ${testingStr !== undefined ? li(testingStr.output) : ""}
     ${tsDocStr !== undefined ? li(tsDocStr.output) : ""}
+    ${checkModifiedFilesStr !== undefined ? li(checkModifiedFilesStr.output) : ""}
+    ${updateChangesStr !== undefined ? li(updateChangesStr.output) : ""}
   </ul>`;
     // ## Coverage = ${coverageStr?.output}\n`
 
