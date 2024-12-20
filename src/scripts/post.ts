@@ -9,11 +9,9 @@ export const checkModifiedFiles = async (
     .then(async (str) => {
       const response = { output: "", error: false };
       if (str.trim() !== "") {
-        console.log("str 1: ", str);
         filesModified = true;
         return await buildComment(response, str, command.label);
       } else {
-        console.log("str 2: ", str);
         return await buildComment(response, str, command.label);
       }
     })
@@ -32,7 +30,6 @@ export const updateChanges = async (
   let response: StepResponse = { output: "", error: false };
 
   for (const cmd of command.commandList as string[]) {
-    console.log("cmd: ", cmd);
     await runBashCommand(cmd).catch(async (error) => {
       setFailed(`Failed to execute command "${cmd}": ${error as string}`);
       response.error = true;

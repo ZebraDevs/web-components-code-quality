@@ -30332,13 +30332,10 @@ async function run() {
         const tsDocStr = doTests
             ? await (0, exports.commandComment)({ label: "TSDoc", command: "npm run docs" })
             : undefined;
-        console.log("finished tsDoc");
         const [checkModifiedFilesStr, modified] = await (0, post_1.checkModifiedFiles)({
             label: "Check for modified files",
             command: "git status --porcelain",
-            // 'echo "modified=$(if [ -n "$(git status --porcelain)" ]; then echo "true"; else echo "false"; fi)" >> $GITHUB_ENV',
         });
-        console.log("modified: ", modified);
         // TODO: THIS DIDN't fail
         const updateChangesStr = modified
             ? await (0, post_1.updateChanges)({
@@ -30353,7 +30350,6 @@ async function run() {
                 ],
             })
             : undefined;
-        console.log("updateChangesStr: ", updateChangesStr);
         // runCoverage
         // const coverageStr: StepResponse | undefined = runCoverage
         //   ? await coverage()
@@ -30517,12 +30513,10 @@ const checkModifiedFiles = async (command) => {
         .then(async (str) => {
         const response = { output: "", error: false };
         if (str.trim() !== "") {
-            console.log("str 1: ", str);
             filesModified = true;
             return await (0, main_1.buildComment)(response, str, command.label);
         }
         else {
-            console.log("str 2: ", str);
             return await (0, main_1.buildComment)(response, str, command.label);
         }
     })
@@ -30537,7 +30531,6 @@ exports.checkModifiedFiles = checkModifiedFiles;
 const updateChanges = async (command) => {
     let response = { output: "", error: false };
     for (const cmd of command.commandList) {
-        console.log("cmd: ", cmd);
         await (0, main_1.runBashCommand)(cmd).catch(async (error) => {
             (0, core_1.setFailed)(`Failed to execute command "${cmd}": ${error}`);
             response.error = true;
