@@ -42,9 +42,6 @@ export const runCommand = async (
         stdout: (data) => {
           outputStr += data.toString();
         },
-        stderr: (data) => {
-          outputStr += data.toString();
-        },
       },
     });
   } catch (error) {
@@ -200,6 +197,10 @@ export async function run(): Promise<void> {
         )
       : undefined;
 
+    // TODO: Manage TSDoc errors
+    // stderr: (data) => {
+    //   outputStr += data.toString();
+    // },
     const tsDocStr: StepResponse | undefined = doTests
       ? await commandComment({ label: "TSDoc", command: "npm run docs" })
       : undefined;
