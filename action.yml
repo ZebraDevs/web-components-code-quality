@@ -35,6 +35,11 @@ inputs:
     required: false
     default: "true"
 
+  test-results-path:
+    description: "The path to the test results file"
+    required: false
+    default: "./test-results.xml"
+
   run-coverage:
     description: "Whether to run coverage"
     required: false

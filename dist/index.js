@@ -30265,6 +30265,9 @@ const getInputs = (isLocal) => {
         : (0, core_1.getBooleanInput)("run-code-formatting");
     // get tests input
     const doTests = isLocal ? true : (0, core_1.getBooleanInput)("run-tests");
+    const testResultsPath = isLocal
+        ? "./test-results.xml"
+        : (0, core_1.getInput)("test-results-path");
     // const runCoverage: boolean = getBooleanInput('run-coverage');
     // const coveragePassScore: string = getInput('coverage-pass-score');
     // get comment input
@@ -30277,6 +30280,7 @@ const getInputs = (isLocal) => {
         doStaticAnalysis,
         doCodeFormatting,
         doTests,
+        testResultsPath,
         createComment,
     ];
 };
@@ -30287,7 +30291,7 @@ const getInputs = (isLocal) => {
 async function run() {
     const isLocal = checkIfLocal();
     try {
-        const [token, workingDirectory, doStaticAnalysis, doCodeFormatting, doTests, createComment,] = getInputs(isLocal);
+        const [token, workingDirectory, doStaticAnalysis, doCodeFormatting, doTests, testResultsPath, createComment,] = getInputs(isLocal);
         // Check if the working directory is different from the current directory
         const currentDirectory = (0, process_1.cwd)();
         if (workingDirectory && workingDirectory !== currentDirectory) {
@@ -30326,8 +30330,8 @@ async function run() {
         const testingStr = doTests
             ? await (0, testing_1.testing)({
                 label: "Testing",
-                command: "npm run test -- --coverage --reporter json",
-            })
+                command: "npm run test -- --coverage",
+            }, testResultsPath)
             : undefined;
         const tsDocStr = doTests
             ? await (0, exports.commandComment)({ label: "TSDoc", command: "npm run docs" })
@@ -30549,13 +30553,38 @@ exports.updateChanges = updateChanges;
 /***/ }),
 
 /***/ 4744:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.testing = exports.playwright = void 0;
 const core_1 = __nccwpck_require__(7484);
+const exec_1 = __nccwpck_require__(5236);
+const fs = __importStar(__nccwpck_require__(9896));
 const main_1 = __nccwpck_require__(1730);
 // import { exec } from "@actions/exec";
 const playwright = async (command) => {
@@ -30570,9 +30599,51 @@ const playwright = async (command) => {
     return await (0, main_1.commandComment)(command);
 };
 exports.playwright = playwright;
-/// TODO: format this comment
-const testing = async (command) => {
-    const [response, outputStr] = await (0, main_1.runCommand)(command);
+const testing = async (command, testResultsPath) => {
+    let response = { output: "", error: false };
+    let outputStr = "";
+    try {
+        await (0, exec_1.exec)(command.command, [], {
+            listeners: {
+                stdout: (data) => {
+                    outputStr += data.toString();
+                },
+            },
+        });
+    }
+    catch (error) {
+        response.error = true;
+        (0, core_1.setFailed)(`Failed ${command.label}: ${error}`);
+    }
+    let testResults = "";
+    try {
+        testResults = fs.readFileSync(testResultsPath, "utf8");
+    }
+    catch (error) {
+        response.error = true;
+        (0, core_1.setFailed)(`Failed to read test results: ${error}`);
+    }
+    if (response.error) {
+        outputStr +=
+            "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Message</th></tr>";
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(testResults, "text/xml");
+        const testCases = doc.getElementsByTagName("testcase");
+        for (let i = 0; i < testCases.length; i++) {
+            const testCase = testCases[i];
+            const testCaseName = testCase.getAttribute("name");
+            const testCaseFailure = testCase.getElementsByTagName("failure");
+            if (testCaseFailure) {
+                const testCaseFile = testCase.getAttribute("file");
+                const testCaseLine = testCase.getAttribute("line");
+                const testCaseMessage = testCase
+                    .getElementsByTagName("failure")[0]
+                    .getAttribute("message");
+                outputStr += `<tr><td>${testCaseFile}</td><td>${testCaseName}</td><td>${testCaseLine}</td><td>${testCaseMessage}</td></tr>`;
+            }
+        }
+        outputStr += "</table>";
+    }
     return await (0, main_1.buildComment)(response, outputStr, command.label);
     // const commands = [
     //   // { label: "Testing", command: "npm run test -- --coverage" },

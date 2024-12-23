@@ -81,7 +81,7 @@ const checkIfLocal = (): boolean => {
 
 const getInputs = (
   isLocal: boolean,
-): [string, string, boolean, boolean, boolean, boolean] => {
+): [string, string, boolean, boolean, boolean, string, boolean] => {
   // get the token and octokit
   let token = "";
   if (process.env.GITHUB_TOKEN && isLocal) {
@@ -105,6 +105,10 @@ const getInputs = (
   // get tests input
   const doTests: boolean = isLocal ? true : getBooleanInput("run-tests");
 
+  const testResultsPath: string = isLocal
+    ? "./test-results.xml"
+    : getInput("test-results-path");
+
   // const runCoverage: boolean = getBooleanInput('run-coverage');
   // const coveragePassScore: string = getInput('coverage-pass-score');
   // get comment input
@@ -118,6 +122,7 @@ const getInputs = (
     doStaticAnalysis,
     doCodeFormatting,
     doTests,
+    testResultsPath,
     createComment,
   ];
 };
@@ -136,6 +141,7 @@ export async function run(): Promise<void> {
       doStaticAnalysis,
       doCodeFormatting,
       doTests,
+      testResultsPath,
       createComment,
     ] = getInputs(isLocal);
 
@@ -182,10 +188,13 @@ export async function run(): Promise<void> {
       : undefined;
 
     const testingStr: StepResponse | undefined = doTests
-      ? await testing({
-          label: "Testing",
-          command: "npm run test -- --coverage --reporter json",
-        })
+      ? await testing(
+          {
+            label: "Testing",
+            command: "npm run test -- --coverage",
+          },
+          testResultsPath,
+        )
       : undefined;
 
     const tsDocStr: StepResponse | undefined = doTests

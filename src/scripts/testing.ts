@@ -1,4 +1,6 @@
 import { setFailed } from "@actions/core";
+import { exec } from "@actions/exec";
+import * as fs from "fs";
 import {
   buildComment,
   Command,
@@ -24,9 +26,57 @@ export const playwright = async (command: Command): Promise<StepResponse> => {
   return await commandComment(command);
 };
 
-/// TODO: format this comment
-export const testing = async (command: Command): Promise<StepResponse> => {
-  const [response, outputStr] = await runCommand(command);
+export const testing = async (
+  command: Command,
+  testResultsPath: string,
+): Promise<StepResponse> => {
+  let response: StepResponse = { output: "", error: false };
+  let outputStr = "";
+  try {
+    await exec(command.command, [], {
+      listeners: {
+        stdout: (data) => {
+          outputStr += data.toString();
+        },
+      },
+    });
+  } catch (error) {
+    response.error = true;
+    setFailed(`Failed ${command.label}: ${error as string}`);
+  }
+
+  let testResults = "";
+  try {
+    testResults = fs.readFileSync(testResultsPath, "utf8");
+  } catch (error) {
+    response.error = true;
+    setFailed(`Failed to read test results: ${error as string}`);
+  }
+
+  if (response.error) {
+    outputStr +=
+      "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Message</th></tr>";
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(testResults, "text/xml");
+
+    const testCases = doc.getElementsByTagName("testcase");
+    for (let i = 0; i < testCases.length; i++) {
+      const testCase = testCases[i];
+      const testCaseName = testCase.getAttribute("name");
+      const testCaseFailure = testCase.getElementsByTagName("failure");
+      if (testCaseFailure) {
+        const testCaseFile = testCase.getAttribute("file");
+        const testCaseLine = testCase.getAttribute("line");
+        const testCaseMessage = testCase
+          .getElementsByTagName("failure")[0]
+          .getAttribute("message");
+        outputStr += `<tr><td>${testCaseFile}</td><td>${testCaseName}</td><td>${testCaseLine}</td><td>${testCaseMessage}</td></tr>`;
+      }
+    }
+
+    outputStr += "</table>";
+  }
   return await buildComment(response, outputStr, command.label);
 
   // const commands = [
