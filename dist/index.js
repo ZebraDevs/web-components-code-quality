@@ -30326,7 +30326,7 @@ async function run() {
         const testingStr = doTests
             ? await (0, testing_1.testing)({
                 label: "Testing",
-                command: "npm run test -- --coverage --esbuild-target json",
+                command: "npm run test -- --coverage --reporter json",
             })
             : undefined;
         const tsDocStr = doTests
