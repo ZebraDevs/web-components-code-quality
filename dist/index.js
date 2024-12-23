@@ -33071,14 +33071,11 @@ const testing = async (command, testResultsPath) => {
         outputStr +=
             "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Type</th><th>Message</th></tr>";
         const testSuites = jsonResults["elements"][0]["elements"];
-        for (let i = 0; i < testSuites.length; i++) {
-            const testSuite = testSuites[i];
-            console.log(testSuite);
-            const testCases = testSuite["elements"].filter((element) => element.name === "testcase");
-            for (let j = 0; j < testCases.length; j++) {
-                const testCase = testCases[j];
+        for (const testSuite of testSuites) {
+            const testCases = testSuite["elements"]?.filter((element) => element.name === "testcase") ?? [];
+            for (const testCase of testCases) {
                 const testCaseName = testCase["attributes"]["name"];
-                const testCaseFailure = testCase.filter((element) => element["elements"][0].name === "failure");
+                const testCaseFailure = testCase["elements"]?.find((element) => element.name === "failure");
                 if (testCaseFailure) {
                     const file = testCase["attributes"]["file"];
                     const line = testCase["attributes"]["line"];
