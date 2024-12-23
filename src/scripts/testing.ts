@@ -49,10 +49,13 @@ export const testing = async (
   }
 
   if (response.error && failedToReadFile == false) {
-    outputStr += parseXmlToJson(testResults);
-    console.log(outputStr.toString());
+    outputStr += JSON.stringify(parseXmlToJson(testResults));
+    console.log(outputStr);
     try {
-      fs.writeFileSync("src/test/json-results.json", outputStr);
+      fs.writeFileSync(
+        "src/test/json-results.json",
+        JSON.stringify(parseXmlToJson(testResults)),
+      );
     } catch (error) {
       setFailed(`Failed to write output to file: ${error as string}`);
     }
