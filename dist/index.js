@@ -33066,33 +33066,27 @@ const testing = async (command, testResultsPath) => {
         (0, core_1.setFailed)(`Failed to read test results: ${error}`);
     }
     if (response.error && failedToReadFile == false) {
-        outputStr += xml_js_1.default.xml2json(testResults, { compact: false, spaces: 2 });
-        console.log(outputStr);
-        try {
-            fs.writeFileSync("src/test/json-results.json", outputStr);
+        const jsonResults = JSON.parse(xml_js_1.default.xml2json(testResults, { compact: false, spaces: 2 }));
+        outputStr +=
+            "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Type</th><th>Message</th></tr>";
+        const testSuites = jsonResults["elements"][0]["elements"];
+        for (let i = 0; i < testSuites.length; i++) {
+            const testSuite = testSuites[i];
+            const testCases = testSuite["elements"].filter((element) => element.name === "testcase");
+            for (let j = 0; j < testCases.length; j++) {
+                const testCase = testCases[j];
+                const testCaseName = testCase["attributes"]["name"];
+                const testCaseFailure = testCase["elements"][0].filter((element) => element.name === "failure");
+                if (testCaseFailure) {
+                    const file = testCase["attributes"]["file"];
+                    const line = testCase["attributes"]["line"];
+                    const failureType = testCaseFailure["attributes"]["type"];
+                    const message = testCaseFailure["attributes"]["message"];
+                    outputStr += `<tr><td>${file}</td><td>${testCaseName}</td><td>${line}</td><td>${failureType}</td><td>${message}</td></tr>`;
+                }
+            }
         }
-        catch (error) {
-            (0, core_1.setFailed)(`Failed to write output to file: ${error}`);
-        }
-        // outputStr +=
-        //   "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Message</th></tr>";
-        // const parser = new DOMParser();
-        // const doc = parser.parseFromString(testResults, "text/xml");
-        // const testCases = doc.getElementsByTagName("testcase");
-        // for (let i = 0; i < testCases.length; i++) {
-        //   const testCase = testCases[i];
-        //   const testCaseName = testCase.getAttribute("name");
-        //   const testCaseFailure = testCase.getElementsByTagName("failure");
-        //   if (testCaseFailure) {
-        //     const testCaseFile = testCase.getAttribute("file");
-        //     const testCaseLine = testCase.getAttribute("line");
-        //     const testCaseMessage = testCase
-        //       .getElementsByTagName("failure")[0]
-        //       .getAttribute("message");
-        //     outputStr += `<tr><td>${testCaseFile}</td><td>${testCaseName}</td><td>${testCaseLine}</td><td>${testCaseMessage}</td></tr>`;
-        //   }
-        // }
-        // outputStr += "</table>";
+        outputStr += "</table>";
     }
     return await (0, main_1.buildComment)(response, outputStr, command.label);
     // const commands = [
