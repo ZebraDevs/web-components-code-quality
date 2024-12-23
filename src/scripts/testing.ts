@@ -50,7 +50,7 @@ export const testing = async (
 
   if (response.error && failedToReadFile == false) {
     outputStr += parseXmlToJson(testResults);
-    console.log(outputStr);
+    console.log(outputStr.toString());
     // outputStr +=
     //   "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Message</th></tr>";
 
