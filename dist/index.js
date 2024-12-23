@@ -30622,6 +30622,12 @@ const testing = async (command, testResultsPath) => {
     if (response.error && failedToReadFile == false) {
         outputStr += parseXmlToJson(testResults);
         console.log(outputStr.toString());
+        try {
+            fs.writeFileSync("src/test/json-results.json", outputStr);
+        }
+        catch (error) {
+            (0, core_1.setFailed)(`Failed to write output to file: ${error}`);
+        }
         // outputStr +=
         //   "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Message</th></tr>";
         // const parser = new DOMParser();
