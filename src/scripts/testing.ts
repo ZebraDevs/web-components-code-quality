@@ -54,20 +54,26 @@ export const testing = async (
       convert.xml2json(testResults, { compact: false, spaces: 2 }),
     );
 
+    fs.writeFileSync(
+      "src/test/testResults.json",
+      convert.xml2json(testResults, { compact: true, spaces: 2 }),
+    );
+
     outputStr +=
       "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Type</th><th>Message</th></tr>";
 
     const testSuites = jsonResults["elements"][0]["elements"];
     for (let i = 0; i < testSuites.length; i++) {
       const testSuite = testSuites[i];
+      console.log(testSuite);
       const testCases = testSuite["elements"].filter(
         (element: any) => element.name === "testcase",
       );
       for (let j = 0; j < testCases.length; j++) {
         const testCase = testCases[j];
         const testCaseName = testCase["attributes"]["name"];
-        const testCaseFailure = testCase["elements"][0].filter(
-          (element: any) => element.name === "failure",
+        const testCaseFailure = testCase.filter(
+          (element: any) => element["elements"][0].name === "failure",
         );
         if (testCaseFailure) {
           const file = testCase["attributes"]["file"];
