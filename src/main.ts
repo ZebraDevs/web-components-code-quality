@@ -184,7 +184,7 @@ export async function run(): Promise<void> {
     const testingStr: StepResponse | undefined = doTests
       ? await testing({
           label: "Testing",
-          command: "npm run test -- --coverage",
+          command: "npm run test -- --coverage --esbuild-target json",
         })
       : undefined;
 
