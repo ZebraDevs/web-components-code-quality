@@ -32656,6 +32656,9 @@ const runCommand = async (command) => {
                 stdout: (data) => {
                     outputStr += data.toString();
                 },
+                stderr: (data) => {
+                    outputStr += data.toString();
+                },
             },
         });
     }

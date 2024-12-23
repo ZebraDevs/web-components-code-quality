@@ -42,6 +42,9 @@ export const runCommand = async (
         stdout: (data) => {
           outputStr += data.toString();
         },
+        stderr: (data) => {
+          outputStr += data.toString();
+        },
       },
     });
   } catch (error) {
