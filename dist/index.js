@@ -30586,7 +30586,6 @@ const core_1 = __nccwpck_require__(7484);
 const exec_1 = __nccwpck_require__(5236);
 const fs = __importStar(__nccwpck_require__(9896));
 const main_1 = __nccwpck_require__(1730);
-// import { exec } from "@actions/exec";
 const playwright = async (command) => {
     await (0, main_1.runBashCommand)("npm ls @playwright/test | grep @playwright | sed 's/.*@//'")
         .then((version) => {
@@ -30603,46 +30602,44 @@ const testing = async (command, testResultsPath) => {
     let response = { output: "", error: false };
     let outputStr = "";
     try {
-        await (0, exec_1.exec)(command.command, [], {
-            listeners: {
-                stdout: (data) => {
-                    outputStr += data.toString();
-                },
-            },
-        });
+        await (0, exec_1.exec)(command.command);
     }
     catch (error) {
         response.error = true;
         (0, core_1.setFailed)(`Failed ${command.label}: ${error}`);
     }
     let testResults = "";
+    let failedToReadFile = false;
     try {
         testResults = fs.readFileSync(testResultsPath, "utf8");
     }
     catch (error) {
+        failedToReadFile = true;
         response.error = true;
+        outputStr = "Failed to read test results file";
         (0, core_1.setFailed)(`Failed to read test results: ${error}`);
     }
-    if (response.error) {
-        outputStr +=
-            "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Message</th></tr>";
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(testResults, "text/xml");
-        const testCases = doc.getElementsByTagName("testcase");
-        for (let i = 0; i < testCases.length; i++) {
-            const testCase = testCases[i];
-            const testCaseName = testCase.getAttribute("name");
-            const testCaseFailure = testCase.getElementsByTagName("failure");
-            if (testCaseFailure) {
-                const testCaseFile = testCase.getAttribute("file");
-                const testCaseLine = testCase.getAttribute("line");
-                const testCaseMessage = testCase
-                    .getElementsByTagName("failure")[0]
-                    .getAttribute("message");
-                outputStr += `<tr><td>${testCaseFile}</td><td>${testCaseName}</td><td>${testCaseLine}</td><td>${testCaseMessage}</td></tr>`;
-            }
-        }
-        outputStr += "</table>";
+    if (response.error && failedToReadFile == false) {
+        outputStr += parseXmlToJson(testResults);
+        // outputStr +=
+        //   "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Message</th></tr>";
+        // const parser = new DOMParser();
+        // const doc = parser.parseFromString(testResults, "text/xml");
+        // const testCases = doc.getElementsByTagName("testcase");
+        // for (let i = 0; i < testCases.length; i++) {
+        //   const testCase = testCases[i];
+        //   const testCaseName = testCase.getAttribute("name");
+        //   const testCaseFailure = testCase.getElementsByTagName("failure");
+        //   if (testCaseFailure) {
+        //     const testCaseFile = testCase.getAttribute("file");
+        //     const testCaseLine = testCase.getAttribute("line");
+        //     const testCaseMessage = testCase
+        //       .getElementsByTagName("failure")[0]
+        //       .getAttribute("message");
+        //     outputStr += `<tr><td>${testCaseFile}</td><td>${testCaseName}</td><td>${testCaseLine}</td><td>${testCaseMessage}</td></tr>`;
+        //   }
+        // }
+        // outputStr += "</table>";
     }
     return await (0, main_1.buildComment)(response, outputStr, command.label);
     // const commands = [
@@ -30663,6 +30660,15 @@ const testing = async (command, testResultsPath) => {
     // }
 };
 exports.testing = testing;
+function parseXmlToJson(xml) {
+    const json = {};
+    for (const res of xml.matchAll(/(?:<(\w*)(?:\s[^>]*)*>)((?:(?!<\1).)*)(?:<\/\1>)|<(\w*)(?:\s*)*\/>/gm)) {
+        const key = res[1] || res[3];
+        const value = res[2] && parseXmlToJson(res[2]);
+        json[key] = (value && Object.keys(value).length ? value : res[2]) || null;
+    }
+    return json;
+}
 
 
 /***/ }),

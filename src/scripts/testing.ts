@@ -6,10 +6,8 @@ import {
   Command,
   commandComment,
   runBashCommand,
-  runCommand,
   StepResponse,
 } from "src/main";
-// import { exec } from "@actions/exec";
 
 export const playwright = async (command: Command): Promise<StepResponse> => {
   await runBashCommand(
@@ -33,49 +31,47 @@ export const testing = async (
   let response: StepResponse = { output: "", error: false };
   let outputStr = "";
   try {
-    await exec(command.command, [], {
-      listeners: {
-        stdout: (data) => {
-          outputStr += data.toString();
-        },
-      },
-    });
+    await exec(command.command);
   } catch (error) {
     response.error = true;
     setFailed(`Failed ${command.label}: ${error as string}`);
   }
 
   let testResults = "";
+  let failedToReadFile = false;
   try {
     testResults = fs.readFileSync(testResultsPath, "utf8");
   } catch (error) {
+    failedToReadFile = true;
     response.error = true;
+    outputStr = "Failed to read test results file";
     setFailed(`Failed to read test results: ${error as string}`);
   }
 
-  if (response.error) {
-    outputStr +=
-      "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Message</th></tr>";
+  if (response.error && failedToReadFile == false) {
+    outputStr += parseXmlToJson(testResults);
+    // outputStr +=
+    //   "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Message</th></tr>";
 
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(testResults, "text/xml");
+    // const parser = new DOMParser();
+    // const doc = parser.parseFromString(testResults, "text/xml");
 
-    const testCases = doc.getElementsByTagName("testcase");
-    for (let i = 0; i < testCases.length; i++) {
-      const testCase = testCases[i];
-      const testCaseName = testCase.getAttribute("name");
-      const testCaseFailure = testCase.getElementsByTagName("failure");
-      if (testCaseFailure) {
-        const testCaseFile = testCase.getAttribute("file");
-        const testCaseLine = testCase.getAttribute("line");
-        const testCaseMessage = testCase
-          .getElementsByTagName("failure")[0]
-          .getAttribute("message");
-        outputStr += `<tr><td>${testCaseFile}</td><td>${testCaseName}</td><td>${testCaseLine}</td><td>${testCaseMessage}</td></tr>`;
-      }
-    }
+    // const testCases = doc.getElementsByTagName("testcase");
+    // for (let i = 0; i < testCases.length; i++) {
+    //   const testCase = testCases[i];
+    //   const testCaseName = testCase.getAttribute("name");
+    //   const testCaseFailure = testCase.getElementsByTagName("failure");
+    //   if (testCaseFailure) {
+    //     const testCaseFile = testCase.getAttribute("file");
+    //     const testCaseLine = testCase.getAttribute("line");
+    //     const testCaseMessage = testCase
+    //       .getElementsByTagName("failure")[0]
+    //       .getAttribute("message");
+    //     outputStr += `<tr><td>${testCaseFile}</td><td>${testCaseName}</td><td>${testCaseLine}</td><td>${testCaseMessage}</td></tr>`;
+    //   }
+    // }
 
-    outputStr += "</table>";
+    // outputStr += "</table>";
   }
   return await buildComment(response, outputStr, command.label);
 
@@ -98,3 +94,15 @@ export const testing = async (
   //   return { output: commentBody.trim(), error: false };
   // }
 };
+
+function parseXmlToJson(xml: string) {
+  const json: { [key: string]: any } = {};
+  for (const res of xml.matchAll(
+    /(?:<(\w*)(?:\s[^>]*)*>)((?:(?!<\1).)*)(?:<\/\1>)|<(\w*)(?:\s*)*\/>/gm,
+  )) {
+    const key = res[1] || res[3];
+    const value = res[2] && parseXmlToJson(res[2]);
+    json[key] = (value && Object.keys(value).length ? value : res[2]) || null;
+  }
+  return json;
+}
