@@ -30621,6 +30621,7 @@ const testing = async (command, testResultsPath) => {
     }
     if (response.error && failedToReadFile == false) {
         outputStr += parseXmlToJson(testResults);
+        console.log(outputStr);
         // outputStr +=
         //   "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Message</th></tr>";
         // const parser = new DOMParser();
