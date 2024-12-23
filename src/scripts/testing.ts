@@ -8,6 +8,7 @@ import {
   runBashCommand,
   StepResponse,
 } from "src/main";
+import convert from "xml-js";
 
 export const playwright = async (command: Command): Promise<StepResponse> => {
   await runBashCommand(
@@ -49,13 +50,10 @@ export const testing = async (
   }
 
   if (response.error && failedToReadFile == false) {
-    outputStr += JSON.stringify(parseXmlToJson(testResults));
+    outputStr += convert.xml2json(testResults, { compact: false, spaces: 2 });
     console.log(outputStr);
     try {
-      fs.writeFileSync(
-        "src/test/json-results.json",
-        JSON.stringify(parseXmlToJson(testResults)),
-      );
+      fs.writeFileSync("src/test/json-results.json", outputStr);
     } catch (error) {
       setFailed(`Failed to write output to file: ${error as string}`);
     }
@@ -104,14 +102,14 @@ export const testing = async (
   // }
 };
 
-function parseXmlToJson(xml: string) {
-  const json: { [key: string]: any } = {};
-  for (const res of xml.matchAll(
-    /(?:<(\w*)(?:\s[^>]*)*>)((?:(?!<\1).)*)(?:<\/\1>)|<(\w*)(?:\s*)*\/>/gm,
-  )) {
-    const key = res[1] || res[3];
-    const value = res[2] && parseXmlToJson(res[2]);
-    json[key] = (value && Object.keys(value).length ? value : res[2]) || null;
-  }
-  return json;
-}
+// function parseXmlToJson(xml: string) {
+//   const json: { [key: string]: any } = {};
+//   for (const res of xml.matchAll(
+//     /(?:<(\w*)(?:\s[^>]*)*>)((?:(?!<\1).)*)(?:<\/\1>)|<(\w*)(?:\s*)*\/>/gm,
+//   )) {
+//     const key = res[1] || res[3];
+//     const value = res[2] && parseXmlToJson(res[2]);
+//     json[key] = (value && Object.keys(value).length ? value : res[2]) || null;
+//   }
+//   return json;
+// }
