@@ -33368,7 +33368,15 @@ const getCoverage = () => {
         (0, core_1.setFailed)(`Failed to read coverage file: ${error}`);
     }
     if (coverageData) {
-        coverage = coverageData[0].lines.found / coverageData[0].lines.hit;
+        let linesFound = 0;
+        coverageData.forEach((file) => {
+            linesFound += file.lines.found;
+        });
+        let linesHit = 0;
+        coverageData.forEach((file) => {
+            linesHit += file.lines.hit;
+        });
+        coverage = linesFound / linesHit;
     }
     return coverage;
 };

@@ -141,7 +141,17 @@ export const getCoverage = (): number => {
   }
 
   if (coverageData) {
-    coverage = coverageData[0].lines.found / coverageData[0].lines.hit;
+    let linesFound = 0;
+    coverageData.forEach((file) => {
+      linesFound += file.lines.found;
+    });
+
+    let linesHit = 0;
+    coverageData.forEach((file) => {
+      linesHit += file.lines.hit;
+    });
+
+    coverage = linesFound / linesHit;
   }
 
   return coverage;
