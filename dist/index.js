@@ -33132,39 +33132,26 @@ const typeDoc = async (command) => {
     }
     console.log("commandOutput: ", commandOutput);
     if (response.error) {
-        fs.writeFileSync("src/typeDocResponse.txt", commandOutput);
         commandOutput = commandOutput.replace(/\[\d+m/g, "");
-        fs.writeFileSync("src/typeDocResponseREPLACED.txt", commandOutput);
-        // const lines = commandOutput.split("\n");
-        // const table = lines
-        //   .map((line) => {
-        //     console.log("line: ", line);
-        //     const match = line
-        //       .replace(/\uFFFD\[\d+m/g, "")
-        //       .match(/^(.*):(\d+):(\d+) - (.*)/);
-        //     console.log("match: ", match);
-        //     if (match) {
-        //       const [_, file, line, column, message] = match;
-        //       return `<tr><td>${file}</td><td>${line}</td><td>${column}</td><td>${message}</td></tr>`;
-        //     }
-        //     return "";
-        //   })
-        //   .join("");
-        // const outputStr = `<table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table>`;
-        // return await buildComment(response, outputStr, command.label);
-        return await (0, main_1.buildComment)(response, commandOutput, command.label);
+        const lines = commandOutput.split("\n");
+        const table = lines
+            .map((line) => {
+            console.log("line: ", line);
+            const match = line
+                .replace(/\uFFFD\[\d+m/g, "")
+                .match(/^(.*):(\d+):(\d+) - (.*)/);
+            console.log("match: ", match);
+            if (match) {
+                const [_, file, line, column, message] = match;
+                return `<tr><td>${file}</td><td>${line}</td><td>${column}</td><td>${message}</td></tr>`;
+            }
+            return "";
+        })
+            .join("");
+        const outputStr = `<table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table>`;
+        return await (0, main_1.buildComment)(response, outputStr, command.label);
     }
     return await (0, main_1.buildComment)(response, "", command.label);
-    // outputStr += commandOutput.split("\n").forEach((line) => {
-    //   console.log("line: ", line);
-    //   let match = line.match(/(.*):(\d+):(\d+) - (.*)/);
-    //   console.log("match: ", match);
-    //   if (match) {
-    //     const [_, filePath, line, column, message] = match;
-    //     return `<tr><td>${filePath}</td><td>${line}</td><td>${column}</td><td>${message}</td></tr>`;
-    //   }
-    // });
-    // outputStr += "</table>";
 };
 exports.typeDoc = typeDoc;
 
