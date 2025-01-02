@@ -236,10 +236,6 @@ export async function run(): Promise<void> {
         )
       : undefined;
 
-    // TODO: Manage TSDoc errors
-    // stderr: (data) => {
-    //   outputStr += data.toString();
-    // },
     const typeDocStr: StepResponse | undefined = doTests
       ? await typeDoc({
           label: "TypeDoc",

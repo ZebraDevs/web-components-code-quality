@@ -96,7 +96,9 @@ export const typeDoc = async (command: Command): Promise<StepResponse> => {
   let outputStr =
     "<table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>";
   outputStr += commandOutput.split("\n").forEach((line) => {
+    console.log("line: ", line);
     let match = line.match(/(.*):(\d+):(\d+) - (.*)/);
+    console.log("match: ", match);
     if (match) {
       const [_, filePath, line, column, message] = match;
       return `<tr><td>${filePath}</td><td>${line}</td><td>${column}</td><td>${message}</td></tr>`;
