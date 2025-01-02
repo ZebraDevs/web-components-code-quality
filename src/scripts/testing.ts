@@ -135,7 +135,6 @@ export const getCoverage = (): number => {
   try {
     const lcov = fs.readFileSync("coverage/lcov.info", "utf8");
     coverageData = parseLCOV(lcov);
-    fs.writeFileSync("src/test/coverage.json", JSON.stringify(coverageData));
   } catch (error) {
     setFailed(`Failed to read coverage file: ${error as string}`);
   }
