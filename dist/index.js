@@ -33376,9 +33376,9 @@ const getCoverage = () => {
         coverageData.forEach((file) => {
             linesHit += file.lines.hit;
         });
-        coverage = linesFound / linesHit;
+        coverage = linesHit / linesFound;
     }
-    return coverage;
+    return Number((coverage * 100).toFixed(2));
 };
 exports.getCoverage = getCoverage;
 const coverage = async (pastCoverageScore, currentCoverageScore, coveragePassScore) => {

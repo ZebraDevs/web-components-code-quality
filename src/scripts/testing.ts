@@ -151,10 +151,10 @@ export const getCoverage = (): number => {
       linesHit += file.lines.hit;
     });
 
-    coverage = linesFound / linesHit;
+    coverage = linesHit / linesFound;
   }
 
-  return coverage;
+  return Number((coverage * 100).toFixed(2));
 };
 
 export const coverage = async (
