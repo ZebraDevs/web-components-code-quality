@@ -33133,7 +33133,7 @@ const typeDoc = async (command) => {
     console.log("commandOutput: ", commandOutput);
     if (response.error) {
         fs.writeFileSync("src/typeDocResponse.txt", commandOutput);
-        commandOutput = commandOutput.replace(/\uFFFD\[\d+m/g, "");
+        commandOutput = commandOutput.replace(/\[\d+m/g, "");
         fs.writeFileSync("src/typeDocResponseREPLACED.txt", commandOutput);
         // const lines = commandOutput.split("\n");
         // const table = lines
