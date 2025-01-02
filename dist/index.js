@@ -32996,10 +32996,7 @@ async function run() {
                 label: "Testing",
                 command: 'npx web-test-runner "' +
                     testSrcDirectory +
-                    '" --node-resolve ' +
-                    runCoverage
-                    ? "--coverage"
-                    : 0,
+                    '" --node-resolve --coverage',
             }, testResultsPath)
             : undefined;
         const currentCoverageScore = runCoverage

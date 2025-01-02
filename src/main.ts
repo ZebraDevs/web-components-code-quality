@@ -246,10 +246,7 @@ export async function run(): Promise<void> {
             command:
               'npx web-test-runner "' +
               testSrcDirectory +
-              '" --node-resolve ' +
-              runCoverage
-                ? "--coverage"
-                : "",
+              '" --node-resolve --coverage',
           },
           testResultsPath,
         )
