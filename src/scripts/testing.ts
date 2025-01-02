@@ -6,6 +6,7 @@ import {
   Command,
   commandComment,
   runBashCommand,
+  runCommand,
   StepResponse,
 } from "src/main";
 import convert from "xml-js";
@@ -88,35 +89,20 @@ export const testing = async (
     outputStr += "</table>";
   }
   return await buildComment(response, outputStr, command.label);
-
-  // const commands = [
-  //   // { label: "Testing", command: "npm run test -- --coverage" },
-  //   {
-  //     label: "Install PlayWright Browsers",
-  //     command: "npx playwright install --with-deps",
-  //   },
-  //   { label: "Testing", command: "npm run test -- --coverage" },
-  //   { label: "TSDoc", command: "npm run docs" },
-  // ];
-
-  // const [commentBody, errorMessages] = await buildComment(commands);
-
-  // if (errorMessages) {
-  //   setFailed(errorMessages.trim());
-  //   return { output: commentBody.trim(), error: true };
-  // } else {
-  //   return { output: commentBody.trim(), error: false };
-  // }
 };
 
-// function parseXmlToJson(xml: string) {
-//   const json: { [key: string]: any } = {};
-//   for (const res of xml.matchAll(
-//     /(?:<(\w*)(?:\s[^>]*)*>)((?:(?!<\1).)*)(?:<\/\1>)|<(\w*)(?:\s*)*\/>/gm,
-//   )) {
-//     const key = res[1] || res[3];
-//     const value = res[2] && parseXmlToJson(res[2]);
-//     json[key] = (value && Object.keys(value).length ? value : res[2]) || null;
-//   }
-//   return json;
-// }
+export const typeDoc = async (command: Command): Promise<StepResponse> => {
+  const [response, commandOutput] = await runCommand(command);
+  let outputStr =
+    "<table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>";
+  outputStr += commandOutput.split("\n").forEach((line) => {
+    let match = line.match(/(.*):(\d+):(\d+) - (.*)/);
+    if (match) {
+      const [_, filePath, line, column, message] = match;
+      return `<tr><td>${filePath}</td><td>${line}</td><td>${column}</td><td>${message}</td></tr>`;
+    }
+  });
+  outputStr += "</table>";
+
+  return await buildComment(response, outputStr, command.label);
+};

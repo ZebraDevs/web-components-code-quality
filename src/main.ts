@@ -2,7 +2,7 @@ import { getBooleanInput, getInput, setFailed, debug } from "@actions/core";
 import { exec } from "@actions/exec";
 import { getOctokit, context } from "@actions/github";
 import { eslint, litAnalyzer } from "./scripts/analyze";
-import { playwright, testing } from "./scripts/testing";
+import { playwright, testing, typeDoc } from "./scripts/testing";
 import { comment } from "./scripts/comment";
 import { cwd, chdir } from "process";
 // import { coverage } from './scripts/coverage'
@@ -185,7 +185,7 @@ export async function run(): Promise<void> {
       ? await eslint({
           label: "ESLint",
           // TODO: change to -format json
-          command: "npx eslint -f unix '" + wcSrcDirectory + "'",
+          command: "npx eslint -f unix " + wcSrcDirectory,
         })
       : undefined;
 
@@ -240,9 +240,9 @@ export async function run(): Promise<void> {
     // stderr: (data) => {
     //   outputStr += data.toString();
     // },
-    const tsDocStr: StepResponse | undefined = doTests
-      ? await commandComment({
-          label: "TSDoc",
+    const typeDocStr: StepResponse | undefined = doTests
+      ? await typeDoc({
+          label: "TypeDoc",
           command: "npx typedoc --logLevel Warn",
         })
       : undefined;
@@ -285,7 +285,7 @@ export async function run(): Promise<void> {
         prettierStr,
         playwrightStr,
         testingStr,
-        tsDocStr,
+        typeDocStr,
         checkModifiedFilesStr,
         updateChangesStr,
       );

@@ -21,7 +21,7 @@ export const comment = async (
   prettierStr: StepResponse | undefined,
   playwrightStr: StepResponse | undefined,
   testingStr: StepResponse | undefined,
-  tsDocStr: StepResponse | undefined,
+  typeDocStr: StepResponse | undefined,
   checkModifiedFilesStr: StepResponse | undefined,
   updateChangesStr: StepResponse | undefined,
 ): Promise<StepResponse> => {
@@ -36,7 +36,7 @@ export const comment = async (
     ${prettierStr !== undefined ? li(prettierStr.output) : ""}
     ${playwrightStr !== undefined ? li(playwrightStr.output) : ""}
     ${testingStr !== undefined ? li(testingStr.output) : ""}
-    ${tsDocStr !== undefined ? li(tsDocStr.output) : ""}
+    ${typeDocStr !== undefined ? li(typeDocStr.output) : ""}
     ${checkModifiedFilesStr !== undefined ? li(checkModifiedFilesStr.output) : ""}
     ${updateChangesStr !== undefined ? li(updateChangesStr.output) : ""}
   </ul>`;

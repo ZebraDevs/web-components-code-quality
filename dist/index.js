@@ -32757,7 +32757,7 @@ async function run() {
             ? await (0, analyze_1.eslint)({
                 label: "ESLint",
                 // TODO: change to -format json
-                command: "npx eslint -f unix '" + wcSrcDirectory + "'",
+                command: "npx eslint -f unix " + wcSrcDirectory,
             })
             : undefined;
         const litAnalyzerStr = doStaticAnalysis
@@ -32800,9 +32800,9 @@ async function run() {
         // stderr: (data) => {
         //   outputStr += data.toString();
         // },
-        const tsDocStr = doTests
-            ? await (0, exports.commandComment)({
-                label: "TSDoc",
+        const typeDocStr = doTests
+            ? await (0, testing_1.typeDoc)({
+                label: "TypeDoc",
                 command: "npx typedoc --logLevel Warn",
             })
             : undefined;
@@ -32830,7 +32830,7 @@ async function run() {
         //   : undefined
         // createComment
         if (createComment) {
-            await (0, comment_1.comment)((0, github_1.getOctokit)(token), github_1.context, npmIStr, cemStr, eslintStr, litAnalyzerStr, prettierStr, playwrightStr, testingStr, tsDocStr, checkModifiedFilesStr, updateChangesStr);
+            await (0, comment_1.comment)((0, github_1.getOctokit)(token), github_1.context, npmIStr, cemStr, eslintStr, litAnalyzerStr, prettierStr, playwrightStr, testingStr, typeDocStr, checkModifiedFilesStr, updateChangesStr);
         }
     }
     catch (error) {
@@ -32918,7 +32918,7 @@ const li = (str) => {
 </li>
 `;
 };
-const comment = async (ocotokit, context, npmIStr, cemStr, eslintStr, litAnalyzerStr, prettierStr, playwrightStr, testingStr, tsDocStr, checkModifiedFilesStr, updateChangesStr) => {
+const comment = async (ocotokit, context, npmIStr, cemStr, eslintStr, litAnalyzerStr, prettierStr, playwrightStr, testingStr, typeDocStr, checkModifiedFilesStr, updateChangesStr) => {
     try {
         const commentBody = `
   ## PR Checks Complete\n
@@ -32930,7 +32930,7 @@ const comment = async (ocotokit, context, npmIStr, cemStr, eslintStr, litAnalyze
     ${prettierStr !== undefined ? li(prettierStr.output) : ""}
     ${playwrightStr !== undefined ? li(playwrightStr.output) : ""}
     ${testingStr !== undefined ? li(testingStr.output) : ""}
-    ${tsDocStr !== undefined ? li(tsDocStr.output) : ""}
+    ${typeDocStr !== undefined ? li(typeDocStr.output) : ""}
     ${checkModifiedFilesStr !== undefined ? li(checkModifiedFilesStr.output) : ""}
     ${updateChangesStr !== undefined ? li(updateChangesStr.output) : ""}
   </ul>`;
@@ -33054,7 +33054,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.testing = exports.playwright = void 0;
+exports.typeDoc = exports.testing = exports.playwright = void 0;
 const core_1 = __nccwpck_require__(7484);
 const exec_1 = __nccwpck_require__(5236);
 const fs = __importStar(__nccwpck_require__(9896));
@@ -33116,35 +33116,22 @@ const testing = async (command, testResultsPath) => {
         outputStr += "</table>";
     }
     return await (0, main_1.buildComment)(response, outputStr, command.label);
-    // const commands = [
-    //   // { label: "Testing", command: "npm run test -- --coverage" },
-    //   {
-    //     label: "Install PlayWright Browsers",
-    //     command: "npx playwright install --with-deps",
-    //   },
-    //   { label: "Testing", command: "npm run test -- --coverage" },
-    //   { label: "TSDoc", command: "npm run docs" },
-    // ];
-    // const [commentBody, errorMessages] = await buildComment(commands);
-    // if (errorMessages) {
-    //   setFailed(errorMessages.trim());
-    //   return { output: commentBody.trim(), error: true };
-    // } else {
-    //   return { output: commentBody.trim(), error: false };
-    // }
 };
 exports.testing = testing;
-// function parseXmlToJson(xml: string) {
-//   const json: { [key: string]: any } = {};
-//   for (const res of xml.matchAll(
-//     /(?:<(\w*)(?:\s[^>]*)*>)((?:(?!<\1).)*)(?:<\/\1>)|<(\w*)(?:\s*)*\/>/gm,
-//   )) {
-//     const key = res[1] || res[3];
-//     const value = res[2] && parseXmlToJson(res[2]);
-//     json[key] = (value && Object.keys(value).length ? value : res[2]) || null;
-//   }
-//   return json;
-// }
+const typeDoc = async (command) => {
+    const [response, commandOutput] = await (0, main_1.runCommand)(command);
+    let outputStr = "<table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>";
+    outputStr += commandOutput.split("\n").forEach((line) => {
+        let match = line.match(/(.*):(\d+):(\d+) - (.*)/);
+        if (match) {
+            const [_, filePath, line, column, message] = match;
+            return `<tr><td>${filePath}</td><td>${line}</td><td>${column}</td><td>${message}</td></tr>`;
+        }
+    });
+    outputStr += "</table>";
+    return await (0, main_1.buildComment)(response, outputStr, command.label);
+};
+exports.typeDoc = typeDoc;
 
 
 /***/ }),
