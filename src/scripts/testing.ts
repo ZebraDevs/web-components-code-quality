@@ -108,12 +108,14 @@ export const typeDoc = async (command: Command): Promise<StepResponse> => {
   console.log("commandOutput: ", commandOutput);
 
   if (response.error) {
-    commandOutput = commandOutput.replaceAll(/\uFFFD\[\d+m/g, "");
+    // commandOutput = commandOutput.replaceAll(/\uFFFD\[\d+m/g, "");
     const lines = commandOutput.split("\n");
     const table = lines
       .map((line) => {
         console.log("line: ", line);
-        const match = line.match(/^(.*):(\d+):(\d+) - (.*)/);
+        const match = line
+          .replace(/\uFFFD\[\d+m/g, "")
+          .match(/^(.*):(\d+):(\d+) - (.*)/);
         console.log("match: ", match);
         if (match) {
           const [_, file, line, column, message] = match;
