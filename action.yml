@@ -20,6 +20,16 @@ inputs:
     required: false
     default: "."
 
+  web-components-src:
+    description: "The path to the directory containing the web components source code"
+    required: false
+    default: "src/**/*.{ts,tsx}"
+
+  test-src:
+    description: "The path to the directory containing the test source code"
+    required: false
+    default: "src/test/**/*.test.ts"
+
   run-static-analysis:
     description: "Whether to run static analysis"
     required: false

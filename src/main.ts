@@ -81,7 +81,17 @@ const checkIfLocal = (): boolean => {
 
 const getInputs = (
   isLocal: boolean,
-): [string, string, boolean, boolean, boolean, string, boolean] => {
+): [
+  string,
+  string,
+  string,
+  string,
+  boolean,
+  boolean,
+  boolean,
+  string,
+  boolean,
+] => {
   // get the token and octokit
   let token = "";
   if (process.env.GITHUB_TOKEN && isLocal) {
@@ -91,6 +101,10 @@ const getInputs = (
   }
 
   const workingDirectory = getInput("working-directory");
+
+  const wcSrcDirectory = getInput("web-components-src");
+
+  const testSrcDirectory = getInput("test-src");
 
   // get static analysis input
   const doStaticAnalysis: boolean = isLocal
@@ -119,6 +133,8 @@ const getInputs = (
   return [
     token,
     workingDirectory,
+    wcSrcDirectory,
+    testSrcDirectory,
     doStaticAnalysis,
     doCodeFormatting,
     doTests,
@@ -138,6 +154,8 @@ export async function run(): Promise<void> {
     const [
       token,
       workingDirectory,
+      wcSrcDirectory,
+      testSrcDirectory,
       doStaticAnalysis,
       doCodeFormatting,
       doTests,
@@ -159,24 +177,42 @@ export async function run(): Promise<void> {
 
     const cemStr: StepResponse | undefined = await commandComment({
       label: "Custom Elements Manifest",
-      command: "npm run analyze",
+      command: "npx cem analyze",
     });
 
     // run Static Analysis
     const eslintStr: StepResponse | undefined = doStaticAnalysis
-      ? await eslint({ label: "ESLint", command: "npm run lint" })
+      ? await eslint({
+          label: "ESLint",
+          // TODO: change to -format json
+          command: "npx eslint -f unix '" + wcSrcDirectory + "'",
+        })
       : undefined;
 
     const litAnalyzerStr: StepResponse | undefined = doStaticAnalysis
       ? await litAnalyzer({
           label: "Lit Analyzer",
-          command: "npm run lint:lit-analyzer -- --format markdown",
+          command: "npx lit-analyzer --quiet --format markdown",
         })
       : undefined;
 
+    let webComponentsSrcRoot = wcSrcDirectory.split("/").shift();
+    if (
+      webComponentsSrcRoot == undefined ||
+      webComponentsSrcRoot == "" ||
+      webComponentsSrcRoot == null
+    ) {
+      webComponentsSrcRoot = wcSrcDirectory.split("/")[1];
+    }
     // run Code Formatting
     const prettierStr: StepResponse | undefined = doCodeFormatting
-      ? await commandComment({ label: "Prettier", command: "npm run prettier" })
+      ? await commandComment({
+          label: "Prettier",
+          command:
+            "npx prettier " +
+            webComponentsSrcRoot +
+            " --write --ignore-unknown",
+        })
       : undefined;
 
     // run Tests
@@ -191,7 +227,10 @@ export async function run(): Promise<void> {
       ? await testing(
           {
             label: "Testing",
-            command: "npm run test -- --coverage",
+            command:
+              'npx web-test-runner "' +
+              testSrcDirectory +
+              '" --node-resolve --coverage',
           },
           testResultsPath,
         )
@@ -202,7 +241,10 @@ export async function run(): Promise<void> {
     //   outputStr += data.toString();
     // },
     const tsDocStr: StepResponse | undefined = doTests
-      ? await commandComment({ label: "TSDoc", command: "npm run docs" })
+      ? await commandComment({
+          label: "TSDoc",
+          command: "npx typedoc --logLevel Warn",
+        })
       : undefined;
 
     const [checkModifiedFilesStr, modified]: [StepResponse, boolean] =

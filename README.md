@@ -1,6 +1,15 @@
-# flutter-code-quality
+# web-components-code-quality
 
-This action is designed to format and test Flutter repositories on pull requests. It helps ensure that your code meets the required quality standards.
+This action is designed to format and test Web Component repositories on pull requests. It helps ensure that your code meets the required quality standards.
+
+### Dependencies
+
+- custom-elements-manifest
+- eslint
+- lit-analyzer
+- prettier
+- playwright
+- web-test-runner
 
 ### Usage
 

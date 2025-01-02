@@ -32656,9 +32656,6 @@ const runCommand = async (command) => {
                 stdout: (data) => {
                     outputStr += data.toString();
                 },
-                stderr: (data) => {
-                    outputStr += data.toString();
-                },
             },
         });
     }
@@ -32700,6 +32697,8 @@ const getInputs = (isLocal) => {
         token = (0, core_1.getInput)("token");
     }
     const workingDirectory = (0, core_1.getInput)("working-directory");
+    const wcSrcDirectory = (0, core_1.getInput)("web-components-src");
+    const testSrcDirectory = (0, core_1.getInput)("test-src");
     // get static analysis input
     const doStaticAnalysis = isLocal
         ? true
@@ -32722,6 +32721,8 @@ const getInputs = (isLocal) => {
     return [
         token,
         workingDirectory,
+        wcSrcDirectory,
+        testSrcDirectory,
         doStaticAnalysis,
         doCodeFormatting,
         doTests,
@@ -32736,7 +32737,7 @@ const getInputs = (isLocal) => {
 async function run() {
     const isLocal = checkIfLocal();
     try {
-        const [token, workingDirectory, doStaticAnalysis, doCodeFormatting, doTests, testResultsPath, createComment,] = getInputs(isLocal);
+        const [token, workingDirectory, wcSrcDirectory, testSrcDirectory, doStaticAnalysis, doCodeFormatting, doTests, testResultsPath, createComment,] = getInputs(isLocal);
         // Check if the working directory is different from the current directory
         const currentDirectory = (0, process_1.cwd)();
         if (workingDirectory && workingDirectory !== currentDirectory) {
@@ -32749,21 +32750,36 @@ async function run() {
         });
         const cemStr = await (0, exports.commandComment)({
             label: "Custom Elements Manifest",
-            command: "npm run analyze",
+            command: "npx cem analyze",
         });
         // run Static Analysis
         const eslintStr = doStaticAnalysis
-            ? await (0, analyze_1.eslint)({ label: "ESLint", command: "npm run lint" })
+            ? await (0, analyze_1.eslint)({
+                label: "ESLint",
+                // TODO: change to -format json
+                command: "npx eslint -f unix '" + wcSrcDirectory + "'",
+            })
             : undefined;
         const litAnalyzerStr = doStaticAnalysis
             ? await (0, analyze_1.litAnalyzer)({
                 label: "Lit Analyzer",
-                command: "npm run lint:lit-analyzer -- --format markdown",
+                command: "npx lit-analyzer --quiet --format markdown",
             })
             : undefined;
+        let webComponentsSrcRoot = wcSrcDirectory.split("/").shift();
+        if (webComponentsSrcRoot == undefined ||
+            webComponentsSrcRoot == "" ||
+            webComponentsSrcRoot == null) {
+            webComponentsSrcRoot = wcSrcDirectory.split("/")[1];
+        }
         // run Code Formatting
         const prettierStr = doCodeFormatting
-            ? await (0, exports.commandComment)({ label: "Prettier", command: "npm run prettier" })
+            ? await (0, exports.commandComment)({
+                label: "Prettier",
+                command: "npx prettier " +
+                    webComponentsSrcRoot +
+                    " --write --ignore-unknown",
+            })
             : undefined;
         // run Tests
         const playwrightStr = doTests
@@ -32775,11 +32791,20 @@ async function run() {
         const testingStr = doTests
             ? await (0, testing_1.testing)({
                 label: "Testing",
-                command: "npm run test -- --coverage",
+                command: 'npx web-test-runner "' +
+                    testSrcDirectory +
+                    '" --node-resolve --coverage',
             }, testResultsPath)
             : undefined;
+        // TODO: Manage TSDoc errors
+        // stderr: (data) => {
+        //   outputStr += data.toString();
+        // },
         const tsDocStr = doTests
-            ? await (0, exports.commandComment)({ label: "TSDoc", command: "npm run docs" })
+            ? await (0, exports.commandComment)({
+                label: "TSDoc",
+                command: "npx typedoc --logLevel Warn",
+            })
             : undefined;
         const [checkModifiedFilesStr, modified] = await (0, post_1.checkModifiedFiles)({
             label: "Check for modified files",
