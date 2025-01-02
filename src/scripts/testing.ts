@@ -108,7 +108,7 @@ export const typeDoc = async (command: Command): Promise<StepResponse> => {
   console.log("commandOutput: ", commandOutput);
 
   if (response.error) {
-    commandOutput = commandOutput.replaceAll(/�\[\d+m/, "");
+    commandOutput = commandOutput.replaceAll(/�\[\d+m/g, "");
     const lines = commandOutput.split("\n");
     const table = lines
       .map((line) => {

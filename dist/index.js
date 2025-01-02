@@ -33132,7 +33132,7 @@ const typeDoc = async (command) => {
     }
     console.log("commandOutput: ", commandOutput);
     if (response.error) {
-        commandOutput = commandOutput.replaceAll(/�\[\d+m/, "");
+        commandOutput = commandOutput.replaceAll(/�\[\d+m/g, "");
         const lines = commandOutput.split("\n");
         const table = lines
             .map((line) => {
