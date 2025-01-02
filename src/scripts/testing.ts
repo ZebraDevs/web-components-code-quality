@@ -93,18 +93,33 @@ export const testing = async (
 
 export const typeDoc = async (command: Command): Promise<StepResponse> => {
   const [response, commandOutput] = await runCommand(command);
-  let outputStr =
-    "<table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>";
-  outputStr += commandOutput.split("\n").forEach((line) => {
-    console.log("line: ", line);
-    let match = line.match(/(.*):(\d+):(\d+) - (.*)/);
-    console.log("match: ", match);
-    if (match) {
-      const [_, filePath, line, column, message] = match;
-      return `<tr><td>${filePath}</td><td>${line}</td><td>${column}</td><td>${message}</td></tr>`;
-    }
-  });
-  outputStr += "</table>";
+  console.log("commandOutput: ", commandOutput);
 
-  return await buildComment(response, outputStr, command.label);
+  if (response.error) {
+    const lines = commandOutput.split("\n");
+    const table = lines
+      .map((line) => {
+        const match = line.match(/^(.*?):(\d+):(\d+): (.*)$/);
+        if (match) {
+          const [_, file, line, column, message] = match;
+          return `<tr><td>${file}</td><td>${line}</td><td>${column}</td><td>${message}</td></tr>`;
+        }
+        return "";
+      })
+      .join("");
+    const outputStr = `<table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table>`;
+    return await buildComment(response, outputStr, command.label);
+  }
+  return await buildComment(response, "", command.label);
+
+  // outputStr += commandOutput.split("\n").forEach((line) => {
+  //   console.log("line: ", line);
+  //   let match = line.match(/(.*):(\d+):(\d+) - (.*)/);
+  //   console.log("match: ", match);
+  //   if (match) {
+  //     const [_, filePath, line, column, message] = match;
+  //     return `<tr><td>${filePath}</td><td>${line}</td><td>${column}</td><td>${message}</td></tr>`;
+  //   }
+  // });
+  // outputStr += "</table>";
 };
