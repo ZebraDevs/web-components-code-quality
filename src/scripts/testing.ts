@@ -108,7 +108,9 @@ export const typeDoc = async (command: Command): Promise<StepResponse> => {
   console.log("commandOutput: ", commandOutput);
 
   if (response.error) {
+    fs.writeFileSync("src/typeDocResponse.txt", commandOutput);
     commandOutput = commandOutput.replace(/\uFFFD\[\d+m/g, "");
+    fs.writeFileSync("src/typeDocResponseREPLACED.txt", commandOutput);
     // const lines = commandOutput.split("\n");
     // const table = lines
     //   .map((line) => {
