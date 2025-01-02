@@ -33136,7 +33136,7 @@ const typeDoc = async (command) => {
         const table = lines
             .map((line) => {
             console.log("line: ", line);
-            const match = line.match(/(.*):(\d+):(\d+) - (.*)/);
+            const match = line.match(/^(.*):(\d+):(\d+) - (.*)$/);
             console.log("match: ", match);
             if (match) {
                 const [_, file, line, column, message] = match;
