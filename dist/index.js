@@ -33115,7 +33115,21 @@ const testing = async (command, testResultsPath) => {
 };
 exports.testing = testing;
 const typeDoc = async (command) => {
-    const [response, commandOutput] = await (0, main_1.runCommand)(command);
+    let response = { output: "", error: false };
+    let commandOutput = "";
+    try {
+        await (0, exec_1.exec)(command.command, [], {
+            listeners: {
+                stderr: (data) => {
+                    commandOutput += data.toString();
+                },
+            },
+        });
+    }
+    catch (error) {
+        response.error = true;
+        (0, core_1.setFailed)(`Failed ${command.label}: ${error}`);
+    }
     console.log("commandOutput: ", commandOutput);
     if (response.error) {
         const lines = commandOutput.split("\n");

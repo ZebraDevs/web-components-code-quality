@@ -6,7 +6,6 @@ import {
   Command,
   commandComment,
   runBashCommand,
-  runCommand,
   StepResponse,
 } from "src/main";
 import convert from "xml-js";
@@ -92,7 +91,20 @@ export const testing = async (
 };
 
 export const typeDoc = async (command: Command): Promise<StepResponse> => {
-  const [response, commandOutput] = await runCommand(command);
+  let response: StepResponse = { output: "", error: false };
+  let commandOutput = "";
+  try {
+    await exec(command.command, [], {
+      listeners: {
+        stderr: (data) => {
+          commandOutput += data.toString();
+        },
+      },
+    });
+  } catch (error) {
+    response.error = true;
+    setFailed(`Failed ${command.label}: ${error as string}`);
+  }
   console.log("commandOutput: ", commandOutput);
 
   if (response.error) {
