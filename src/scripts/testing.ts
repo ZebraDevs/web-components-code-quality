@@ -5,10 +5,13 @@ import {
   buildComment,
   Command,
   commandComment,
+  failedEmoji,
+  passedEmoji,
   runBashCommand,
   StepResponse,
 } from "src/main";
 import convert from "xml-js";
+import parseLCOV from "parse-lcov";
 
 export const playwright = async (command: Command): Promise<StepResponse> => {
   await runBashCommand(
@@ -112,11 +115,7 @@ export const typeDoc = async (command: Command): Promise<StepResponse> => {
     const lines = commandOutput.split("\n");
     const table = lines
       .map((line) => {
-        console.log("line: ", line);
-        const match = line
-          .replace(/\uFFFD\[\d+m/g, "")
-          .match(/^(.*):(\d+):(\d+) - (.*)/);
-        console.log("match: ", match);
+        const match = line.match(/^(.*):(\d+):(\d+) - (.*)/);
         if (match) {
           const [_, file, line, column, message] = match;
           return `<tr><td>${file}</td><td>${line}</td><td>${column}</td><td>${message}</td></tr>`;
@@ -128,4 +127,41 @@ export const typeDoc = async (command: Command): Promise<StepResponse> => {
     return await buildComment(response, outputStr, command.label);
   }
   return await buildComment(response, "", command.label);
+};
+
+export const getCoverage = (): number => {
+  let coverage = 0;
+  let coverageData;
+  try {
+    const lcov = fs.readFileSync("coverage/lcov.info", "utf8");
+    coverageData = parseLCOV(lcov);
+  } catch (error) {
+    setFailed(`Failed to read coverage file: ${error as string}`);
+  }
+
+  if (coverageData) {
+    coverage = coverageData[0].lines.found / coverageData[0].lines.hit;
+  }
+
+  return coverage;
+};
+
+export const coverage = async (
+  pastCoverageScore: number | undefined,
+  currentCoverageScore: number | undefined,
+  coveragePassScore: string,
+): Promise<StepResponse> => {
+  let response: StepResponse = { output: "", error: false };
+
+  if (
+    currentCoverageScore !== undefined &&
+    currentCoverageScore < parseInt(coveragePassScore)
+  ) {
+    response.error = true;
+    response.output = `${failedEmoji} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%`;
+  } else {
+    response.output = `${passedEmoji} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%`;
+  }
+
+  return response;
 };

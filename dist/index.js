@@ -7689,6 +7689,205 @@ function onceStrict (fn) {
 
 /***/ }),
 
+/***/ 2769:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports["default"] = parseLCOV;
+
+var _line = __nccwpck_require__(7047);
+
+var _record = __nccwpck_require__(8572);
+
+exports.LCOVRecord = _record.LCOVRecord;
+exports.FunctionsDetails = _record.FunctionsDetails;
+exports.BranchesDetails = _record.BranchesDetails;
+exports.LinesDetails = _record.LinesDetails;
+
+var _transform = __nccwpck_require__(1005);
+
+function _extends() { _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
+
+function parseLCOV(string) {
+  if (string === void 0) {
+    string = "";
+  }
+
+  var lines = string.split("\n");
+  var record = (0, _record.newRecord)();
+  return lines.reduce(function (retval, line) {
+    if ((0, _line.isEnd)(line)) {
+      retval.push(_extends({}, record));
+      record = (0, _record.newRecord)();
+    } else {
+      var _parseLine = (0, _line.parseLine)(line),
+          type = _parseLine.type,
+          data = _parseLine.data;
+
+      (0, _transform.transform)(record, type, data);
+    }
+
+    return retval;
+  }, []);
+}
+
+/***/ }),
+
+/***/ 7047:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.isLineType = isLineType;
+exports.isEnd = isEnd;
+exports.parseLine = parseLine;
+var linesTypes = ["TN", "SF", "FN", "FNDA", "FNF", "FNH", "BRDA", "BRF", "BRH", "DA", "LF", "LH"];
+
+function isLineType(string) {
+  return linesTypes.includes(string);
+}
+
+function isEnd(string) {
+  return string === "end_of_record";
+}
+
+function parseLine(line) {
+  var _line$split = line.split(":"),
+      type = _line$split[0],
+      data = _line$split[1];
+
+  return {
+    type: isLineType(type) ? type : undefined,
+    data: (data != null ? data : "").split(",")
+  };
+}
+
+/***/ }),
+
+/***/ 8572:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.newRecord = newRecord;
+
+function newRecord() {
+  return {
+    title: "",
+    file: "",
+    functions: {
+      found: 0,
+      hit: 0,
+      details: []
+    },
+    branches: {
+      found: 0,
+      hit: 0,
+      details: []
+    },
+    lines: {
+      found: 0,
+      hit: 0,
+      details: []
+    }
+  };
+}
+
+/***/ }),
+
+/***/ 1005:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.transform = transform;
+var transformers = {
+  TN: function TN(record, data) {
+    record.title = data[0];
+  },
+  SF: function SF(record, data) {
+    record.file = data[0];
+  },
+  // Functions
+  FNF: function FNF(record, data) {
+    record.functions.found = parseInt(data[0]);
+  },
+  FNH: function FNH(record, data) {
+    record.functions.hit = parseInt(data[0]);
+  },
+  FN: function FN(record, data) {
+    var line = data[0],
+        name = data[1];
+    record.functions.details.push({
+      name: name,
+      line: parseInt(line)
+    });
+  },
+  FNDA: function FNDA(record, data) {
+    var hit = data[0],
+        name = data[1];
+    record.functions.details.some(function (item) {
+      if (item.name === name && item.hit === undefined) {
+        item.hit = parseInt(hit);
+        return true;
+      } else {
+        return undefined;
+      }
+    });
+  },
+  // Branches
+  BRF: function BRF(record, data) {
+    record.branches.found = parseInt(data[0]);
+  },
+  BRH: function BRH(record, data) {
+    record.branches.hit = parseInt(data[0]);
+  },
+  BRDA: function BRDA(record, data) {
+    var line = data[0],
+        block = data[1],
+        branch = data[2],
+        taken = data[3];
+    record.branches.details.push({
+      line: parseInt(line),
+      block: parseInt(block),
+      branch: parseInt(branch),
+      taken: taken === "-" ? 0 : parseInt(taken)
+    });
+  },
+  // Lines
+  LF: function LF(record, data) {
+    record.lines.found = parseInt(data[0]);
+  },
+  LH: function LH(record, data) {
+    record.lines.hit = parseInt(data[0]);
+  },
+  DA: function DA(record, data) {
+    var line = data[0],
+        hit = data[1];
+    record.lines.details.push({
+      line: parseInt(line),
+      hit: parseInt(hit)
+    });
+  }
+};
+
+function transform(record, lineType, data) {
+  if (lineType) {
+    transformers[lineType](record, data);
+  }
+}
+
+/***/ }),
+
 /***/ 2560:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -32629,7 +32828,6 @@ const analyze_1 = __nccwpck_require__(9316);
 const testing_1 = __nccwpck_require__(4744);
 const comment_1 = __nccwpck_require__(8213);
 const process_1 = __nccwpck_require__(932);
-// import { coverage } from './scripts/coverage'
 const minimist_1 = __importDefault(__nccwpck_require__(994));
 const child_process_1 = __nccwpck_require__(5317);
 const post_1 = __nccwpck_require__(3884);
@@ -32712,8 +32910,8 @@ const getInputs = (isLocal) => {
     const testResultsPath = isLocal
         ? "./test-results.xml"
         : (0, core_1.getInput)("test-results-path");
-    // const runCoverage: boolean = getBooleanInput('run-coverage');
-    // const coveragePassScore: string = getInput('coverage-pass-score');
+    const runCoverage = (0, core_1.getBooleanInput)("run-coverage");
+    const coveragePassScore = (0, core_1.getInput)("coverage-pass-score");
     // get comment input
     const createComment = isLocal
         ? true
@@ -32727,6 +32925,8 @@ const getInputs = (isLocal) => {
         doCodeFormatting,
         doTests,
         testResultsPath,
+        runCoverage,
+        coveragePassScore,
         createComment,
     ];
 };
@@ -32737,7 +32937,7 @@ const getInputs = (isLocal) => {
 async function run() {
     const isLocal = checkIfLocal();
     try {
-        const [token, workingDirectory, wcSrcDirectory, testSrcDirectory, doStaticAnalysis, doCodeFormatting, doTests, testResultsPath, createComment,] = getInputs(isLocal);
+        const [token, workingDirectory, wcSrcDirectory, testSrcDirectory, doStaticAnalysis, doCodeFormatting, doTests, testResultsPath, runCoverage, coveragePassScore, createComment,] = getInputs(isLocal);
         // Check if the working directory is different from the current directory
         const currentDirectory = (0, process_1.cwd)();
         if (workingDirectory && workingDirectory !== currentDirectory) {
@@ -32788,13 +32988,25 @@ async function run() {
                 command: "npx playwright install --with-deps",
             })
             : undefined;
+        const pastCoverageScore = runCoverage
+            ? (0, testing_1.getCoverage)()
+            : undefined;
         const testingStr = doTests
             ? await (0, testing_1.testing)({
                 label: "Testing",
                 command: 'npx web-test-runner "' +
                     testSrcDirectory +
-                    '" --node-resolve --coverage',
+                    '" --node-resolve ' +
+                    runCoverage
+                    ? "--coverage"
+                    : 0,
             }, testResultsPath)
+            : undefined;
+        const currentCoverageScore = runCoverage
+            ? (0, testing_1.getCoverage)()
+            : undefined;
+        const coverageStr = runCoverage
+            ? await (0, testing_1.coverage)(pastCoverageScore, currentCoverageScore, coveragePassScore)
             : undefined;
         const typeDocStr = doTests
             ? await (0, testing_1.typeDoc)({
@@ -32820,13 +33032,9 @@ async function run() {
                 ],
             })
             : undefined;
-        // runCoverage
-        // const coverageStr: StepResponse | undefined = runCoverage
-        //   ? await coverage()
-        //   : undefined
         // createComment
         if (createComment) {
-            await (0, comment_1.comment)((0, github_1.getOctokit)(token), github_1.context, npmIStr, cemStr, eslintStr, litAnalyzerStr, prettierStr, playwrightStr, testingStr, typeDocStr, checkModifiedFilesStr, updateChangesStr);
+            await (0, comment_1.comment)((0, github_1.getOctokit)(token), github_1.context, npmIStr, cemStr, eslintStr, litAnalyzerStr, prettierStr, playwrightStr, testingStr, coverageStr, typeDocStr, checkModifiedFilesStr, updateChangesStr);
         }
     }
     catch (error) {
@@ -32914,7 +33122,7 @@ const li = (str) => {
 </li>
 `;
 };
-const comment = async (ocotokit, context, npmIStr, cemStr, eslintStr, litAnalyzerStr, prettierStr, playwrightStr, testingStr, typeDocStr, checkModifiedFilesStr, updateChangesStr) => {
+const comment = async (ocotokit, context, npmIStr, cemStr, eslintStr, litAnalyzerStr, prettierStr, playwrightStr, testingStr, coverageStr, typeDocStr, checkModifiedFilesStr, updateChangesStr) => {
     try {
         const commentBody = `
   ## PR Checks Complete\n
@@ -32926,11 +33134,11 @@ const comment = async (ocotokit, context, npmIStr, cemStr, eslintStr, litAnalyze
     ${prettierStr !== undefined ? li(prettierStr.output) : ""}
     ${playwrightStr !== undefined ? li(playwrightStr.output) : ""}
     ${testingStr !== undefined ? li(testingStr.output) : ""}
+    ${coverageStr !== undefined ? li(coverageStr.output) : ""}
     ${typeDocStr !== undefined ? li(typeDocStr.output) : ""}
     ${checkModifiedFilesStr !== undefined ? li(checkModifiedFilesStr.output) : ""}
     ${updateChangesStr !== undefined ? li(updateChangesStr.output) : ""}
   </ul>`;
-        // ## Coverage = ${coverageStr?.output}\n`
         const { data: comments } = await ocotokit.rest.issues.listComments({
             issue_number: context.issue.number,
             owner: context.repo.owner,
@@ -33050,12 +33258,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.typeDoc = exports.testing = exports.playwright = void 0;
+exports.coverage = exports.getCoverage = exports.typeDoc = exports.testing = exports.playwright = void 0;
 const core_1 = __nccwpck_require__(7484);
 const exec_1 = __nccwpck_require__(5236);
 const fs = __importStar(__nccwpck_require__(9896));
 const main_1 = __nccwpck_require__(1730);
 const xml_js_1 = __importDefault(__nccwpck_require__(3675));
+const parse_lcov_1 = __importDefault(__nccwpck_require__(2769));
 const playwright = async (command) => {
     await (0, main_1.runBashCommand)("npm ls @playwright/test | grep @playwright | sed 's/.*@//'")
         .then((version) => {
@@ -33136,11 +33345,7 @@ const typeDoc = async (command) => {
         const lines = commandOutput.split("\n");
         const table = lines
             .map((line) => {
-            console.log("line: ", line);
-            const match = line
-                .replace(/\uFFFD\[\d+m/g, "")
-                .match(/^(.*):(\d+):(\d+) - (.*)/);
-            console.log("match: ", match);
+            const match = line.match(/^(.*):(\d+):(\d+) - (.*)/);
             if (match) {
                 const [_, file, line, column, message] = match;
                 return `<tr><td>${file}</td><td>${line}</td><td>${column}</td><td>${message}</td></tr>`;
@@ -33154,6 +33359,35 @@ const typeDoc = async (command) => {
     return await (0, main_1.buildComment)(response, "", command.label);
 };
 exports.typeDoc = typeDoc;
+const getCoverage = () => {
+    let coverage = 0;
+    let coverageData;
+    try {
+        const lcov = fs.readFileSync("coverage/lcov.info", "utf8");
+        coverageData = (0, parse_lcov_1.default)(lcov);
+    }
+    catch (error) {
+        (0, core_1.setFailed)(`Failed to read coverage file: ${error}`);
+    }
+    if (coverageData) {
+        coverage = coverageData[0].lines.found / coverageData[0].lines.hit;
+    }
+    return coverage;
+};
+exports.getCoverage = getCoverage;
+const coverage = async (pastCoverageScore, currentCoverageScore, coveragePassScore) => {
+    let response = { output: "", error: false };
+    if (currentCoverageScore !== undefined &&
+        currentCoverageScore < parseInt(coveragePassScore)) {
+        response.error = true;
+        response.output = `${main_1.failedEmoji} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%`;
+    }
+    else {
+        response.output = `${main_1.passedEmoji} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%`;
+    }
+    return response;
+};
+exports.coverage = coverage;
 
 
 /***/ }),

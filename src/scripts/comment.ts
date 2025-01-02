@@ -21,6 +21,7 @@ export const comment = async (
   prettierStr: StepResponse | undefined,
   playwrightStr: StepResponse | undefined,
   testingStr: StepResponse | undefined,
+  coverageStr: StepResponse | undefined,
   typeDocStr: StepResponse | undefined,
   checkModifiedFilesStr: StepResponse | undefined,
   updateChangesStr: StepResponse | undefined,
@@ -36,11 +37,11 @@ export const comment = async (
     ${prettierStr !== undefined ? li(prettierStr.output) : ""}
     ${playwrightStr !== undefined ? li(playwrightStr.output) : ""}
     ${testingStr !== undefined ? li(testingStr.output) : ""}
+    ${coverageStr !== undefined ? li(coverageStr.output) : ""}
     ${typeDocStr !== undefined ? li(typeDocStr.output) : ""}
     ${checkModifiedFilesStr !== undefined ? li(checkModifiedFilesStr.output) : ""}
     ${updateChangesStr !== undefined ? li(updateChangesStr.output) : ""}
   </ul>`;
-    // ## Coverage = ${coverageStr?.output}\n`
 
     const { data: comments } = await ocotokit.rest.issues.listComments({
       issue_number: context.issue.number,

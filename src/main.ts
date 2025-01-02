@@ -1,11 +1,16 @@
-import { getBooleanInput, getInput, setFailed, debug } from "@actions/core";
+import { getBooleanInput, getInput, setFailed } from "@actions/core";
 import { exec } from "@actions/exec";
 import { getOctokit, context } from "@actions/github";
 import { eslint, litAnalyzer } from "./scripts/analyze";
-import { playwright, testing, typeDoc } from "./scripts/testing";
+import {
+  coverage,
+  getCoverage,
+  playwright,
+  testing,
+  typeDoc,
+} from "./scripts/testing";
 import { comment } from "./scripts/comment";
 import { cwd, chdir } from "process";
-// import { coverage } from './scripts/coverage'
 import minimist from "minimist";
 import { execSync } from "child_process";
 import { checkModifiedFiles, updateChanges } from "./scripts/post";
@@ -91,6 +96,8 @@ const getInputs = (
   boolean,
   string,
   boolean,
+  string,
+  boolean,
 ] => {
   // get the token and octokit
   let token = "";
@@ -123,8 +130,9 @@ const getInputs = (
     ? "./test-results.xml"
     : getInput("test-results-path");
 
-  // const runCoverage: boolean = getBooleanInput('run-coverage');
-  // const coveragePassScore: string = getInput('coverage-pass-score');
+  const runCoverage: boolean = getBooleanInput("run-coverage");
+  const coveragePassScore: string = getInput("coverage-pass-score");
+
   // get comment input
   const createComment: boolean = isLocal
     ? true
@@ -139,6 +147,8 @@ const getInputs = (
     doCodeFormatting,
     doTests,
     testResultsPath,
+    runCoverage,
+    coveragePassScore,
     createComment,
   ];
 };
@@ -160,6 +170,8 @@ export async function run(): Promise<void> {
       doCodeFormatting,
       doTests,
       testResultsPath,
+      runCoverage,
+      coveragePassScore,
       createComment,
     ] = getInputs(isLocal);
 
@@ -223,6 +235,10 @@ export async function run(): Promise<void> {
         })
       : undefined;
 
+    const pastCoverageScore: number | undefined = runCoverage
+      ? getCoverage()
+      : undefined;
+
     const testingStr: StepResponse | undefined = doTests
       ? await testing(
           {
@@ -230,9 +246,24 @@ export async function run(): Promise<void> {
             command:
               'npx web-test-runner "' +
               testSrcDirectory +
-              '" --node-resolve --coverage',
+              '" --node-resolve ' +
+              runCoverage
+                ? "--coverage"
+                : "",
           },
           testResultsPath,
+        )
+      : undefined;
+
+    const currentCoverageScore: number | undefined = runCoverage
+      ? getCoverage()
+      : undefined;
+
+    const coverageStr: StepResponse | undefined = runCoverage
+      ? await coverage(
+          pastCoverageScore,
+          currentCoverageScore,
+          coveragePassScore,
         )
       : undefined;
 
@@ -264,11 +295,6 @@ export async function run(): Promise<void> {
         })
       : undefined;
 
-    // runCoverage
-    // const coverageStr: StepResponse | undefined = runCoverage
-    //   ? await coverage()
-    //   : undefined
-
     // createComment
     if (createComment) {
       await comment(
@@ -281,6 +307,7 @@ export async function run(): Promise<void> {
         prettierStr,
         playwrightStr,
         testingStr,
+        coverageStr,
         typeDocStr,
         checkModifiedFilesStr,
         updateChangesStr,
