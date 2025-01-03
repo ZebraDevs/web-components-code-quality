@@ -33361,10 +33361,14 @@ const typeDoc = async (command) => {
         })
             .join("");
         const outputStr = `<table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table>`;
-        const [_, errors, warnings] = lines.filter((line) => {
-            return line.match(/^Found (\d+) errors and (\d+) warnings/);
+        let problemCount = 0;
+        lines.forEach((line) => {
+            const match = line.match(/Found (\d+) errors and (\d+) warnings/);
+            if (match) {
+                const [_, errors, warnings] = match;
+                problemCount += parseInt(errors) + parseInt(warnings);
+            }
         });
-        const problemCount = parseInt(errors) + parseInt(warnings);
         return await (0, main_1.buildComment)(response, command.label, outputStr, problemCount);
     }
     return await (0, main_1.buildComment)(response, command.label);
