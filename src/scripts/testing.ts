@@ -7,6 +7,8 @@ import {
   commandComment,
   failedEmoji,
   passedEmoji,
+  coverageDown,
+  coverageUp,
   runBashCommand,
   StepResponse,
 } from "src/main";
@@ -163,14 +165,19 @@ export const coverage = async (
 ): Promise<StepResponse> => {
   let response: StepResponse = { output: "", error: false };
 
-  if (
-    currentCoverageScore !== undefined &&
-    currentCoverageScore < parseInt(coveragePassScore)
-  ) {
-    response.error = true;
-    response.output = `${failedEmoji} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%`;
-  } else {
-    response.output = `${passedEmoji} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%`;
+  if (currentCoverageScore !== undefined && pastCoverageScore !== undefined) {
+    if (currentCoverageScore < parseInt(coveragePassScore)) {
+      response.error = true;
+      response.output = `${failedEmoji} - Coverage below ${coveragePassScore}&: ${currentCoverageScore}%`;
+    } else {
+      if (pastCoverageScore === currentCoverageScore) {
+        response.output = `${passedEmoji} - Coverage: ${currentCoverageScore}%`;
+      } else if (pastCoverageScore > currentCoverageScore) {
+        response.output = `${coverageDown} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%`;
+      } else if (pastCoverageScore < currentCoverageScore) {
+        response.output = `${coverageUp} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%`;
+      }
+    }
   }
 
   return response;

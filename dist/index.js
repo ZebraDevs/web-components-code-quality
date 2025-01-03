@@ -32819,7 +32819,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.commandComment = exports.buildComment = exports.runCommand = exports.runBashCommand = exports.passedEmoji = exports.failedEmoji = void 0;
+exports.commandComment = exports.buildComment = exports.runCommand = exports.runBashCommand = exports.coverageDown = exports.coverageUp = exports.passedEmoji = exports.failedEmoji = void 0;
 exports.run = run;
 const core_1 = __nccwpck_require__(7484);
 const exec_1 = __nccwpck_require__(5236);
@@ -32833,6 +32833,8 @@ const child_process_1 = __nccwpck_require__(5317);
 const post_1 = __nccwpck_require__(3884);
 exports.failedEmoji = "❌";
 exports.passedEmoji = "✅";
+exports.coverageUp = "📈";
+exports.coverageDown = "📉";
 const runBashCommand = async (command) => {
     return new Promise((resolve, reject) => {
         try {
@@ -33384,13 +33386,22 @@ const getCoverage = (coveragePath) => {
 exports.getCoverage = getCoverage;
 const coverage = async (pastCoverageScore, currentCoverageScore, coveragePassScore) => {
     let response = { output: "", error: false };
-    if (currentCoverageScore !== undefined &&
-        currentCoverageScore < parseInt(coveragePassScore)) {
-        response.error = true;
-        response.output = `${main_1.failedEmoji} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%`;
-    }
-    else {
-        response.output = `${main_1.passedEmoji} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%`;
+    if (currentCoverageScore !== undefined && pastCoverageScore !== undefined) {
+        if (currentCoverageScore < parseInt(coveragePassScore)) {
+            response.error = true;
+            response.output = `${main_1.failedEmoji} - Coverage below ${coveragePassScore}&: ${currentCoverageScore}%`;
+        }
+        else {
+            if (pastCoverageScore === currentCoverageScore) {
+                response.output = `${main_1.passedEmoji} - Coverage: ${currentCoverageScore}%`;
+            }
+            else if (pastCoverageScore > currentCoverageScore) {
+                response.output = `${main_1.coverageDown} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%`;
+            }
+            else if (pastCoverageScore < currentCoverageScore) {
+                response.output = `${main_1.coverageUp} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%`;
+            }
+        }
     }
     return response;
 };

@@ -24,6 +24,8 @@ export type Command = {
 export type StepResponse = { output: string; error: boolean };
 export const failedEmoji = "❌";
 export const passedEmoji = "✅";
+export const coverageUp = "📈";
+export const coverageDown = "📉";
 
 export const runBashCommand = async (command: string): Promise<string> => {
   return new Promise((resolve, reject) => {
