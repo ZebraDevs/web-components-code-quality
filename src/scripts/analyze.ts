@@ -4,6 +4,7 @@ import {
   passedEmoji,
   failedEmoji,
   runCommand,
+  buildComment,
 } from "src/main";
 
 export const eslint = async (command: Command): Promise<StepResponse> => {
@@ -25,13 +26,9 @@ export const eslint = async (command: Command): Promise<StepResponse> => {
     line.match(/^(.*?):(\d+):(\d+): (.*)$/),
   ).length;
 
-  if (problemCount > 0) {
-    response.error = true;
-    response.output = `${failedEmoji} - ${command.label}: ${problemCount} problem${problemCount !== 1 ? "s" : ""} found\n<details><summary>See Details</summary><table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table></details>`;
-  } else {
-    response.output = `${passedEmoji} - ${command.label}\n`;
-  }
-  return response;
+  const str = `<table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table>`;
+
+  return await buildComment(response, command.label, str, problemCount);
 };
 
 export const litAnalyzer = async (command: Command): Promise<StepResponse> => {
@@ -56,11 +53,8 @@ export const litAnalyzer = async (command: Command): Promise<StepResponse> => {
 
     outputStr = outputStr.split("...").pop()?.trim() || outputStr;
 
-    response.output = `${failedEmoji} - ${command.label}: ${problemCount} problem${problemCount !== 1 ? "s" : ""} found\n<details><summary>See Details</summary>${outputStr}</details>`;
-
-    return response;
+    return await buildComment(response, command.label, outputStr, problemCount);
   } else {
-    response.output = `${passedEmoji} - ${command.label}\n`;
-    return response;
+    return await buildComment(response, command.label);
   }
 };

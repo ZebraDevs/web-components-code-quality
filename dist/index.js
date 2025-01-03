@@ -33075,14 +33075,8 @@ const eslint = async (command) => {
     })
         .join("");
     const problemCount = lines.filter((line) => line.match(/^(.*?):(\d+):(\d+): (.*)$/)).length;
-    if (problemCount > 0) {
-        response.error = true;
-        response.output = `${main_1.failedEmoji} - ${command.label}: ${problemCount} problem${problemCount !== 1 ? "s" : ""} found\n<details><summary>See Details</summary><table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table></details>`;
-    }
-    else {
-        response.output = `${main_1.passedEmoji} - ${command.label}\n`;
-    }
-    return response;
+    const str = `<table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table>`;
+    return await (0, main_1.buildComment)(response, command.label, str, problemCount);
 };
 exports.eslint = eslint;
 const litAnalyzer = async (command) => {
@@ -33100,12 +33094,10 @@ const litAnalyzer = async (command) => {
             .join("");
         const problemCount = parseInt(problemsCountStr);
         outputStr = outputStr.split("...").pop()?.trim() || outputStr;
-        response.output = `${main_1.failedEmoji} - ${command.label}: ${problemCount} problem${problemCount !== 1 ? "s" : ""} found\n<details><summary>See Details</summary>${outputStr}</details>`;
-        return response;
+        return await (0, main_1.buildComment)(response, command.label, outputStr, problemCount);
     }
     else {
-        response.output = `${main_1.passedEmoji} - ${command.label}\n`;
-        return response;
+        return await (0, main_1.buildComment)(response, command.label);
     }
 };
 exports.litAnalyzer = litAnalyzer;
