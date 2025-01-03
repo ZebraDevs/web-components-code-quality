@@ -267,6 +267,7 @@ export async function run(): Promise<void> {
           pastCoverageScore,
           currentCoverageScore,
           coveragePassScore,
+          coveragePath,
         )
       : undefined;
 

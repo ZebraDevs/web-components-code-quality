@@ -33007,7 +33007,7 @@ async function run() {
             ? (0, testing_1.getCoverage)(coveragePath)
             : undefined;
         const coverageStr = runCoverage
-            ? await (0, testing_1.coverage)(pastCoverageScore, currentCoverageScore, coveragePassScore)
+            ? await (0, testing_1.coverage)(pastCoverageScore, currentCoverageScore, coveragePassScore, coveragePath)
             : undefined;
         const typeDocStr = doTests
             ? await (0, testing_1.typeDoc)({
@@ -33360,8 +33360,7 @@ const typeDoc = async (command) => {
     return await (0, main_1.buildComment)(response, "", command.label);
 };
 exports.typeDoc = typeDoc;
-const getCoverage = (coveragePath) => {
-    let coverage = 0;
+const loadCoverageData = (coveragePath) => {
     let coverageData;
     try {
         const lcov = fs.readFileSync(coveragePath, "utf8");
@@ -33370,6 +33369,11 @@ const getCoverage = (coveragePath) => {
     catch (error) {
         (0, core_1.setFailed)(`Failed to read coverage file: ${error}`);
     }
+    return coverageData;
+};
+const getCoverage = (coveragePath) => {
+    let coverage = 0;
+    let coverageData = loadCoverageData(coveragePath);
     if (coverageData) {
         let linesFound = 0;
         coverageData.forEach((file) => {
@@ -33384,28 +33388,52 @@ const getCoverage = (coveragePath) => {
     return Number((coverage * 100).toFixed(2));
 };
 exports.getCoverage = getCoverage;
-const coverage = async (pastCoverageScore, currentCoverageScore, coveragePassScore) => {
+const coverage = async (pastCoverageScore, currentCoverageScore, coveragePassScore, coveragePath) => {
     let response = { output: "", error: false };
+    let coverageData = loadCoverageData(coveragePath);
+    let coverageTable = coverageDataToTable(coverageData);
     if (currentCoverageScore !== undefined && pastCoverageScore !== undefined) {
         if (currentCoverageScore < parseInt(coveragePassScore)) {
             response.error = true;
-            response.output = `${main_1.failedEmoji} - Coverage below ${coveragePassScore}&: ${currentCoverageScore}%`;
+            response.output = `${main_1.failedEmoji} - Coverage below ${coveragePassScore}&: ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
         }
         else {
             if (pastCoverageScore === currentCoverageScore) {
-                response.output = `${main_1.passedEmoji} - Coverage: ${currentCoverageScore}%`;
+                response.output = `${main_1.passedEmoji} - Coverage: ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
             }
             else if (pastCoverageScore > currentCoverageScore) {
-                response.output = `${main_1.coverageDown} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%`;
+                response.output = `${main_1.coverageDown} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
             }
             else if (pastCoverageScore < currentCoverageScore) {
-                response.output = `${main_1.coverageUp} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%`;
+                response.output = `${main_1.coverageUp} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
             }
         }
     }
     return response;
 };
 exports.coverage = coverage;
+const coverageDataToTable = (coverageData) => {
+    let table = "<table><tr><th>File</th><th>Lines</th><th></th><th>Branches</th><th></th><th>Functions</th><th></th></tr>";
+    coverageData.forEach((file) => {
+        const linesFound = file.lines.found;
+        const linesHit = file.lines.hit;
+        const branchesFound = file.branches.found;
+        const branchesHit = file.branches.hit;
+        const functionsFound = file.functions.found;
+        const functionsHit = file.functions.hit;
+        const linesCoverage = ((linesHit / linesFound) * 100).toFixed(2);
+        const branchesCoverage = ((branchesHit / branchesFound) * 100).toFixed(2);
+        const functionsCoverage = ((functionsHit / functionsFound) * 100).toFixed(2);
+        table += `<tr>
+      <td>${file.file}</td>
+      <td>${linesCoverage}%</td> <td>${linesHit}/${linesFound}</td>
+      <td>${branchesCoverage}%</td> <td>${branchesHit}/${branchesFound}</td>
+      <td>${functionsCoverage}%</td> <td>${functionsHit}/${functionsFound}</td>
+    </tr>`;
+    });
+    table += "</table>";
+    return table;
+};
 
 
 /***/ }),
