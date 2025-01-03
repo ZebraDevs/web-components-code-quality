@@ -33093,8 +33093,8 @@ const litAnalyzer = async (command) => {
         })
             .join("");
         const problemCount = parseInt(problemsCountStr);
-        outputStr = outputStr.split("...").pop()?.trim() || outputStr;
-        outputStr = "\n" + outputStr;
+        outputStr = outputStr.split("...").pop() || outputStr;
+        // outputStr = "\n" + outputStr;
         return await (0, main_1.buildComment)(response, command.label, outputStr, problemCount);
     }
     else {

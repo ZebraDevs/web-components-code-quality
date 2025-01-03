@@ -51,8 +51,8 @@ export const litAnalyzer = async (command: Command): Promise<StepResponse> => {
 
     const problemCount = parseInt(problemsCountStr);
 
-    outputStr = outputStr.split("...").pop()?.trim() || outputStr;
-    outputStr = "\n" + outputStr;
+    outputStr = outputStr.split("...").pop() || outputStr;
+    // outputStr = "\n" + outputStr;
 
     return await buildComment(response, command.label, outputStr, problemCount);
   } else {
