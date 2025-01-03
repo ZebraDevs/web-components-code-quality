@@ -60,11 +60,18 @@ export const runCommand = async (
 
 export const buildComment = async (
   response: StepResponse,
-  outputStr: string,
   label: string,
+  outputStr?: string,
+  problemsCount?: number,
 ): Promise<StepResponse> => {
   if (response.error == true) {
-    response.output = `${failedEmoji} - ${label}\n<details><summary>See Details</summary>${outputStr}</details>`;
+    if (problemsCount !== undefined) {
+      response.output = `${failedEmoji} - ${label}: ${problemsCount} problem${
+        problemsCount > 1 ? "s" : ""
+      } found\n<details><summary>See Details</summary>${outputStr}</details>`;
+    } else {
+      response.output = `${failedEmoji} - ${label}\n<details><summary>See Details</summary>${outputStr}</details>`;
+    }
   } else {
     response.output = `${passedEmoji} - ${label}\n`;
   }
@@ -75,7 +82,7 @@ export const commandComment = async (
   command: Command,
 ): Promise<StepResponse> => {
   const [response, outputStr] = await runCommand(command);
-  return await buildComment(response, outputStr, command.label);
+  return await buildComment(response, command.label, outputStr);
 };
 
 const checkIfLocal = (): boolean => {

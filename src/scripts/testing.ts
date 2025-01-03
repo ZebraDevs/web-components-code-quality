@@ -54,6 +54,7 @@ export const testing = async (
     setFailed(`Failed to read test results: ${error as string}`);
   }
 
+  let problemCount = 0;
   if (response.error && failedToReadFile == false) {
     const jsonResults = JSON.parse(
       convert.xml2json(testResults, { compact: false, spaces: 2 }),
@@ -81,6 +82,7 @@ export const testing = async (
         );
 
         if (testCaseFailure) {
+          problemCount++;
           const file = testCase["attributes"]["file"];
           const line = testCase["attributes"]["line"];
           const failureType = testCaseFailure["attributes"]["type"];
@@ -92,7 +94,7 @@ export const testing = async (
 
     outputStr += "</table>";
   }
-  return await buildComment(response, outputStr, command.label);
+  return await buildComment(response, command.label, outputStr, problemCount);
 };
 
 export const typeDoc = async (command: Command): Promise<StepResponse> => {
@@ -110,7 +112,6 @@ export const typeDoc = async (command: Command): Promise<StepResponse> => {
     response.error = true;
     setFailed(`Failed ${command.label}: ${error as string}`);
   }
-  console.log("commandOutput: ", commandOutput);
 
   if (response.error) {
     commandOutput = commandOutput.replace(/\[\d+m/g, "");
@@ -126,9 +127,13 @@ export const typeDoc = async (command: Command): Promise<StepResponse> => {
       })
       .join("");
     const outputStr = `<table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table>`;
-    return await buildComment(response, outputStr, command.label);
+    const [_, errors, warnings] = lines.filter((line) => {
+      return line.match(/^Found (\d+) errors and (\d+) warnings/);
+    });
+    const problemCount = parseInt(errors) + parseInt(warnings);
+    return await buildComment(response, command.label, outputStr, problemCount);
   }
-  return await buildComment(response, "", command.label);
+  return await buildComment(response, command.label);
 };
 
 const loadCoverageData = (coveragePath: string): LCOVRecord[] | undefined => {

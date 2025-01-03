@@ -32866,9 +32866,14 @@ const runCommand = async (command) => {
     return [response, outputStr];
 };
 exports.runCommand = runCommand;
-const buildComment = async (response, outputStr, label) => {
+const buildComment = async (response, label, outputStr, problemsCount) => {
     if (response.error == true) {
-        response.output = `${exports.failedEmoji} - ${label}\n<details><summary>See Details</summary>${outputStr}</details>`;
+        if (problemsCount !== undefined) {
+            response.output = `${exports.failedEmoji} - ${label}: ${problemsCount} problem${problemsCount > 1 ? "s" : ""} found\n<details><summary>See Details</summary>${outputStr}</details>`;
+        }
+        else {
+            response.output = `${exports.failedEmoji} - ${label}\n<details><summary>See Details</summary>${outputStr}</details>`;
+        }
     }
     else {
         response.output = `${exports.passedEmoji} - ${label}\n`;
@@ -32878,7 +32883,7 @@ const buildComment = async (response, outputStr, label) => {
 exports.buildComment = buildComment;
 const commandComment = async (command) => {
     const [response, outputStr] = await (0, exports.runCommand)(command);
-    return await (0, exports.buildComment)(response, outputStr, command.label);
+    return await (0, exports.buildComment)(response, command.label, outputStr);
 };
 exports.commandComment = commandComment;
 const checkIfLocal = () => {
@@ -33193,16 +33198,16 @@ const checkModifiedFiles = async (command) => {
         const response = { output: "", error: false };
         if (str.trim() !== "") {
             filesModified = true;
-            return await (0, main_1.buildComment)(response, str, command.label);
+            return await (0, main_1.buildComment)(response, command.label, str);
         }
         else {
-            return await (0, main_1.buildComment)(response, str, command.label);
+            return await (0, main_1.buildComment)(response, command.label, str);
         }
     })
         .catch(async (error) => {
         (0, core_1.setFailed)(`Failed to check for modified files: ${error}`);
         const response = { output: "", error: true };
-        return await (0, main_1.buildComment)(response, error.message, command.label);
+        return await (0, main_1.buildComment)(response, command.label, error.message);
     });
     return [result, filesModified];
 };
@@ -33213,12 +33218,12 @@ const updateChanges = async (command) => {
         await (0, main_1.runBashCommand)(cmd).catch(async (error) => {
             (0, core_1.setFailed)(`Failed to execute command "${cmd}": ${error}`);
             response.error = true;
-            response = await (0, main_1.buildComment)(response, error.message, command.label);
+            response = await (0, main_1.buildComment)(response, command.label, error.message);
             return;
         });
     }
     if (response.error === false) {
-        response = await (0, main_1.buildComment)(response, "", command.label);
+        response = await (0, main_1.buildComment)(response, command.label);
     }
     return response;
 };
@@ -33299,6 +33304,7 @@ const testing = async (command, testResultsPath) => {
         outputStr = "Failed to read test results file";
         (0, core_1.setFailed)(`Failed to read test results: ${error}`);
     }
+    let problemCount = 0;
     if (response.error && failedToReadFile == false) {
         const jsonResults = JSON.parse(xml_js_1.default.xml2json(testResults, { compact: false, spaces: 2 }));
         fs.writeFileSync("src/test/testResults.json", xml_js_1.default.xml2json(testResults, { compact: true, spaces: 2 }));
@@ -33311,6 +33317,7 @@ const testing = async (command, testResultsPath) => {
                 const testCaseName = testCase["attributes"]["name"];
                 const testCaseFailure = testCase["elements"]?.find((element) => element.name === "failure");
                 if (testCaseFailure) {
+                    problemCount++;
                     const file = testCase["attributes"]["file"];
                     const line = testCase["attributes"]["line"];
                     const failureType = testCaseFailure["attributes"]["type"];
@@ -33321,7 +33328,7 @@ const testing = async (command, testResultsPath) => {
         }
         outputStr += "</table>";
     }
-    return await (0, main_1.buildComment)(response, outputStr, command.label);
+    return await (0, main_1.buildComment)(response, command.label, outputStr, problemCount);
 };
 exports.testing = testing;
 const typeDoc = async (command) => {
@@ -33340,7 +33347,6 @@ const typeDoc = async (command) => {
         response.error = true;
         (0, core_1.setFailed)(`Failed ${command.label}: ${error}`);
     }
-    console.log("commandOutput: ", commandOutput);
     if (response.error) {
         commandOutput = commandOutput.replace(/\[\d+m/g, "");
         const lines = commandOutput.split("\n");
@@ -33355,9 +33361,13 @@ const typeDoc = async (command) => {
         })
             .join("");
         const outputStr = `<table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table>`;
-        return await (0, main_1.buildComment)(response, outputStr, command.label);
+        const [_, errors, warnings] = lines.filter((line) => {
+            return line.match(/^Found (\d+) errors and (\d+) warnings/);
+        });
+        const problemCount = parseInt(errors) + parseInt(warnings);
+        return await (0, main_1.buildComment)(response, command.label, outputStr, problemCount);
     }
-    return await (0, main_1.buildComment)(response, "", command.label);
+    return await (0, main_1.buildComment)(response, command.label);
 };
 exports.typeDoc = typeDoc;
 const loadCoverageData = (coveragePath) => {
