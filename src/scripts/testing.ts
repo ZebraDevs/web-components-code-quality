@@ -11,7 +11,7 @@ import {
   StepResponse,
 } from "src/main";
 import convert from "xml-js";
-import parseLCOV from "parse-lcov";
+import parseLCOV, { LCOVRecord } from "parse-lcov";
 
 export const playwright = async (command: Command): Promise<StepResponse> => {
   await runBashCommand(
@@ -129,11 +129,11 @@ export const typeDoc = async (command: Command): Promise<StepResponse> => {
   return await buildComment(response, "", command.label);
 };
 
-export const getCoverage = (): number => {
+export const getCoverage = (coveragePath: string): number => {
   let coverage = 0;
-  let coverageData;
+  let coverageData: LCOVRecord[] | undefined;
   try {
-    const lcov = fs.readFileSync("coverage/lcov.info", "utf8");
+    const lcov = fs.readFileSync(coveragePath, "utf8");
     coverageData = parseLCOV(lcov);
   } catch (error) {
     setFailed(`Failed to read coverage file: ${error as string}`);

@@ -97,6 +97,7 @@ const getInputs = (
   string,
   boolean,
   string,
+  string,
   boolean,
 ] => {
   // get the token and octokit
@@ -132,6 +133,7 @@ const getInputs = (
 
   const runCoverage: boolean = getBooleanInput("run-coverage");
   const coveragePassScore: string = getInput("coverage-pass-score");
+  const coveragePath: string = getInput("coverage-path");
 
   // get comment input
   const createComment: boolean = isLocal
@@ -149,6 +151,7 @@ const getInputs = (
     testResultsPath,
     runCoverage,
     coveragePassScore,
+    coveragePath,
     createComment,
   ];
 };
@@ -172,6 +175,7 @@ export async function run(): Promise<void> {
       testResultsPath,
       runCoverage,
       coveragePassScore,
+      coveragePath,
       createComment,
     ] = getInputs(isLocal);
 
@@ -236,7 +240,7 @@ export async function run(): Promise<void> {
       : undefined;
 
     const pastCoverageScore: number | undefined = runCoverage
-      ? getCoverage()
+      ? getCoverage(coveragePath)
       : undefined;
 
     const testingStr: StepResponse | undefined = doTests
@@ -253,7 +257,7 @@ export async function run(): Promise<void> {
       : undefined;
 
     const currentCoverageScore: number | undefined = runCoverage
-      ? getCoverage()
+      ? getCoverage(coveragePath)
       : undefined;
 
     const coverageStr: StepResponse | undefined = runCoverage

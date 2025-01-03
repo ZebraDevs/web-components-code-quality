@@ -55,15 +55,20 @@ inputs:
     required: false
     default: "true"
 
-  create-comment:
-    description: "Whether to create a comment on the PR"
+  coverage-path:
+    description: "The path to the coverage file"
     required: false
-    default: "true"
+    default: "coverage/lcov.info"
 
   coverage-pass-score:
     description: "The minimum coverage score required to pass"
     required: false
     default: "80"
+
+  create-comment:
+    description: "Whether to create a comment on the PR"
+    required: false
+    default: "true"
 
 # Define your outputs here.
 # outputs:

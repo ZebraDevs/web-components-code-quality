@@ -32912,6 +32912,7 @@ const getInputs = (isLocal) => {
         : (0, core_1.getInput)("test-results-path");
     const runCoverage = (0, core_1.getBooleanInput)("run-coverage");
     const coveragePassScore = (0, core_1.getInput)("coverage-pass-score");
+    const coveragePath = (0, core_1.getInput)("coverage-path");
     // get comment input
     const createComment = isLocal
         ? true
@@ -32927,6 +32928,7 @@ const getInputs = (isLocal) => {
         testResultsPath,
         runCoverage,
         coveragePassScore,
+        coveragePath,
         createComment,
     ];
 };
@@ -32937,7 +32939,7 @@ const getInputs = (isLocal) => {
 async function run() {
     const isLocal = checkIfLocal();
     try {
-        const [token, workingDirectory, wcSrcDirectory, testSrcDirectory, doStaticAnalysis, doCodeFormatting, doTests, testResultsPath, runCoverage, coveragePassScore, createComment,] = getInputs(isLocal);
+        const [token, workingDirectory, wcSrcDirectory, testSrcDirectory, doStaticAnalysis, doCodeFormatting, doTests, testResultsPath, runCoverage, coveragePassScore, coveragePath, createComment,] = getInputs(isLocal);
         // Check if the working directory is different from the current directory
         const currentDirectory = (0, process_1.cwd)();
         if (workingDirectory && workingDirectory !== currentDirectory) {
@@ -32989,7 +32991,7 @@ async function run() {
             })
             : undefined;
         const pastCoverageScore = runCoverage
-            ? (0, testing_1.getCoverage)()
+            ? (0, testing_1.getCoverage)(coveragePath)
             : undefined;
         const testingStr = doTests
             ? await (0, testing_1.testing)({
@@ -33000,7 +33002,7 @@ async function run() {
             }, testResultsPath)
             : undefined;
         const currentCoverageScore = runCoverage
-            ? (0, testing_1.getCoverage)()
+            ? (0, testing_1.getCoverage)(coveragePath)
             : undefined;
         const coverageStr = runCoverage
             ? await (0, testing_1.coverage)(pastCoverageScore, currentCoverageScore, coveragePassScore)
@@ -33356,11 +33358,11 @@ const typeDoc = async (command) => {
     return await (0, main_1.buildComment)(response, "", command.label);
 };
 exports.typeDoc = typeDoc;
-const getCoverage = () => {
+const getCoverage = (coveragePath) => {
     let coverage = 0;
     let coverageData;
     try {
-        const lcov = fs.readFileSync("coverage/lcov.info", "utf8");
+        const lcov = fs.readFileSync(coveragePath, "utf8");
         coverageData = (0, parse_lcov_1.default)(lcov);
     }
     catch (error) {
