@@ -2,13 +2,8 @@ import { getBooleanInput, getInput, setFailed } from "@actions/core";
 import { exec } from "@actions/exec";
 import { getOctokit, context } from "@actions/github";
 import { eslint, litAnalyzer } from "./scripts/analyze";
-import {
-  coverage,
-  getCoverage,
-  playwright,
-  testing,
-  typeDoc,
-} from "./scripts/testing";
+import { playwright, testing, typeDoc } from "./scripts/testing";
+import { coverage, getCoverage } from "./scripts/coverage";
 import { comment } from "./scripts/comment";
 import { cwd, chdir } from "process";
 import minimist from "minimist";
@@ -26,6 +21,16 @@ export const failedEmoji = "❌";
 export const passedEmoji = "✅";
 export const coverageUp = "📈";
 export const coverageDown = "📉";
+
+declare global {
+  interface String {
+    isEmpty(): boolean;
+  }
+}
+
+String.prototype.isEmpty = function (): boolean {
+  return this == undefined || this == "" || this == null;
+};
 
 export const runBashCommand = async (command: string): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -117,11 +122,15 @@ const getInputs = (
     token = getInput("token");
   }
 
-  const workingDirectory = getInput("working-directory");
+  const workingDirectory = isLocal ? "." : getInput("working-directory");
 
-  const wcSrcDirectory = getInput("web-components-src");
+  const wcSrcDirectory = isLocal
+    ? "src/**/*.{ts,tsx}"
+    : getInput("web-components-src");
 
-  const testSrcDirectory = getInput("test-src");
+  const testSrcDirectory = isLocal
+    ? "src/test/**/*.test.ts"
+    : getInput("test-src");
 
   // get static analysis input
   const doStaticAnalysis: boolean = isLocal
@@ -140,9 +149,13 @@ const getInputs = (
     ? "./test-results.xml"
     : getInput("test-results-path");
 
-  const runCoverage: boolean = getBooleanInput("run-coverage");
-  const coveragePassScore: string = getInput("coverage-pass-score");
-  const coveragePath: string = getInput("coverage-path");
+  const runCoverage: boolean = isLocal ? true : getBooleanInput("run-coverage");
+  const coveragePassScore: string = isLocal
+    ? "80"
+    : getInput("coverage-pass-score");
+  const coveragePath: string = isLocal
+    ? "coverage/lcov.info"
+    : getInput("coverage-path");
 
   // get comment input
   const createComment: boolean = isLocal
@@ -222,11 +235,7 @@ export async function run(): Promise<void> {
       : undefined;
 
     let webComponentsSrcRoot = wcSrcDirectory.split("/").shift();
-    if (
-      webComponentsSrcRoot == undefined ||
-      webComponentsSrcRoot == "" ||
-      webComponentsSrcRoot == null
-    ) {
+    if (webComponentsSrcRoot?.isEmpty()) {
       webComponentsSrcRoot = wcSrcDirectory.split("/")[1];
     }
     // run Code Formatting

@@ -1,11 +1,4 @@
-import {
-  StepResponse,
-  Command,
-  passedEmoji,
-  failedEmoji,
-  runCommand,
-  buildComment,
-} from "src/main";
+import { StepResponse, Command, runCommand, buildComment } from "src/main";
 
 export const eslint = async (command: Command): Promise<StepResponse> => {
   const [response, outputStr] = await runCommand(command);
@@ -52,7 +45,6 @@ export const litAnalyzer = async (command: Command): Promise<StepResponse> => {
     const problemCount = parseInt(problemsCountStr);
 
     outputStr = outputStr.split("...").pop() || outputStr;
-    // outputStr = "\n" + outputStr;
 
     return await buildComment(response, command.label, outputStr, problemCount);
   } else {

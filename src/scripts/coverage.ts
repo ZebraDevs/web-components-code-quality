@@ -1,95 +1,101 @@
-// import { setFailed } from '@actions/core'
-// import parseLCOV from 'parse-lcov'
-// import { StepResponse } from 'src/main'
+import { setFailed } from "@actions/core";
+import * as fs from "fs";
+import {
+  failedEmoji,
+  passedEmoji,
+  coverageDown,
+  coverageUp,
+  StepResponse,
+} from "src/main";
+import parseLCOV, { LCOVRecord } from "parse-lcov";
 
-// // TODO: Adapt the step to use parseLCOV
-// //
-// //
+const loadCoverageData = (coveragePath: string): LCOVRecord[] | undefined => {
+  let coverageData: LCOVRecord[] | undefined;
+  try {
+    const lcov = fs.readFileSync(coveragePath, "utf8");
+    coverageData = parseLCOV(lcov);
+  } catch (error) {
+    setFailed(`Failed to read coverage file: ${error as string}`);
+  }
+  return coverageData;
+};
 
-// export const coverage = async (): Promise<StepResponse> => {
-//   try {
-//     return { output: 'RETURN COVERAGE', error: false }
-//   } catch (error) {
-//     if (error instanceof Error) setFailed(error.message)
-//     return { output: 'Coverage failed', error: true }
-//   }
-// }
+export const getCoverage = (coveragePath: string): number => {
+  let coverage = 0;
+  let coverageData = loadCoverageData(coveragePath);
 
-// import { readFileSync } from 'node:fs'
-// import { endGroup, startGroup } from '@actions/core'
-// import { StepResponse } from '../main'
-// import { debug } from '@actions/core'
-// import { getLcovLines } from './utils'
+  if (coverageData) {
+    let linesFound = 0;
+    coverageData.forEach((file) => {
+      linesFound += file.lines.found;
+    });
 
-// export const COV_FAILURE = '⚠️ - Coverage check failed'
+    let linesHit = 0;
+    coverageData.forEach((file) => {
+      linesHit += file.lines.hit;
+    });
 
-// /**
-//  * Get the coverage report and compare with the previous coverage
-//  * @param prevCoverage - Previous coverage report
-//  * @param coverageDirectory - Directory to store coverage report
-//  * @returns Coverage report as a StepResponse object
-//  */
-// export const coverage = (
-//   prevCoverage: Lcov | undefined,
-//   coverageDirectory: string,
-//   scoreStr: string
-// ): StepResponse => {
-//   startGroup('Checking test coverage')
-//   let response: StepResponse | undefined
-//   let score = 90
+    coverage = linesHit / linesFound;
+  }
 
-//   try {
-//     score = parseInt(scoreStr)
-//   } catch (error) {
-//     console.error('Error parsing score', 'Will default to 90', error)
-//   }
+  return Number((coverage * 100).toFixed(2));
+};
 
-//   try {
-//     const contents = readFileSync(`${coverageDirectory}/lcov.info`, 'utf8')
-//     const lcov: Lcov = parse(contents)
-//     debug('Parsed lcov.info')
-//     const digest: LcovDigest = sum(lcov)
-//     const totalPercent: number = digest.lines
-//     let percentOutput: string
+export const coverage = async (
+  pastCoverageScore: number | undefined,
+  currentCoverageScore: number | undefined,
+  coveragePassScore: string,
+  coveragePath: string,
+): Promise<StepResponse> => {
+  let response: StepResponse = { output: "", error: false };
 
-//     const arr = Object.values(lcov).map(e => {
-//       const fileName = e.sf
-//       const percent = Math.round((e.lh / e.lf) * 1000) / 10
-//       const passing = percent > score ? '✅' : '⛔️'
-//       return `<tr><td>${fileName}</td><td>${percent}%</td><td>${passing}</td></tr>`
-//     })
-//     debug(`Coverage at ${totalPercent}%`)
-//     if (prevCoverage != undefined) {
-//       debug('Comparing with previous coverage')
-//       const prevPercent = getLcovLines(prevCoverage)
-//       if (prevPercent > totalPercent) {
-//         debug('Coverage decreased')
-//         percentOutput = totalPercent + `% (🔻 down from ` + prevPercent + `%)`
-//       } else if (prevPercent < totalPercent) {
-//         debug('Coverage increased')
-//         percentOutput = totalPercent + `% (⬆️ up from ` + prevPercent + `%)`
-//       } else {
-//         debug('Coverage unchanged')
-//         percentOutput = totalPercent + `% (no change)`
-//       }
-//     } else {
-//       percentOutput = totalPercent + '%'
-//     }
+  let coverageData = loadCoverageData(coveragePath);
+  let coverageTable = coverageDataToTable(coverageData!);
 
-//     const str = `📈 - Code coverage: ${percentOutput}
-//     <br>
-//     <details><summary>See details</summary>
-//     <table>
-//     <tr><th>File Name</th><th>%</th><th>Passing?</th></tr>
-//         ${arr.join('')}
-//     </table>
-//     </details>`
-//     response = { output: str, error: false }
-//   } catch (error) {
-//     console.error('Error checking coverage', error)
-//     response = { output: COV_FAILURE, error: true }
-//   }
-//   debug('Finished checking coverage; generated response')
-//   endGroup()
-//   return response
-// }
+  if (currentCoverageScore !== undefined && pastCoverageScore !== undefined) {
+    if (currentCoverageScore < parseInt(coveragePassScore)) {
+      response.error = true;
+      response.output = `${failedEmoji} - Coverage below ${coveragePassScore}&: ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
+    } else {
+      if (pastCoverageScore === currentCoverageScore) {
+        response.output = `${passedEmoji} - Coverage: ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
+      } else if (pastCoverageScore > currentCoverageScore) {
+        response.output = `${coverageDown} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
+      } else if (pastCoverageScore < currentCoverageScore) {
+        response.output = `${coverageUp} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
+      }
+    }
+  }
+
+  return response;
+};
+
+const coverageDataToTable = (coverageData: LCOVRecord[]): string => {
+  let table =
+    "<table><tr><th>File</th><th>Lines</th><th></th><th>Branches</th><th></th><th>Functions</th><th></th></tr>";
+
+  coverageData.forEach((file) => {
+    const linesFound = file.lines.found;
+    const linesHit = file.lines.hit;
+    const branchesFound = file.branches.found;
+    const branchesHit = file.branches.hit;
+    const functionsFound = file.functions.found;
+    const functionsHit = file.functions.hit;
+
+    const linesCoverage = ((linesHit / linesFound) * 100).toFixed(2);
+    const branchesCoverage = ((branchesHit / branchesFound) * 100).toFixed(2);
+    const functionsCoverage = ((functionsHit / functionsFound) * 100).toFixed(
+      2,
+    );
+
+    table += `<tr>
+        <td>${file.file}</td>
+        <td>${linesCoverage}%</td> <td>${linesHit}/${linesFound}</td>
+        <td>${branchesCoverage}%</td> <td>${branchesHit}/${branchesFound}</td>
+        <td>${functionsCoverage}%</td> <td>${functionsHit}/${functionsFound}</td>
+      </tr>`;
+  });
+
+  table += "</table>";
+  return table;
+};
