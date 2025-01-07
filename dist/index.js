@@ -32826,6 +32826,7 @@ const exec_1 = __nccwpck_require__(5236);
 const github_1 = __nccwpck_require__(3228);
 const analyze_1 = __nccwpck_require__(9316);
 const testing_1 = __nccwpck_require__(4744);
+const coverage_1 = __nccwpck_require__(300);
 const comment_1 = __nccwpck_require__(8213);
 const process_1 = __nccwpck_require__(932);
 const minimist_1 = __importDefault(__nccwpck_require__(994));
@@ -32835,6 +32836,9 @@ exports.failedEmoji = "❌";
 exports.passedEmoji = "✅";
 exports.coverageUp = "📈";
 exports.coverageDown = "📉";
+String.prototype.isEmpty = function () {
+    return this == undefined || this == "" || this == null;
+};
 const runBashCommand = async (command) => {
     return new Promise((resolve, reject) => {
         try {
@@ -32901,9 +32905,13 @@ const getInputs = (isLocal) => {
     else {
         token = (0, core_1.getInput)("token");
     }
-    const workingDirectory = (0, core_1.getInput)("working-directory");
-    const wcSrcDirectory = (0, core_1.getInput)("web-components-src");
-    const testSrcDirectory = (0, core_1.getInput)("test-src");
+    const workingDirectory = isLocal ? "." : (0, core_1.getInput)("working-directory");
+    const wcSrcDirectory = isLocal
+        ? "src/**/*.{ts,tsx}"
+        : (0, core_1.getInput)("web-components-src");
+    const testSrcDirectory = isLocal
+        ? "src/test/**/*.test.ts"
+        : (0, core_1.getInput)("test-src");
     // get static analysis input
     const doStaticAnalysis = isLocal
         ? true
@@ -32917,9 +32925,13 @@ const getInputs = (isLocal) => {
     const testResultsPath = isLocal
         ? "./test-results.xml"
         : (0, core_1.getInput)("test-results-path");
-    const runCoverage = (0, core_1.getBooleanInput)("run-coverage");
-    const coveragePassScore = (0, core_1.getInput)("coverage-pass-score");
-    const coveragePath = (0, core_1.getInput)("coverage-path");
+    const runCoverage = isLocal ? true : (0, core_1.getBooleanInput)("run-coverage");
+    const coveragePassScore = isLocal
+        ? "80"
+        : (0, core_1.getInput)("coverage-pass-score");
+    const coveragePath = isLocal
+        ? "coverage/lcov.info"
+        : (0, core_1.getInput)("coverage-path");
     // get comment input
     const createComment = isLocal
         ? true
@@ -32976,9 +32988,7 @@ async function run() {
             })
             : undefined;
         let webComponentsSrcRoot = wcSrcDirectory.split("/").shift();
-        if (webComponentsSrcRoot == undefined ||
-            webComponentsSrcRoot == "" ||
-            webComponentsSrcRoot == null) {
+        if (webComponentsSrcRoot?.isEmpty()) {
             webComponentsSrcRoot = wcSrcDirectory.split("/")[1];
         }
         // run Code Formatting
@@ -32998,21 +33008,21 @@ async function run() {
             })
             : undefined;
         const pastCoverageScore = runCoverage
-            ? (0, testing_1.getCoverage)(coveragePath)
+            ? (0, coverage_1.getCoverage)(coveragePath)
             : undefined;
         const testingStr = doTests
             ? await (0, testing_1.testing)({
                 label: "Testing",
-                command: 'npx web-test-runner "' +
+                command: 'npx web-test-runner \"' +
                     testSrcDirectory +
-                    '" --node-resolve --coverage',
+                    '\" --node-resolve --coverage',
             }, testResultsPath)
             : undefined;
         const currentCoverageScore = runCoverage
-            ? (0, testing_1.getCoverage)(coveragePath)
+            ? (0, coverage_1.getCoverage)(coveragePath)
             : undefined;
         const coverageStr = runCoverage
-            ? await (0, testing_1.coverage)(pastCoverageScore, currentCoverageScore, coveragePassScore, coveragePath)
+            ? await (0, coverage_1.coverage)(pastCoverageScore, currentCoverageScore, coveragePassScore, coveragePath)
             : undefined;
         const typeDocStr = doTests
             ? await (0, testing_1.typeDoc)({
@@ -33094,7 +33104,6 @@ const litAnalyzer = async (command) => {
             .join("");
         const problemCount = parseInt(problemsCountStr);
         outputStr = outputStr.split("...").pop() || outputStr;
-        // outputStr = "\n" + outputStr;
         return await (0, main_1.buildComment)(response, command.label, outputStr, problemCount);
     }
     else {
@@ -33171,6 +33180,123 @@ const comment = async (ocotokit, context, npmIStr, cemStr, eslintStr, litAnalyze
     }
 };
 exports.comment = comment;
+
+
+/***/ }),
+
+/***/ 300:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.coverage = exports.getCoverage = void 0;
+const core_1 = __nccwpck_require__(7484);
+const fs = __importStar(__nccwpck_require__(9896));
+const main_1 = __nccwpck_require__(1730);
+const parse_lcov_1 = __importDefault(__nccwpck_require__(2769));
+const loadCoverageData = (coveragePath) => {
+    let coverageData;
+    try {
+        const lcov = fs.readFileSync(coveragePath, "utf8");
+        coverageData = (0, parse_lcov_1.default)(lcov);
+    }
+    catch (error) {
+        (0, core_1.setFailed)(`Failed to read coverage file: ${error}`);
+    }
+    return coverageData;
+};
+const getCoverage = (coveragePath) => {
+    let coverage = 0;
+    let coverageData = loadCoverageData(coveragePath);
+    if (coverageData) {
+        let linesFound = 0;
+        coverageData.forEach((file) => {
+            linesFound += file.lines.found;
+        });
+        let linesHit = 0;
+        coverageData.forEach((file) => {
+            linesHit += file.lines.hit;
+        });
+        coverage = linesHit / linesFound;
+    }
+    return Number((coverage * 100).toFixed(2));
+};
+exports.getCoverage = getCoverage;
+const coverage = async (pastCoverageScore, currentCoverageScore, coveragePassScore, coveragePath) => {
+    let response = { output: "", error: false };
+    let coverageData = loadCoverageData(coveragePath);
+    let coverageTable = coverageDataToTable(coverageData);
+    if (currentCoverageScore !== undefined && pastCoverageScore !== undefined) {
+        if (currentCoverageScore < parseInt(coveragePassScore)) {
+            response.error = true;
+            response.output = `${main_1.failedEmoji} - Coverage below ${coveragePassScore}%: Current ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
+        }
+        else {
+            if (pastCoverageScore === currentCoverageScore) {
+                response.output = `${main_1.passedEmoji} - Coverage: ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
+            }
+            else if (pastCoverageScore > currentCoverageScore) {
+                response.output = `${main_1.coverageDown} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
+            }
+            else if (pastCoverageScore < currentCoverageScore) {
+                response.output = `${main_1.coverageUp} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
+            }
+        }
+    }
+    return response;
+};
+exports.coverage = coverage;
+const coverageDataToTable = (coverageData) => {
+    let table = "<table><tr><th>File</th><th>Lines</th><th></th><th>Branches</th><th></th><th>Functions</th><th></th></tr>";
+    coverageData.forEach((file) => {
+        const linesFound = file.lines.found;
+        const linesHit = file.lines.hit;
+        const branchesFound = file.branches.found;
+        const branchesHit = file.branches.hit;
+        const functionsFound = file.functions.found;
+        const functionsHit = file.functions.hit;
+        const linesCoverage = linesFound == 0 ? 0 : ((linesHit / linesFound) * 100).toFixed(2);
+        const branchesCoverage = branchesFound == 0 ? 0 : ((branchesHit / branchesFound) * 100).toFixed(2);
+        const functionsCoverage = functionsFound == 0
+            ? 0
+            : ((functionsHit / functionsFound) * 100).toFixed(2);
+        table += `<tr>
+        <td>${file.file}</td>
+        <td>${linesCoverage}%</td> <td>${linesHit}/${linesFound}</td>
+        <td>${branchesCoverage}%</td> <td>${branchesHit}/${branchesFound}</td>
+        <td>${functionsCoverage}%</td> <td>${functionsHit}/${functionsFound}</td>
+      </tr>`;
+    });
+    table += "</table>";
+    return table;
+};
 
 
 /***/ }),
@@ -33257,13 +33383,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.coverage = exports.getCoverage = exports.typeDoc = exports.testing = exports.playwright = void 0;
+exports.typeDoc = exports.testing = exports.playwright = void 0;
 const core_1 = __nccwpck_require__(7484);
 const exec_1 = __nccwpck_require__(5236);
 const fs = __importStar(__nccwpck_require__(9896));
 const main_1 = __nccwpck_require__(1730);
 const xml_js_1 = __importDefault(__nccwpck_require__(3675));
-const parse_lcov_1 = __importDefault(__nccwpck_require__(2769));
 const playwright = async (command) => {
     await (0, main_1.runBashCommand)("npm ls @playwright/test | grep @playwright | sed 's/.*@//'")
         .then((version) => {
@@ -33286,6 +33411,7 @@ const testing = async (command, testResultsPath) => {
         response.error = true;
         (0, core_1.setFailed)(`Failed ${command.label}: ${error}`);
     }
+    console.log(command.command);
     let testResults = "";
     let failedToReadFile = false;
     try {
@@ -33300,7 +33426,10 @@ const testing = async (command, testResultsPath) => {
     let problemCount = 0;
     if (response.error && failedToReadFile == false) {
         const jsonResults = JSON.parse(xml_js_1.default.xml2json(testResults, { compact: false, spaces: 2 }));
-        fs.writeFileSync("src/test/testResults.json", xml_js_1.default.xml2json(testResults, { compact: true, spaces: 2 }));
+        // fs.writeFileSync(
+        //   "src/test/testResults.json",
+        //   convert.xml2json(testResults, { compact: true, spaces: 2 }),
+        // );
         outputStr +=
             "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Type</th><th>Message</th></tr>";
         const testSuites = jsonResults["elements"][0]["elements"];
@@ -33367,80 +33496,6 @@ const typeDoc = async (command) => {
     return await (0, main_1.buildComment)(response, command.label);
 };
 exports.typeDoc = typeDoc;
-const loadCoverageData = (coveragePath) => {
-    let coverageData;
-    try {
-        const lcov = fs.readFileSync(coveragePath, "utf8");
-        coverageData = (0, parse_lcov_1.default)(lcov);
-    }
-    catch (error) {
-        (0, core_1.setFailed)(`Failed to read coverage file: ${error}`);
-    }
-    return coverageData;
-};
-const getCoverage = (coveragePath) => {
-    let coverage = 0;
-    let coverageData = loadCoverageData(coveragePath);
-    if (coverageData) {
-        let linesFound = 0;
-        coverageData.forEach((file) => {
-            linesFound += file.lines.found;
-        });
-        let linesHit = 0;
-        coverageData.forEach((file) => {
-            linesHit += file.lines.hit;
-        });
-        coverage = linesHit / linesFound;
-    }
-    return Number((coverage * 100).toFixed(2));
-};
-exports.getCoverage = getCoverage;
-const coverage = async (pastCoverageScore, currentCoverageScore, coveragePassScore, coveragePath) => {
-    let response = { output: "", error: false };
-    let coverageData = loadCoverageData(coveragePath);
-    let coverageTable = coverageDataToTable(coverageData);
-    if (currentCoverageScore !== undefined && pastCoverageScore !== undefined) {
-        if (currentCoverageScore < parseInt(coveragePassScore)) {
-            response.error = true;
-            response.output = `${main_1.failedEmoji} - Coverage below ${coveragePassScore}&: ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
-        }
-        else {
-            if (pastCoverageScore === currentCoverageScore) {
-                response.output = `${main_1.passedEmoji} - Coverage: ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
-            }
-            else if (pastCoverageScore > currentCoverageScore) {
-                response.output = `${main_1.coverageDown} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
-            }
-            else if (pastCoverageScore < currentCoverageScore) {
-                response.output = `${main_1.coverageUp} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
-            }
-        }
-    }
-    return response;
-};
-exports.coverage = coverage;
-const coverageDataToTable = (coverageData) => {
-    let table = "<table><tr><th>File</th><th>Lines</th><th></th><th>Branches</th><th></th><th>Functions</th><th></th></tr>";
-    coverageData.forEach((file) => {
-        const linesFound = file.lines.found;
-        const linesHit = file.lines.hit;
-        const branchesFound = file.branches.found;
-        const branchesHit = file.branches.hit;
-        const functionsFound = file.functions.found;
-        const functionsHit = file.functions.hit;
-        const linesCoverage = ((linesHit / linesFound) * 100).toFixed(2);
-        const branchesCoverage = ((branchesHit / branchesFound) * 100).toFixed(2);
-        const functionsCoverage = ((functionsHit / functionsFound) * 100).toFixed(2);
-        table += `<tr>
-      <td>${file.file}</td>
-      <td>${linesCoverage}%</td> <td>${linesHit}/${linesFound}</td>
-      <td>${branchesCoverage}%</td> <td>${branchesHit}/${branchesFound}</td>
-      <td>${functionsCoverage}%</td> <td>${functionsHit}/${functionsFound}</td>
-    </tr>`;
-    });
-    table += "</table>";
-    return table;
-};
 
 
 /***/ }),
