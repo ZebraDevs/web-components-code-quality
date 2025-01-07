@@ -33409,48 +33409,48 @@ const testing = async (command, testResultsPath) => {
     }
     catch (error) {
         response.error = true;
-        outputStr = error;
         (0, core_1.setFailed)(`Failed ${command.label}: ${error}`);
     }
     console.log(command.command);
+    let testResults = "";
+    let failedToReadFile = false;
+    try {
+        testResults = fs.readFileSync(testResultsPath, "utf8");
+    }
+    catch (error) {
+        failedToReadFile = true;
+        response.error = true;
+        outputStr = "Failed to read test results file: " + error;
+        (0, core_1.setFailed)(`Failed to read test results: ${error}`);
+    }
     let problemCount = 0;
-    if (!response.error) {
-        let testResults = "";
-        let failedToReadFile = false;
-        try {
-            testResults = fs.readFileSync(testResultsPath, "utf8");
-        }
-        catch (error) {
-            failedToReadFile = true;
-            response.error = true;
-            outputStr = "Failed to read test results file: " + error;
-            (0, core_1.setFailed)(`Failed to read test results: ${error}`);
-        }
-        if (response.error && failedToReadFile == false) {
-            const jsonResults = JSON.parse(xml_js_1.default.xml2json(testResults, { compact: false, spaces: 2 }));
-            // fs.writeFileSync(
-            //   "src/test/testResults.json",
-            //   convert.xml2json(testResults, { compact: true, spaces: 2 }),
-            // );
-            outputStr +=
-                "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Type</th><th>Message</th></tr>";
-            const testSuites = jsonResults["elements"][0]["elements"];
-            for (const testSuite of testSuites) {
-                const testCases = testSuite["elements"]?.filter((element) => element.name === "testcase") ?? [];
-                for (const testCase of testCases) {
-                    const testCaseName = testCase["attributes"]["name"];
-                    const testCaseFailure = testCase["elements"]?.find((element) => element.name === "failure");
-                    if (testCaseFailure) {
-                        problemCount++;
-                        const file = testCase["attributes"]["file"];
-                        const line = testCase["attributes"]["line"];
-                        const failureType = testCaseFailure["attributes"]["type"];
-                        const message = testCaseFailure["attributes"]["message"];
-                        outputStr += `<tr><td>${file}</td><td>${testCaseName}</td><td>${line}</td><td>${failureType}</td><td>${message}</td></tr>`;
-                    }
+    if (response.error && failedToReadFile == false) {
+        const jsonResults = JSON.parse(xml_js_1.default.xml2json(testResults, { compact: false, spaces: 2 }));
+        // fs.writeFileSync(
+        //   "src/test/testResults.json",
+        //   convert.xml2json(testResults, { compact: true, spaces: 2 }),
+        // );
+        outputStr +=
+            "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Type</th><th>Message</th></tr>";
+        const testSuites = jsonResults["elements"][0]["elements"];
+        for (const testSuite of testSuites) {
+            const testCases = testSuite["elements"]?.filter((element) => element.name === "testcase") ?? [];
+            for (const testCase of testCases) {
+                const testCaseName = testCase["attributes"]["name"];
+                const testCaseFailure = testCase["elements"]?.find((element) => element.name === "failure");
+                if (testCaseFailure) {
+                    problemCount++;
+                    const file = testCase["attributes"]["file"];
+                    const line = testCase["attributes"]["line"];
+                    const failureType = testCaseFailure["attributes"]["type"];
+                    const message = testCaseFailure["attributes"]["message"];
+                    outputStr += `<tr><td>${file}</td><td>${testCaseName}</td><td>${line}</td><td>${failureType}</td><td>${message}</td></tr>`;
                 }
             }
-            outputStr += "</table>";
+        }
+        outputStr += "</table>";
+        if (problemCount < 1) {
+            outputStr = "Test Run Failed";
         }
     }
     return await (0, main_1.buildComment)(response, command.label, outputStr, problemCount);
