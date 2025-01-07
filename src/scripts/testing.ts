@@ -32,12 +32,12 @@ export const testing = async (
   let response: StepResponse = { output: "", error: false };
   let outputStr = "";
   try {
-    console.log(command.command);
     await exec(command.command);
   } catch (error) {
     response.error = true;
     setFailed(`Failed ${command.label}: ${error as string}`);
   }
+  console.log(command.command);
 
   let testResults = "";
   let failedToReadFile = false;

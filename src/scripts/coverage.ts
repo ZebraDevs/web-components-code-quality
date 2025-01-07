@@ -55,7 +55,7 @@ export const coverage = async (
   if (currentCoverageScore !== undefined && pastCoverageScore !== undefined) {
     if (currentCoverageScore < parseInt(coveragePassScore)) {
       response.error = true;
-      response.output = `${failedEmoji} - Coverage below ${coveragePassScore}&: ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
+      response.output = `${failedEmoji} - Coverage below ${coveragePassScore}%: Current ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
     } else {
       if (pastCoverageScore === currentCoverageScore) {
         response.output = `${passedEmoji} - Coverage: ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;

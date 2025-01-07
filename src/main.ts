@@ -266,9 +266,9 @@ export async function run(): Promise<void> {
           {
             label: "Testing",
             command:
-              'npx web-test-runner "' +
+              'npx web-test-runner \"' +
               testSrcDirectory +
-              '" --node-resolve --coverage',
+              '\" --node-resolve --coverage',
           },
           testResultsPath,
         )
