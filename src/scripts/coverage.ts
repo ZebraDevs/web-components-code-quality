@@ -82,11 +82,14 @@ const coverageDataToTable = (coverageData: LCOVRecord[]): string => {
     const functionsFound = file.functions.found;
     const functionsHit = file.functions.hit;
 
-    const linesCoverage = ((linesHit / linesFound) * 100).toFixed(2);
-    const branchesCoverage = ((branchesHit / branchesFound) * 100).toFixed(2);
-    const functionsCoverage = ((functionsHit / functionsFound) * 100).toFixed(
-      2,
-    );
+    const linesCoverage =
+      linesFound == 0 ? 0 : ((linesHit / linesFound) * 100).toFixed(2);
+    const branchesCoverage =
+      branchesFound == 0 ? 0 : ((branchesHit / branchesFound) * 100).toFixed(2);
+    const functionsCoverage =
+      functionsFound == 0
+        ? 0
+        : ((functionsHit / functionsFound) * 100).toFixed(2);
 
     table += `<tr>
         <td>${file.file}</td>
