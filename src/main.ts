@@ -148,7 +148,6 @@ const getInputs = (
   const testResultsPath: string = isLocal
     ? "./test-results.xml"
     : getInput("test-results-path");
-  console.log("testResultsPath: ", testResultsPath);
 
   const runCoverage: boolean = isLocal ? true : getBooleanInput("run-coverage");
   const coveragePassScore: string = isLocal
