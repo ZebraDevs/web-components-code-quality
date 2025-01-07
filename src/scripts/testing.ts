@@ -55,10 +55,10 @@ export const testing = async (
       convert.xml2json(testResults, { compact: false, spaces: 2 }),
     );
 
-    fs.writeFileSync(
-      "src/test/testResults.json",
-      convert.xml2json(testResults, { compact: true, spaces: 2 }),
-    );
+    // fs.writeFileSync(
+    //   "src/test/testResults.json",
+    //   convert.xml2json(testResults, { compact: true, spaces: 2 }),
+    // );
 
     outputStr +=
       "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Type</th><th>Message</th></tr>";
