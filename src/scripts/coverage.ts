@@ -55,14 +55,14 @@ export const coverage = async (
   if (currentCoverageScore !== undefined && pastCoverageScore !== undefined) {
     if (currentCoverageScore < parseInt(coveragePassScore)) {
       response.error = true;
-      response.output = `<details><summary>${failedEmoji} Coverage below ${coveragePassScore}%: Current ${currentCoverageScore}%</summary>${coverageTable}</details>`;
+      response.output = `${failedEmoji} - Coverage below ${coveragePassScore}%: Current ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
     } else {
       if (pastCoverageScore === currentCoverageScore) {
-        response.output = `<details><summary>${passedEmoji} Coverage: ${currentCoverageScore}%</summary>${coverageTable}</details>`;
+        response.output = `${passedEmoji} - Coverage: ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
       } else if (pastCoverageScore > currentCoverageScore) {
-        response.output = `<details><summary>${coverageDown} Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%</summary>${coverageTable}</details>`;
+        response.output = `${coverageDown} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
       } else if (pastCoverageScore < currentCoverageScore) {
-        response.output = `<details><summary>${coverageUp} Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%</summary>${coverageTable}</details>`;
+        response.output = `${coverageUp} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
       }
     }
   }
