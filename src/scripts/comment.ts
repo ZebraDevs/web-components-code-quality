@@ -9,11 +9,11 @@ const group = (
   showOnPass: boolean,
 ): string => {
   const isError = steps.some((step) => step.error);
-  let message = "<li>";
+  let message = "";
   if (isError) {
-    message += `${failedEmoji} <details><summary>${name}</summary>`;
+    message += "<details><summary>${failedEmoji} - ${name}</summary>";
     for (const step in steps) {
-      message += `  - ${steps[step].output}\n`;
+      message += "${steps[step].output}\n";
     }
     message += "</details>";
   } else if (showOnPass) {
@@ -22,7 +22,6 @@ const group = (
     message = "";
   }
 
-  if (message.length > 0) message += "</li>";
   return message;
 };
 
@@ -67,28 +66,26 @@ export const comment = async (
     if (checkModifiedFilesStr !== undefined)
       postChecks.push(checkModifiedFilesStr);
     if (updateChangesStr !== undefined) postChecks.push(updateChangesStr);
+    // ${npmIStr !== undefined ? li(npmIStr.output) : ""}
+    // ${cemStr !== undefined ? li(cemStr.output) : ""}
+    // ${eslintStr !== undefined ? li(eslintStr.output) : ""}
+    // ${litAnalyzerStr !== undefined ? li(litAnalyzerStr.output) : ""}
+    // ${prettierStr !== undefined ? li(prettierStr.output) : ""}
+    // ${playwrightStr !== undefined ? li(playwrightStr.output) : ""}
+    // ${testingStr !== undefined ? li(testingStr.output) : ""}
+    // ${coverageStr !== undefined ? li(coverageStr.output) : ""}
+    // ${typeDocStr !== undefined ? li(typeDocStr.output) : ""}
+    // ${checkModifiedFilesStr !== undefined ? li(checkModifiedFilesStr.output) : ""}
+    // ${updateChangesStr !== undefined ? li(updateChangesStr.output) : ""}
     const commentBody = `
-    ## PR Checks Complete\n
-    <ul style="list-style-type:none;">
-    ${npmIStr !== undefined ? li(npmIStr.output) : ""}
-    ${cemStr !== undefined ? li(cemStr.output) : ""}
-    ${eslintStr !== undefined ? li(eslintStr.output) : ""}
-    ${litAnalyzerStr !== undefined ? li(litAnalyzerStr.output) : ""}
-    ${prettierStr !== undefined ? li(prettierStr.output) : ""}
-    ${playwrightStr !== undefined ? li(playwrightStr.output) : ""}
-    ${testingStr !== undefined ? li(testingStr.output) : ""}
-    ${coverageStr !== undefined ? li(coverageStr.output) : ""}
-    ${typeDocStr !== undefined ? li(typeDocStr.output) : ""}
-    ${checkModifiedFilesStr !== undefined ? li(checkModifiedFilesStr.output) : ""}
-    ${updateChangesStr !== undefined ? li(updateChangesStr.output) : ""}
-
-
-    ${group("Setup", setup, false)}
-    ${group("Analysis", analysis, true)}
-    ${group("Formatting", formatting, true)}
-    ${group("Testing", testing, true)}
-    ${group("Post Checks", postChecks, false)}
-  </ul>`;
+## PR Checks Complete\n
+<ul style="list-style-type:none;">
+  ${group("Setup", setup, false)}
+  ${group("Analysis", analysis, true)}
+  ${group("Formatting", formatting, true)}
+  ${group("Testing", testing, true)}
+  ${group("Post Checks", postChecks, false)}
+</ul>`;
 
     const { data: comments } = await ocotokit.rest.issues.listComments({
       issue_number: context.issue.number,

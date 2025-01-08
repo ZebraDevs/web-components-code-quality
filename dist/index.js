@@ -32876,11 +32876,11 @@ const buildComment = async (response, label, outputStr, problemsCount) => {
             // response.output = `${failedEmoji} - ${label}: ${problemsCount} problem${
             //   problemsCount > 1 ? "s" : ""
             // } found\n<details><summary>See Details</summary>${outputStr}</details>`;
-            response.output = `${exports.failedEmoji} - <details><summary>${label}: ${problemsCount} problem${problemsCount > 1 ? "s" : ""}</summary>${outputStr}</details>\n`;
+            response.output = `<details><summary>${exports.failedEmoji} - ${label}: ${problemsCount} problem${problemsCount > 1 ? "s" : ""}</summary>${outputStr}</details>\n`;
         }
         else {
             // response.output = `${failedEmoji} - ${label}\n<details><summary>See Details</summary>${outputStr}</details>`;
-            response.output = `${exports.failedEmoji} - <details><summary>${label}</summary>${outputStr}</details>\n`;
+            response.output = `<details><summary>${exports.failedEmoji} - ${label}</summary>${outputStr}</details>\n`;
         }
     }
     else {
@@ -33175,11 +33175,11 @@ const core_1 = __nccwpck_require__(7484);
 const main_1 = __nccwpck_require__(1730);
 const group = (name, steps, showOnPass) => {
     const isError = steps.some((step) => step.error);
-    let message = "<li>";
+    let message = "";
     if (isError) {
-        message += `${main_1.failedEmoji} <details><summary>${name}</summary>`;
+        message += "<details><summary>${failedEmoji} - ${name}</summary>";
         for (const step in steps) {
-            message += `  - ${steps[step].output}\n`;
+            message += "${steps[step].output}\n";
         }
         message += "</details>";
     }
@@ -33189,8 +33189,6 @@ const group = (name, steps, showOnPass) => {
     else {
         message = "";
     }
-    if (message.length > 0)
-        message += "</li>";
     return message;
 };
 const li = (str) => {
@@ -33229,28 +33227,26 @@ const comment = async (ocotokit, context, npmIStr, cemStr, eslintStr, litAnalyze
             postChecks.push(checkModifiedFilesStr);
         if (updateChangesStr !== undefined)
             postChecks.push(updateChangesStr);
+        // ${npmIStr !== undefined ? li(npmIStr.output) : ""}
+        // ${cemStr !== undefined ? li(cemStr.output) : ""}
+        // ${eslintStr !== undefined ? li(eslintStr.output) : ""}
+        // ${litAnalyzerStr !== undefined ? li(litAnalyzerStr.output) : ""}
+        // ${prettierStr !== undefined ? li(prettierStr.output) : ""}
+        // ${playwrightStr !== undefined ? li(playwrightStr.output) : ""}
+        // ${testingStr !== undefined ? li(testingStr.output) : ""}
+        // ${coverageStr !== undefined ? li(coverageStr.output) : ""}
+        // ${typeDocStr !== undefined ? li(typeDocStr.output) : ""}
+        // ${checkModifiedFilesStr !== undefined ? li(checkModifiedFilesStr.output) : ""}
+        // ${updateChangesStr !== undefined ? li(updateChangesStr.output) : ""}
         const commentBody = `
-    ## PR Checks Complete\n
-    <ul style="list-style-type:none;">
-    ${npmIStr !== undefined ? li(npmIStr.output) : ""}
-    ${cemStr !== undefined ? li(cemStr.output) : ""}
-    ${eslintStr !== undefined ? li(eslintStr.output) : ""}
-    ${litAnalyzerStr !== undefined ? li(litAnalyzerStr.output) : ""}
-    ${prettierStr !== undefined ? li(prettierStr.output) : ""}
-    ${playwrightStr !== undefined ? li(playwrightStr.output) : ""}
-    ${testingStr !== undefined ? li(testingStr.output) : ""}
-    ${coverageStr !== undefined ? li(coverageStr.output) : ""}
-    ${typeDocStr !== undefined ? li(typeDocStr.output) : ""}
-    ${checkModifiedFilesStr !== undefined ? li(checkModifiedFilesStr.output) : ""}
-    ${updateChangesStr !== undefined ? li(updateChangesStr.output) : ""}
-
-
-    ${group("Setup", setup, false)}
-    ${group("Analysis", analysis, true)}
-    ${group("Formatting", formatting, true)}
-    ${group("Testing", testing, true)}
-    ${group("Post Checks", postChecks, false)}
-  </ul>`;
+## PR Checks Complete\n
+<ul style="list-style-type:none;">
+  ${group("Setup", setup, false)}
+  ${group("Analysis", analysis, true)}
+  ${group("Formatting", formatting, true)}
+  ${group("Testing", testing, true)}
+  ${group("Post Checks", postChecks, false)}
+</ul>`;
         const { data: comments } = await ocotokit.rest.issues.listComments({
             issue_number: context.issue.number,
             owner: context.repo.owner,
