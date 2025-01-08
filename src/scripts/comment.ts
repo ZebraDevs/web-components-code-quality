@@ -13,22 +13,24 @@ const group = (
   if (isError) {
     message += `<details><summary>${failedEmoji} - ${name}</summary>`;
     for (const step in steps) {
-      if (steps[step].output.split(":").length == 3) {
-        const [count, label, output] = steps[step].output.split(":");
-        message += `&emsp;${failedEmoji} ${label}: ${count} problem${parseInt(count) > 1 ? "s" : ""}\n`;
+      if (steps[step].output.split(":").length >= 3) {
+        const [count, label, output] = steps[step].output
+          .split(":")
+          .slice(0, 2);
+        message += `&emsp;${failedEmoji} - ${label}: ${count} problem${parseInt(count) > 1 ? "s" : ""}\n`;
         message += `&emsp;${output}\n`;
       } else if (steps[step].error) {
-        const [label, output] = steps[step].output.split(":");
-        message += `&emsp;${failedEmoji} ${label}\n`;
+        const [label, output] = steps[step].output.split(":").slice(0, 1);
+        message += `&emsp;${failedEmoji} - ${label}\n`;
         message += `&emsp;${output}\n`;
       } else if (!steps[step].error) {
-        const [label, output] = steps[step].output.split(":");
-        message += `&emsp;${passedEmoji} ${label}\n`;
+        const label = steps[step].output.split(":")[0];
+        message += `&emsp;${passedEmoji} - ${label}\n`;
       }
     }
     message += `</details>`;
   } else if (showOnPass) {
-    message = `&emsp;<p>${passedEmoji} - ${name}</p>\n`;
+    message = `<p>&emsp;${passedEmoji} - ${name}</p>\n`;
   } else {
     message = "";
   }
