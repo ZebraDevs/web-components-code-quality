@@ -11,13 +11,13 @@ const group = (
   const isError = steps.some((step) => step.error);
   let message = "";
   if (isError) {
-    message += `  <details><summary>${failedEmoji} - ${name}</summary>`;
+    message += `<details><summary>${failedEmoji} - ${name}</summary>`;
     for (const step in steps) {
-      message += `${steps[step].output}\n`;
+      message += `  ${steps[step].output}\n`;
     }
-    message += `  </details>`;
+    message += `</details>`;
   } else if (showOnPass) {
-    message = `${passedEmoji} - ${name}\n`;
+    message = `  ${passedEmoji} - ${name}\n`;
   } else {
     message = "";
   }
@@ -27,9 +27,11 @@ const group = (
 
 const li = (str: string): string => {
   return `
+  
 <li>
   ${str}
 </li>
+
 `;
 };
 
@@ -79,13 +81,12 @@ export const comment = async (
     // ${updateChangesStr !== undefined ? li(updateChangesStr.output) : ""}
     const commentBody = `
 ## PR Checks Complete\n
-<ul style="list-style-type:none;">
-  ${li(group("Setup", setup, false))}
-  ${li(group("Analysis", analysis, true))}
-  ${li(group("Formatting", formatting, true))}
-  ${li(group("Testing", testing, true))}
-  ${li(group("Post Checks", postChecks, false))}
-</ul>`;
+${group("Setup", setup, false)}
+${group("Analysis", analysis, true)}
+${group("Formatting", formatting, true)}
+${group("Testing", testing, true)}
+${group("Post Checks", postChecks, false)}
+`;
 
     const { data: comments } = await ocotokit.rest.issues.listComments({
       issue_number: context.issue.number,
