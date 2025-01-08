@@ -33179,12 +33179,12 @@ const group = (name, steps, showOnPass) => {
     if (isError) {
         message += `<details><summary>${main_1.failedEmoji} - ${name}</summary>`;
         for (const step in steps) {
-            message += `  ${steps[step].output}\n`;
+            message += `&emsp;&emsp;${steps[step].output}\n`;
         }
-        message += `</details>`;
+        message += `&emsp;</details>`;
     }
     else if (showOnPass) {
-        message = `  ${main_1.passedEmoji} - ${name}\n`;
+        message = `&emsp;${main_1.passedEmoji} - ${name}\n`;
     }
     else {
         message = "";
