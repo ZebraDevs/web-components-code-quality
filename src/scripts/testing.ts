@@ -6,6 +6,7 @@ import {
   Command,
   commandComment,
   runBashCommand,
+  runCommand,
   StepResponse,
 } from "src/main";
 import convert from "xml-js";
@@ -29,15 +30,16 @@ export const testing = async (
   command: Command,
   testResultsPath: string,
 ): Promise<StepResponse> => {
-  let response: StepResponse = { output: "", error: false };
-  let outputStr = "";
-  try {
-    await exec(command.command);
-  } catch (error) {
-    response.error = true;
-    setFailed(`Failed ${command.label}: ${error as string}`);
-  }
-  console.log(command.command);
+  // let response: StepResponse = { output: "", error: false };
+  // let outputStr = "";
+  // try {
+  //   await exec(command.command);
+  // } catch (error) {
+  //   response.error = true;
+  //   setFailed(`Failed ${command.label}: ${error as string}`);
+  // }
+
+  let [response, outputStr] = await runCommand(command);
 
   let testResults = "";
   let failedToReadFile = false;
@@ -56,12 +58,7 @@ export const testing = async (
       convert.xml2json(testResults, { compact: false, spaces: 2 }),
     );
 
-    // fs.writeFileSync(
-    //   "src/test/testResults.json",
-    //   convert.xml2json(testResults, { compact: true, spaces: 2 }),
-    // );
-
-    outputStr +=
+    outputStr =
       "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Type</th><th>Message</th></tr>";
 
     const testSuites = jsonResults["elements"][0]["elements"];
@@ -94,6 +91,7 @@ export const testing = async (
       outputStr = "Test Run Failed";
     }
   }
+
   return await buildComment(response, command.label, outputStr, problemCount);
 };
 
@@ -113,6 +111,9 @@ export const typeDoc = async (command: Command): Promise<StepResponse> => {
     setFailed(`Failed ${command.label}: ${error as string}`);
   }
 
+  let outputStr = "";
+  let problemCount = 0;
+
   if (response.error) {
     commandOutput = commandOutput.replace(/\[\d+m/g, "");
     const lines = commandOutput.split("\n");
@@ -126,9 +127,8 @@ export const typeDoc = async (command: Command): Promise<StepResponse> => {
         return "";
       })
       .join("");
-    const outputStr = `<table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table>`;
+    outputStr = `<table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table>`;
 
-    let problemCount = 0;
     lines.forEach((line) => {
       const match = line.match(/Found (\d+) errors and (\d+) warnings/);
       if (match) {
@@ -136,8 +136,7 @@ export const typeDoc = async (command: Command): Promise<StepResponse> => {
         problemCount += parseInt(errors) + parseInt(warnings);
       }
     });
-
-    return await buildComment(response, command.label, outputStr, problemCount);
   }
-  return await buildComment(response, command.label);
+
+  return await buildComment(response, command.label, outputStr, problemCount);
 };
