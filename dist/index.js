@@ -32871,21 +32871,25 @@ const runCommand = async (command) => {
 };
 exports.runCommand = runCommand;
 const buildComment = async (response, label, outputStr, problemsCount) => {
-    if (response.error == true) {
-        if (problemsCount !== undefined && problemsCount > 0) {
-            // response.output = `${failedEmoji} - ${label}: ${problemsCount} problem${
-            //   problemsCount > 1 ? "s" : ""
-            // } found\n<details><summary>See Details</summary>${outputStr}</details>`;
-            response.output = `<details><summary>${exports.failedEmoji} - ${label}: ${problemsCount} problem${problemsCount > 1 ? "s" : ""}</summary>${outputStr}</details>\n`;
-        }
-        else {
-            // response.output = `${failedEmoji} - ${label}\n<details><summary>See Details</summary>${outputStr}</details>`;
-            response.output = `<details><summary>${exports.failedEmoji} - ${label}</summary>${outputStr}</details>\n`;
-        }
+    // if (response.error == true) {
+    if (problemsCount !== undefined && problemsCount > 0) {
+        // response.output = `${failedEmoji} - ${label}: ${problemsCount} problem${
+        //   problemsCount > 1 ? "s" : ""
+        // } found\n<details><summary>See Details</summary>${outputStr}</details>`;
+        // response.output = `<details><summary>${failedEmoji} - ${label}: ${problemsCount} problem${
+        //   problemsCount > 1 ? "s" : ""
+        // }</summary>${outputStr}</details>\n`;
+        response.output = `${problemsCount}:${label}:${outputStr}`;
     }
     else {
-        response.output = `${exports.passedEmoji} - ${label}\n`;
+        // response.output = `${failedEmoji} - ${label}\n<details><summary>See Details</summary>${outputStr}</details>`;
+        // response.output = `<details><summary>${failedEmoji} - ${label}</summary>${outputStr}</details>\n`;
+        response.output = `${label}:${outputStr}`;
     }
+    // } else {
+    // response.output = `${passedEmoji} - ${label}\n`;
+    // response.output = `${label}:${outputStr}`;
+    // }
     return response;
 };
 exports.buildComment = buildComment;
@@ -33179,9 +33183,22 @@ const group = (name, steps, showOnPass) => {
     if (isError) {
         message += `<details><summary>${main_1.failedEmoji} - ${name}</summary>`;
         for (const step in steps) {
-            message += `&emsp;&emsp;<p>${steps[step].output}</p>\n`;
+            if (steps[step].output.split(":").length == 3) {
+                const [count, label, output] = steps[step].output.split(":");
+                message += `&emsp;${main_1.failedEmoji} ${label}: ${count} problem${parseInt(count) > 1 ? "s" : ""}\n`;
+                message += `&emsp;${output}\n`;
+            }
+            else if (steps[step].error) {
+                const [label, output] = steps[step].output.split(":");
+                message += `&emsp;${main_1.failedEmoji} ${label}\n`;
+                message += `&emsp;${output}\n`;
+            }
+            else if (!steps[step].error) {
+                const [label, output] = steps[step].output.split(":");
+                message += `&emsp;${main_1.passedEmoji} ${label}\n`;
+            }
         }
-        message += `&emsp;</details>`;
+        message += `</details>`;
     }
     else if (showOnPass) {
         message = `&emsp;<p>${main_1.passedEmoji} - ${name}</p>\n`;

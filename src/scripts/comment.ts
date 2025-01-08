@@ -13,9 +13,20 @@ const group = (
   if (isError) {
     message += `<details><summary>${failedEmoji} - ${name}</summary>`;
     for (const step in steps) {
-      message += `&emsp;&emsp;<p>${steps[step].output}</p>\n`;
+      if (steps[step].output.split(":").length == 3) {
+        const [count, label, output] = steps[step].output.split(":");
+        message += `&emsp;${failedEmoji} ${label}: ${count} problem${parseInt(count) > 1 ? "s" : ""}\n`;
+        message += `&emsp;${output}\n`;
+      } else if (steps[step].error) {
+        const [label, output] = steps[step].output.split(":");
+        message += `&emsp;${failedEmoji} ${label}\n`;
+        message += `&emsp;${output}\n`;
+      } else if (!steps[step].error) {
+        const [label, output] = steps[step].output.split(":");
+        message += `&emsp;${passedEmoji} ${label}\n`;
+      }
     }
-    message += `&emsp;</details>`;
+    message += `</details>`;
   } else if (showOnPass) {
     message = `&emsp;<p>${passedEmoji} - ${name}</p>\n`;
   } else {

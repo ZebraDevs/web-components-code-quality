@@ -69,23 +69,29 @@ export const buildComment = async (
   outputStr?: string,
   problemsCount?: number,
 ): Promise<StepResponse> => {
-  if (response.error == true) {
-    if (problemsCount !== undefined && problemsCount > 0) {
-      // response.output = `${failedEmoji} - ${label}: ${problemsCount} problem${
-      //   problemsCount > 1 ? "s" : ""
-      // } found\n<details><summary>See Details</summary>${outputStr}</details>`;
+  // if (response.error == true) {
+  if (problemsCount !== undefined && problemsCount > 0) {
+    // response.output = `${failedEmoji} - ${label}: ${problemsCount} problem${
+    //   problemsCount > 1 ? "s" : ""
+    // } found\n<details><summary>See Details</summary>${outputStr}</details>`;
 
-      response.output = `<details><summary>${failedEmoji} - ${label}: ${problemsCount} problem${
-        problemsCount > 1 ? "s" : ""
-      }</summary>${outputStr}</details>\n`;
-    } else {
-      // response.output = `${failedEmoji} - ${label}\n<details><summary>See Details</summary>${outputStr}</details>`;
+    // response.output = `<details><summary>${failedEmoji} - ${label}: ${problemsCount} problem${
+    //   problemsCount > 1 ? "s" : ""
+    // }</summary>${outputStr}</details>\n`;
 
-      response.output = `<details><summary>${failedEmoji} - ${label}</summary>${outputStr}</details>\n`;
-    }
+    response.output = `${problemsCount}:${label}:${outputStr}`;
   } else {
-    response.output = `${passedEmoji} - ${label}\n`;
+    // response.output = `${failedEmoji} - ${label}\n<details><summary>See Details</summary>${outputStr}</details>`;
+
+    // response.output = `<details><summary>${failedEmoji} - ${label}</summary>${outputStr}</details>\n`;
+
+    response.output = `${label}:${outputStr}`;
   }
+  // } else {
+  // response.output = `${passedEmoji} - ${label}\n`;
+
+  // response.output = `${label}:${outputStr}`;
+  // }
   return response;
 };
 
