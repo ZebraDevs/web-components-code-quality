@@ -33177,11 +33177,11 @@ const group = (name, steps, showOnPass) => {
     const isError = steps.some((step) => step.error);
     let message = "";
     if (isError) {
-        message += `<details><summary>${main_1.failedEmoji} - ${name}</summary>`;
+        message += `  <details><summary>${main_1.failedEmoji} - ${name}</summary>`;
         for (const step in steps) {
             message += `${steps[step].output}\n`;
         }
-        message += `</details>`;
+        message += `  </details>`;
     }
     else if (showOnPass) {
         message = `${main_1.passedEmoji} - ${name}\n`;
@@ -33241,11 +33241,11 @@ const comment = async (ocotokit, context, npmIStr, cemStr, eslintStr, litAnalyze
         const commentBody = `
 ## PR Checks Complete\n
 <ul style="list-style-type:none;">
-  ${group("Setup", setup, false)}
-  ${group("Analysis", analysis, true)}
-  ${group("Formatting", formatting, true)}
-  ${group("Testing", testing, true)}
-  ${group("Post Checks", postChecks, false)}
+  ${li(group("Setup", setup, false))}
+  ${li(group("Analysis", analysis, true))}
+  ${li(group("Formatting", formatting, true))}
+  ${li(group("Testing", testing, true))}
+  ${li(group("Post Checks", postChecks, false))}
 </ul>`;
         const { data: comments } = await ocotokit.rest.issues.listComments({
             issue_number: context.issue.number,
@@ -33356,17 +33356,17 @@ const coverage = async (pastCoverageScore, currentCoverageScore, coveragePassSco
     if (currentCoverageScore !== undefined && pastCoverageScore !== undefined) {
         if (currentCoverageScore < parseInt(coveragePassScore)) {
             response.error = true;
-            response.output = `${main_1.failedEmoji} <details><summary>Coverage below ${coveragePassScore}%: Current ${currentCoverageScore}%</summary>${coverageTable}</details>`;
+            response.output = `<details><summary>${main_1.failedEmoji} Coverage below ${coveragePassScore}%: Current ${currentCoverageScore}%</summary>${coverageTable}</details>`;
         }
         else {
             if (pastCoverageScore === currentCoverageScore) {
-                response.output = `${main_1.passedEmoji} <details><summary>Coverage: ${currentCoverageScore}%</summary>${coverageTable}</details>`;
+                response.output = `<details><summary>${main_1.passedEmoji} Coverage: ${currentCoverageScore}%</summary>${coverageTable}</details>`;
             }
             else if (pastCoverageScore > currentCoverageScore) {
-                response.output = `${main_1.coverageDown} <details><summary>Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%</summary>${coverageTable}</details>`;
+                response.output = `<details><summary>${main_1.coverageDown} Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%</summary>${coverageTable}</details>`;
             }
             else if (pastCoverageScore < currentCoverageScore) {
-                response.output = `${main_1.coverageUp} <details><summary>Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%</summary>${coverageTable}</details>`;
+                response.output = `<details><summary>${main_1.coverageUp} Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%</summary>${coverageTable}</details>`;
             }
         }
     }
