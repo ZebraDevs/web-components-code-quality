@@ -32871,25 +32871,24 @@ const runCommand = async (command) => {
 };
 exports.runCommand = runCommand;
 const buildComment = async (response, label, outputStr, problemsCount) => {
-    // if (response.error == true) {
-    if (problemsCount !== undefined && problemsCount > 0) {
-        // response.output = `${failedEmoji} - ${label}: ${problemsCount} problem${
-        //   problemsCount > 1 ? "s" : ""
-        // } found\n<details><summary>See Details</summary>${outputStr}</details>`;
-        // response.output = `<details><summary>${failedEmoji} - ${label}: ${problemsCount} problem${
-        //   problemsCount > 1 ? "s" : ""
-        // }</summary>${outputStr}</details>\n`;
-        response.output = `${problemsCount}:${label}:${outputStr}`;
+    if (response.error == true) {
+        if (problemsCount !== undefined && problemsCount > 0) {
+            // response.output = `${failedEmoji} - ${label}: ${problemsCount} problem${
+            //   problemsCount > 1 ? "s" : ""
+            // } found\n<details><summary>See Details</summary>${outputStr}</details>`;
+            response.output = `<details><summary>${exports.failedEmoji} - ${label}: ${problemsCount} problem${problemsCount > 1 ? "s" : ""}</summary>${outputStr}</details>\n`;
+            // response.output = `${problemsCount}:${label}:${outputStr}`;
+        }
+        else {
+            // response.output = `${failedEmoji} - ${label}\n<details><summary>See Details</summary>${outputStr}</details>`;
+            response.output = `<details><summary>${exports.failedEmoji} - ${label}</summary>${outputStr}</details>\n`;
+            // response.output = `${label}:${outputStr}`;
+        }
     }
     else {
-        // response.output = `${failedEmoji} - ${label}\n<details><summary>See Details</summary>${outputStr}</details>`;
-        // response.output = `<details><summary>${failedEmoji} - ${label}</summary>${outputStr}</details>\n`;
-        response.output = `${label}:${outputStr}`;
+        response.output = `${exports.passedEmoji} - ${label}\n`;
+        // response.output = `${label}:${outputStr}`;
     }
-    // } else {
-    // response.output = `${passedEmoji} - ${label}\n`;
-    // response.output = `${label}:${outputStr}`;
-    // }
     return response;
 };
 exports.buildComment = buildComment;
@@ -33176,39 +33175,40 @@ exports.typeDoc = typeDoc;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.comment = void 0;
 const core_1 = __nccwpck_require__(7484);
-const main_1 = __nccwpck_require__(1730);
 const group = (name, steps, showOnPass) => {
     const isError = steps.some((step) => step.error);
-    let message = "";
-    if (isError) {
-        message += `<details><summary>${main_1.failedEmoji} - ${name}</summary>`;
-        for (const step in steps) {
-            if (steps[step].output.match(/(\d+):(.+)/)) {
-                const [count, label, output] = steps[step].output
-                    .split(":")
-                    .slice(0, 2);
-                message += `&emsp;${main_1.failedEmoji} - ${label}: ${count} problem${parseInt(count) > 1 ? "s" : ""}\n`;
-                message += `&emsp;${output}\n`;
-            }
-            else if (steps[step].error) {
-                const [label, output] = steps[step].output.split(":").slice(0, 1);
-                message += `&emsp;${main_1.failedEmoji} - ${label}\n`;
-                message += `&emsp;${output}\n`;
-            }
-            else if (!steps[step].error) {
-                const label = steps[step].output.split(":")[0];
-                message += `&emsp;${main_1.passedEmoji} - ${label}\n`;
-            }
-        }
-        message += `</details>`;
-    }
-    else if (showOnPass) {
-        message = `<p>'• ${main_1.passedEmoji} - ${name}</p>\n`;
-    }
-    else {
-        message = "";
-    }
+    let message = `### ${name}\n`;
+    steps.forEach((step) => {
+        message += `${step !== undefined ? li(step.output) : ""}`;
+    });
     return message;
+    // const isError = steps.some((step) => step.error);
+    // let message = "";
+    // if (isError) {
+    //   message += `<details><summary>${failedEmoji} - ${name}</summary>`;
+    //   for (const step in steps) {
+    //     if (steps[step].output.match(/(\d+):(.+)/)) {
+    //       const [count, label, output] = steps[step].output
+    //         .split(":")
+    //         .slice(0, 3);
+    //       message += `&emsp;${failedEmoji} - ${label}: ${count} problem${parseInt(count) > 1 ? "s" : ""}\n`;
+    //       message += `&emsp;${output}\n`;
+    //     } else if (steps[step].error) {
+    //       const [label, output] = steps[step].output.split(":").slice(0, 1);
+    //       message += `&emsp;${failedEmoji} - ${label}\n`;
+    //       message += `&emsp;${output}`;
+    //     } else if (!steps[step].error) {
+    //       const label = steps[step].output.split(":")[0];
+    //       message += `&emsp;${passedEmoji} - ${label}\n`;
+    //     }
+    //   }
+    //   message += `</details>`;
+    // } else if (showOnPass) {
+    //   message = `<p>'• ${passedEmoji} - ${name}</p>\n`;
+    // } else {
+    //   message = "";
+    // }
+    // return message;
 };
 const li = (str) => {
     return `
@@ -33259,13 +33259,15 @@ const comment = async (ocotokit, context, npmIStr, cemStr, eslintStr, litAnalyze
         // ${typeDocStr !== undefined ? li(typeDocStr.output) : ""}
         // ${checkModifiedFilesStr !== undefined ? li(checkModifiedFilesStr.output) : ""}
         // ${updateChangesStr !== undefined ? li(updateChangesStr.output) : ""}
-        const commentBody = `
+        let commentBody = `
 ## PR Checks Complete\n
 ${group("Setup", setup, false)}
 ${group("Analysis", analysis, true)}
 ${group("Formatting", formatting, true)}
 ${group("Testing", testing, true)}
 ${group("Post Checks", postChecks, false)}
+
+
 `;
         const { data: comments } = await ocotokit.rest.issues.listComments({
             issue_number: context.issue.number,

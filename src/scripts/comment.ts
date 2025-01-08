@@ -9,33 +9,40 @@ const group = (
   showOnPass: boolean,
 ): string => {
   const isError = steps.some((step) => step.error);
-  let message = "";
-  if (isError) {
-    message += `<details><summary>${failedEmoji} - ${name}</summary>`;
-    for (const step in steps) {
-      if (steps[step].output.match(/(\d+):(.+)/)) {
-        const [count, label, output] = steps[step].output
-          .split(":")
-          .slice(0, 2);
-        message += `&emsp;${failedEmoji} - ${label}: ${count} problem${parseInt(count) > 1 ? "s" : ""}\n`;
-        message += `&emsp;${output}\n`;
-      } else if (steps[step].error) {
-        const [label, output] = steps[step].output.split(":").slice(0, 1);
-        message += `&emsp;${failedEmoji} - ${label}\n`;
-        message += `&emsp;${output}`;
-      } else if (!steps[step].error) {
-        const label = steps[step].output.split(":")[0];
-        message += `&emsp;${passedEmoji} - ${label}\n`;
-      }
-    }
-    message += `</details>`;
-  } else if (showOnPass) {
-    message = `<p>'• ${passedEmoji} - ${name}</p>\n`;
-  } else {
-    message = "";
-  }
-
+  let message = `### ${name}\n`;
+  steps.forEach((step) => {
+    message += `${step !== undefined ? li(step.output) : ""}`;
+  });
   return message;
+
+  // const isError = steps.some((step) => step.error);
+  // let message = "";
+  // if (isError) {
+  //   message += `<details><summary>${failedEmoji} - ${name}</summary>`;
+  //   for (const step in steps) {
+  //     if (steps[step].output.match(/(\d+):(.+)/)) {
+  //       const [count, label, output] = steps[step].output
+  //         .split(":")
+  //         .slice(0, 3);
+  //       message += `&emsp;${failedEmoji} - ${label}: ${count} problem${parseInt(count) > 1 ? "s" : ""}\n`;
+  //       message += `&emsp;${output}\n`;
+  //     } else if (steps[step].error) {
+  //       const [label, output] = steps[step].output.split(":").slice(0, 1);
+  //       message += `&emsp;${failedEmoji} - ${label}\n`;
+  //       message += `&emsp;${output}`;
+  //     } else if (!steps[step].error) {
+  //       const label = steps[step].output.split(":")[0];
+  //       message += `&emsp;${passedEmoji} - ${label}\n`;
+  //     }
+  //   }
+  //   message += `</details>`;
+  // } else if (showOnPass) {
+  //   message = `<p>'• ${passedEmoji} - ${name}</p>\n`;
+  // } else {
+  //   message = "";
+  // }
+
+  // return message;
 };
 
 const li = (str: string): string => {
@@ -92,13 +99,15 @@ export const comment = async (
     // ${typeDocStr !== undefined ? li(typeDocStr.output) : ""}
     // ${checkModifiedFilesStr !== undefined ? li(checkModifiedFilesStr.output) : ""}
     // ${updateChangesStr !== undefined ? li(updateChangesStr.output) : ""}
-    const commentBody = `
+    let commentBody = `
 ## PR Checks Complete\n
 ${group("Setup", setup, false)}
 ${group("Analysis", analysis, true)}
 ${group("Formatting", formatting, true)}
 ${group("Testing", testing, true)}
 ${group("Post Checks", postChecks, false)}
+
+
 `;
 
     const { data: comments } = await ocotokit.rest.issues.listComments({
