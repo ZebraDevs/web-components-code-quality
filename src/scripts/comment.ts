@@ -1,7 +1,30 @@
 import { setFailed } from "@actions/core";
 import { getOctokit } from "@actions/github";
 import { Context } from "@actions/github/lib/context";
-import { StepResponse } from "src/main";
+import { failedEmoji, passedEmoji, StepResponse } from "src/main";
+
+const group = (
+  name: string,
+  steps: StepResponse[],
+  showOnPass: boolean,
+): string => {
+  const isError = steps.some((step) => step.error);
+  let message = "<li>";
+  if (isError) {
+    message += `${failedEmoji} <details><summary>${name}</summary>`;
+    for (const step in steps) {
+      message += `  - ${steps[step].output}\n`;
+    }
+    message += "</details>";
+  } else if (showOnPass) {
+    message = `${passedEmoji} - ${name}\n`;
+  } else {
+    message = "";
+  }
+
+  if (message.length > 0) message += "</li>";
+  return message;
+};
 
 const li = (str: string): string => {
   return `
@@ -27,9 +50,26 @@ export const comment = async (
   updateChangesStr: StepResponse | undefined,
 ): Promise<StepResponse> => {
   try {
+    let setup = [];
+    let analysis = [];
+    let formatting = [];
+    let testing = [];
+    let postChecks = [];
+    if (npmIStr !== undefined) setup.push(npmIStr);
+    if (cemStr !== undefined) setup.push(cemStr);
+    if (eslintStr !== undefined) analysis.push(eslintStr);
+    if (litAnalyzerStr !== undefined) analysis.push(litAnalyzerStr);
+    if (typeDocStr !== undefined) analysis.push(typeDocStr);
+    if (prettierStr !== undefined) formatting.push(prettierStr);
+    if (playwrightStr !== undefined) testing.push(playwrightStr);
+    if (testingStr !== undefined) testing.push(testingStr);
+    if (coverageStr !== undefined) testing.push(coverageStr);
+    if (checkModifiedFilesStr !== undefined)
+      postChecks.push(checkModifiedFilesStr);
+    if (updateChangesStr !== undefined) postChecks.push(updateChangesStr);
     const commentBody = `
-  ## PR Checks Complete\n
-  <ul>
+    ## PR Checks Complete\n
+    <ul style="list-style-type:none;">
     ${npmIStr !== undefined ? li(npmIStr.output) : ""}
     ${cemStr !== undefined ? li(cemStr.output) : ""}
     ${eslintStr !== undefined ? li(eslintStr.output) : ""}
@@ -41,6 +81,13 @@ export const comment = async (
     ${typeDocStr !== undefined ? li(typeDocStr.output) : ""}
     ${checkModifiedFilesStr !== undefined ? li(checkModifiedFilesStr.output) : ""}
     ${updateChangesStr !== undefined ? li(updateChangesStr.output) : ""}
+
+
+    ${group("Setup", setup, false)}
+    ${group("Analysis", analysis, true)}
+    ${group("Formatting", formatting, true)}
+    ${group("Testing", testing, true)}
+    ${group("Post Checks", postChecks, false)}
   </ul>`;
 
     const { data: comments } = await ocotokit.rest.issues.listComments({

@@ -1,8 +1,8 @@
 import { getBooleanInput, getInput, setFailed } from "@actions/core";
 import { exec } from "@actions/exec";
 import { getOctokit, context } from "@actions/github";
-import { eslint, litAnalyzer } from "./scripts/analyze";
-import { playwright, testing, typeDoc } from "./scripts/testing";
+import { eslint, litAnalyzer, typeDoc } from "./scripts/analyze";
+import { playwright, testing } from "./scripts/testing";
 import { coverage, getCoverage } from "./scripts/coverage";
 import { comment } from "./scripts/comment";
 import { cwd, chdir } from "process";
@@ -71,11 +71,17 @@ export const buildComment = async (
 ): Promise<StepResponse> => {
   if (response.error == true) {
     if (problemsCount !== undefined && problemsCount > 0) {
-      response.output = `${failedEmoji} - ${label}: ${problemsCount} problem${
+      // response.output = `${failedEmoji} - ${label}: ${problemsCount} problem${
+      //   problemsCount > 1 ? "s" : ""
+      // } found\n<details><summary>See Details</summary>${outputStr}</details>`;
+
+      response.output = `${failedEmoji} - <details><summary>${label}: ${problemsCount} problem${
         problemsCount > 1 ? "s" : ""
-      } found\n<details><summary>See Details</summary>${outputStr}</details>`;
+      }</summary>${outputStr}</details>\n`;
     } else {
-      response.output = `${failedEmoji} - ${label}\n<details><summary>See Details</summary>${outputStr}</details>`;
+      // response.output = `${failedEmoji} - ${label}\n<details><summary>See Details</summary>${outputStr}</details>`;
+
+      response.output = `${failedEmoji} - <details><summary>${label}</summary>${outputStr}</details>\n`;
     }
   } else {
     response.output = `${passedEmoji} - ${label}\n`;
@@ -234,6 +240,13 @@ export async function run(): Promise<void> {
         })
       : undefined;
 
+    const typeDocStr: StepResponse | undefined = doStaticAnalysis
+      ? await typeDoc({
+          label: "TypeDoc",
+          command: "npx typedoc --logLevel Warn",
+        })
+      : undefined;
+
     let webComponentsSrcRoot = wcSrcDirectory.split("/").shift();
     if (webComponentsSrcRoot?.isEmpty()) {
       webComponentsSrcRoot = wcSrcDirectory.split("/")[1];
@@ -285,13 +298,6 @@ export async function run(): Promise<void> {
           coveragePassScore,
           coveragePath,
         )
-      : undefined;
-
-    const typeDocStr: StepResponse | undefined = doTests
-      ? await typeDoc({
-          label: "TypeDoc",
-          command: "npx typedoc --logLevel Warn",
-        })
       : undefined;
 
     const [checkModifiedFilesStr, modified]: [StepResponse, boolean] =

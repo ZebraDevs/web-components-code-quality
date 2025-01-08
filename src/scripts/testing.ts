@@ -1,5 +1,4 @@
 import { setFailed } from "@actions/core";
-import { exec } from "@actions/exec";
 import * as fs from "fs";
 import {
   buildComment,
@@ -30,15 +29,6 @@ export const testing = async (
   command: Command,
   testResultsPath: string,
 ): Promise<StepResponse> => {
-  // let response: StepResponse = { output: "", error: false };
-  // let outputStr = "";
-  // try {
-  //   await exec(command.command);
-  // } catch (error) {
-  //   response.error = true;
-  //   setFailed(`Failed ${command.label}: ${error as string}`);
-  // }
-
   let [response, outputStr] = await runCommand(command);
 
   let testResults = "";
@@ -90,52 +80,6 @@ export const testing = async (
     if (problemCount < 1) {
       outputStr = "Test Run Failed";
     }
-  }
-
-  return await buildComment(response, command.label, outputStr, problemCount);
-};
-
-export const typeDoc = async (command: Command): Promise<StepResponse> => {
-  let response: StepResponse = { output: "", error: false };
-  let commandOutput = "";
-  try {
-    await exec(command.command, [], {
-      listeners: {
-        stderr: (data) => {
-          commandOutput += data.toString();
-        },
-      },
-    });
-  } catch (error) {
-    response.error = true;
-    setFailed(`Failed ${command.label}: ${error as string}`);
-  }
-
-  let outputStr = "";
-  let problemCount = 0;
-
-  if (response.error) {
-    commandOutput = commandOutput.replace(/\[\d+m/g, "");
-    const lines = commandOutput.split("\n");
-    const table = lines
-      .map((line) => {
-        const match = line.match(/^(.*):(\d+):(\d+) - (.*)/);
-        if (match) {
-          const [_, file, line, column, message] = match;
-          return `<tr><td>${file}</td><td>${line}</td><td>${column}</td><td>${message}</td></tr>`;
-        }
-        return "";
-      })
-      .join("");
-    outputStr = `<table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table>`;
-
-    lines.forEach((line) => {
-      const match = line.match(/Found (\d+) errors and (\d+) warnings/);
-      if (match) {
-        const [_, errors, warnings] = match;
-        problemCount += parseInt(errors) + parseInt(warnings);
-      }
-    });
   }
 
   return await buildComment(response, command.label, outputStr, problemCount);

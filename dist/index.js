@@ -32873,10 +32873,14 @@ exports.runCommand = runCommand;
 const buildComment = async (response, label, outputStr, problemsCount) => {
     if (response.error == true) {
         if (problemsCount !== undefined && problemsCount > 0) {
-            response.output = `${exports.failedEmoji} - ${label}: ${problemsCount} problem${problemsCount > 1 ? "s" : ""} found\n<details><summary>See Details</summary>${outputStr}</details>`;
+            // response.output = `${failedEmoji} - ${label}: ${problemsCount} problem${
+            //   problemsCount > 1 ? "s" : ""
+            // } found\n<details><summary>See Details</summary>${outputStr}</details>`;
+            response.output = `${exports.failedEmoji} - <details><summary>${label}: ${problemsCount} problem${problemsCount > 1 ? "s" : ""}</summary>${outputStr}</details>\n`;
         }
         else {
-            response.output = `${exports.failedEmoji} - ${label}\n<details><summary>See Details</summary>${outputStr}</details>`;
+            // response.output = `${failedEmoji} - ${label}\n<details><summary>See Details</summary>${outputStr}</details>`;
+            response.output = `${exports.failedEmoji} - <details><summary>${label}</summary>${outputStr}</details>\n`;
         }
     }
     else {
@@ -32987,6 +32991,12 @@ async function run() {
                 command: "npx lit-analyzer --quiet --format markdown",
             })
             : undefined;
+        const typeDocStr = doStaticAnalysis
+            ? await (0, analyze_1.typeDoc)({
+                label: "TypeDoc",
+                command: "npx typedoc --logLevel Warn",
+            })
+            : undefined;
         let webComponentsSrcRoot = wcSrcDirectory.split("/").shift();
         if (webComponentsSrcRoot?.isEmpty()) {
             webComponentsSrcRoot = wcSrcDirectory.split("/")[1];
@@ -33023,12 +33033,6 @@ async function run() {
             : undefined;
         const coverageStr = runCoverage
             ? await (0, coverage_1.coverage)(pastCoverageScore, currentCoverageScore, coveragePassScore, coveragePath)
-            : undefined;
-        const typeDocStr = doTests
-            ? await (0, testing_1.typeDoc)({
-                label: "TypeDoc",
-                command: "npx typedoc --logLevel Warn",
-            })
             : undefined;
         const [checkModifiedFilesStr, modified] = await (0, post_1.checkModifiedFiles)({
             label: "Check for modified files",
@@ -33069,8 +33073,10 @@ async function run() {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.litAnalyzer = exports.eslint = void 0;
+exports.typeDoc = exports.litAnalyzer = exports.eslint = void 0;
 const main_1 = __nccwpck_require__(1730);
+const exec_1 = __nccwpck_require__(5236);
+const core_1 = __nccwpck_require__(7484);
 const eslint = async (command) => {
     const [response, outputStr] = await (0, main_1.runCommand)(command);
     const lines = outputStr.split("\n");
@@ -33111,6 +33117,49 @@ const litAnalyzer = async (command) => {
     }
 };
 exports.litAnalyzer = litAnalyzer;
+const typeDoc = async (command) => {
+    let response = { output: "", error: false };
+    let commandOutput = "";
+    try {
+        await (0, exec_1.exec)(command.command, [], {
+            listeners: {
+                stderr: (data) => {
+                    commandOutput += data.toString();
+                },
+            },
+        });
+    }
+    catch (error) {
+        response.error = true;
+        (0, core_1.setFailed)(`Failed ${command.label}: ${error}`);
+    }
+    let outputStr = "";
+    let problemCount = 0;
+    if (response.error) {
+        commandOutput = commandOutput.replace(/\[\d+m/g, "");
+        const lines = commandOutput.split("\n");
+        const table = lines
+            .map((line) => {
+            const match = line.match(/^(.*):(\d+):(\d+) - (.*)/);
+            if (match) {
+                const [_, file, line, column, message] = match;
+                return `<tr><td>${file}</td><td>${line}</td><td>${column}</td><td>${message}</td></tr>`;
+            }
+            return "";
+        })
+            .join("");
+        outputStr = `<table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table>`;
+        lines.forEach((line) => {
+            const match = line.match(/Found (\d+) errors and (\d+) warnings/);
+            if (match) {
+                const [_, errors, warnings] = match;
+                problemCount += parseInt(errors) + parseInt(warnings);
+            }
+        });
+    }
+    return await (0, main_1.buildComment)(response, command.label, outputStr, problemCount);
+};
+exports.typeDoc = typeDoc;
 
 
 /***/ }),
@@ -33123,6 +33172,27 @@ exports.litAnalyzer = litAnalyzer;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.comment = void 0;
 const core_1 = __nccwpck_require__(7484);
+const main_1 = __nccwpck_require__(1730);
+const group = (name, steps, showOnPass) => {
+    const isError = steps.some((step) => step.error);
+    let message = "<li>";
+    if (isError) {
+        message += `${main_1.failedEmoji} <details><summary>${name}</summary>`;
+        for (const step in steps) {
+            message += `  - ${steps[step].output}\n`;
+        }
+        message += "</details>";
+    }
+    else if (showOnPass) {
+        message = `${main_1.passedEmoji} - ${name}\n`;
+    }
+    else {
+        message = "";
+    }
+    if (message.length > 0)
+        message += "</li>";
+    return message;
+};
 const li = (str) => {
     return `
 <li>
@@ -33132,9 +33202,36 @@ const li = (str) => {
 };
 const comment = async (ocotokit, context, npmIStr, cemStr, eslintStr, litAnalyzerStr, prettierStr, playwrightStr, testingStr, coverageStr, typeDocStr, checkModifiedFilesStr, updateChangesStr) => {
     try {
+        let setup = [];
+        let analysis = [];
+        let formatting = [];
+        let testing = [];
+        let postChecks = [];
+        if (npmIStr !== undefined)
+            setup.push(npmIStr);
+        if (cemStr !== undefined)
+            setup.push(cemStr);
+        if (eslintStr !== undefined)
+            analysis.push(eslintStr);
+        if (litAnalyzerStr !== undefined)
+            analysis.push(litAnalyzerStr);
+        if (typeDocStr !== undefined)
+            analysis.push(typeDocStr);
+        if (prettierStr !== undefined)
+            formatting.push(prettierStr);
+        if (playwrightStr !== undefined)
+            testing.push(playwrightStr);
+        if (testingStr !== undefined)
+            testing.push(testingStr);
+        if (coverageStr !== undefined)
+            testing.push(coverageStr);
+        if (checkModifiedFilesStr !== undefined)
+            postChecks.push(checkModifiedFilesStr);
+        if (updateChangesStr !== undefined)
+            postChecks.push(updateChangesStr);
         const commentBody = `
-  ## PR Checks Complete\n
-  <ul>
+    ## PR Checks Complete\n
+    <ul style="list-style-type:none;">
     ${npmIStr !== undefined ? li(npmIStr.output) : ""}
     ${cemStr !== undefined ? li(cemStr.output) : ""}
     ${eslintStr !== undefined ? li(eslintStr.output) : ""}
@@ -33146,6 +33243,13 @@ const comment = async (ocotokit, context, npmIStr, cemStr, eslintStr, litAnalyze
     ${typeDocStr !== undefined ? li(typeDocStr.output) : ""}
     ${checkModifiedFilesStr !== undefined ? li(checkModifiedFilesStr.output) : ""}
     ${updateChangesStr !== undefined ? li(updateChangesStr.output) : ""}
+
+
+    ${group("Setup", setup, false)}
+    ${group("Analysis", analysis, true)}
+    ${group("Formatting", formatting, true)}
+    ${group("Testing", testing, true)}
+    ${group("Post Checks", postChecks, false)}
   </ul>`;
         const { data: comments } = await ocotokit.rest.issues.listComments({
             issue_number: context.issue.number,
@@ -33256,17 +33360,17 @@ const coverage = async (pastCoverageScore, currentCoverageScore, coveragePassSco
     if (currentCoverageScore !== undefined && pastCoverageScore !== undefined) {
         if (currentCoverageScore < parseInt(coveragePassScore)) {
             response.error = true;
-            response.output = `${main_1.failedEmoji} - Coverage below ${coveragePassScore}%: Current ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
+            response.output = `${main_1.failedEmoji} <details><summary>Coverage below ${coveragePassScore}%: Current ${currentCoverageScore}%</summary>${coverageTable}</details>`;
         }
         else {
             if (pastCoverageScore === currentCoverageScore) {
-                response.output = `${main_1.passedEmoji} - Coverage: ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
+                response.output = `${main_1.passedEmoji} <details><summary>Coverage: ${currentCoverageScore}%</summary>${coverageTable}</details>`;
             }
             else if (pastCoverageScore > currentCoverageScore) {
-                response.output = `${main_1.coverageDown} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
+                response.output = `${main_1.coverageDown} <details><summary>Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%</summary>${coverageTable}</details>`;
             }
             else if (pastCoverageScore < currentCoverageScore) {
-                response.output = `${main_1.coverageUp} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
+                response.output = `${main_1.coverageUp} <details><summary>Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%</summary>${coverageTable}</details>`;
             }
         }
     }
@@ -33383,9 +33487,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.typeDoc = exports.testing = exports.playwright = void 0;
+exports.testing = exports.playwright = void 0;
 const core_1 = __nccwpck_require__(7484);
-const exec_1 = __nccwpck_require__(5236);
 const fs = __importStar(__nccwpck_require__(9896));
 const main_1 = __nccwpck_require__(1730);
 const xml_js_1 = __importDefault(__nccwpck_require__(3675));
@@ -33402,16 +33505,7 @@ const playwright = async (command) => {
 };
 exports.playwright = playwright;
 const testing = async (command, testResultsPath) => {
-    let response = { output: "", error: false };
-    let outputStr = "";
-    try {
-        await (0, exec_1.exec)(command.command);
-    }
-    catch (error) {
-        response.error = true;
-        (0, core_1.setFailed)(`Failed ${command.label}: ${error}`);
-    }
-    console.log(command.command);
+    let [response, outputStr] = await (0, main_1.runCommand)(command);
     let testResults = "";
     let failedToReadFile = false;
     try {
@@ -33426,11 +33520,7 @@ const testing = async (command, testResultsPath) => {
     let problemCount = 0;
     if (response.error && failedToReadFile == false) {
         const jsonResults = JSON.parse(xml_js_1.default.xml2json(testResults, { compact: false, spaces: 2 }));
-        // fs.writeFileSync(
-        //   "src/test/testResults.json",
-        //   convert.xml2json(testResults, { compact: true, spaces: 2 }),
-        // );
-        outputStr +=
+        outputStr =
             "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Type</th><th>Message</th></tr>";
         const testSuites = jsonResults["elements"][0]["elements"];
         for (const testSuite of testSuites) {
@@ -33456,49 +33546,6 @@ const testing = async (command, testResultsPath) => {
     return await (0, main_1.buildComment)(response, command.label, outputStr, problemCount);
 };
 exports.testing = testing;
-const typeDoc = async (command) => {
-    let response = { output: "", error: false };
-    let commandOutput = "";
-    try {
-        await (0, exec_1.exec)(command.command, [], {
-            listeners: {
-                stderr: (data) => {
-                    commandOutput += data.toString();
-                },
-            },
-        });
-    }
-    catch (error) {
-        response.error = true;
-        (0, core_1.setFailed)(`Failed ${command.label}: ${error}`);
-    }
-    if (response.error) {
-        commandOutput = commandOutput.replace(/\[\d+m/g, "");
-        const lines = commandOutput.split("\n");
-        const table = lines
-            .map((line) => {
-            const match = line.match(/^(.*):(\d+):(\d+) - (.*)/);
-            if (match) {
-                const [_, file, line, column, message] = match;
-                return `<tr><td>${file}</td><td>${line}</td><td>${column}</td><td>${message}</td></tr>`;
-            }
-            return "";
-        })
-            .join("");
-        const outputStr = `<table><tr><th>File</th><th>Line</th><th>Column</th><th>Message</th></tr>${table}</table>`;
-        let problemCount = 0;
-        lines.forEach((line) => {
-            const match = line.match(/Found (\d+) errors and (\d+) warnings/);
-            if (match) {
-                const [_, errors, warnings] = match;
-                problemCount += parseInt(errors) + parseInt(warnings);
-            }
-        });
-        return await (0, main_1.buildComment)(response, command.label, outputStr, problemCount);
-    }
-    return await (0, main_1.buildComment)(response, command.label);
-};
-exports.typeDoc = typeDoc;
 
 
 /***/ }),
