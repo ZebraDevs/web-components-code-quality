@@ -33183,7 +33183,7 @@ const group = (name, steps, showOnPass) => {
     if (isError) {
         message += `<details><summary>${main_1.failedEmoji} - ${name}</summary>`;
         for (const step in steps) {
-            if (steps[step].output.split(":").length >= 3) {
+            if (steps[step].output.match(/(\d+):(.+)/)) {
                 const [count, label, output] = steps[step].output
                     .split(":")
                     .slice(0, 2);
@@ -33203,7 +33203,7 @@ const group = (name, steps, showOnPass) => {
         message += `</details>`;
     }
     else if (showOnPass) {
-        message = `<p>&emsp;${main_1.passedEmoji} - ${name}</p>\n`;
+        message = `<p>'• ${main_1.passedEmoji} - ${name}</p>\n`;
     }
     else {
         message = "";

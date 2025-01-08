@@ -13,7 +13,7 @@ const group = (
   if (isError) {
     message += `<details><summary>${failedEmoji} - ${name}</summary>`;
     for (const step in steps) {
-      if (steps[step].output.split(":").length >= 3) {
+      if (steps[step].output.match(/(\d+):(.+)/)) {
         const [count, label, output] = steps[step].output
           .split(":")
           .slice(0, 2);
@@ -22,7 +22,7 @@ const group = (
       } else if (steps[step].error) {
         const [label, output] = steps[step].output.split(":").slice(0, 1);
         message += `&emsp;${failedEmoji} - ${label}\n`;
-        message += `&emsp;${output}\n`;
+        message += `&emsp;${output}`;
       } else if (!steps[step].error) {
         const label = steps[step].output.split(":")[0];
         message += `&emsp;${passedEmoji} - ${label}\n`;
@@ -30,7 +30,7 @@ const group = (
     }
     message += `</details>`;
   } else if (showOnPass) {
-    message = `<p>&emsp;${passedEmoji} - ${name}</p>\n`;
+    message = `<p>'• ${passedEmoji} - ${name}</p>\n`;
   } else {
     message = "";
   }
