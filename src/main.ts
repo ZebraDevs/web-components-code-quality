@@ -74,7 +74,7 @@ export const buildComment = async (
     if (problemsCount !== undefined && problemsCount > 0) {
       response.output = `${failedEmoji} - ${label}: ${problemsCount} problem${
         problemsCount > 1 ? "s" : ""
-      } found\n<details><summary>${detailsEmoji} - See Details</summary>${outputStr}</details>`;
+      } found\n<details><summary>&emsp;&nbsp;${detailsEmoji} See Details</summary>${outputStr}</details>`;
 
       // response.output = `<details><summary>${failedEmoji} - ${label}: ${problemsCount} problem${
       //   problemsCount > 1 ? "s" : ""
@@ -82,14 +82,14 @@ export const buildComment = async (
 
       // response.output = `${problemsCount}:${label}:${outputStr}`;
     } else {
-      response.output = `${failedEmoji} - ${label}\n<details><summary>${detailsEmoji} - See Details</summary>${outputStr}</details>`;
+      response.output = `${failedEmoji} ${label}\n<details><summary>${detailsEmoji} - See Details</summary>${outputStr}</details>`;
 
       // response.output = `<details><summary>${failedEmoji} - ${label}</summary>${outputStr}</details>\n`;
 
       // response.output = `${label}:${outputStr}`;
     }
   } else {
-    response.output = `${passedEmoji} - ${label}\n`;
+    response.output = `${passedEmoji} ${label}\n`;
 
     // response.output = `${label}:${outputStr}`;
   }
