@@ -17,6 +17,7 @@ const loadCoverageData = (coveragePath: string): LCOVRecord[] | undefined => {
     coverageData = parseLCOV(lcov);
   } catch (error) {
     setFailed(`Failed to read coverage file: ${error as string}`);
+    coverageData = undefined;
   }
   return coverageData;
 };
@@ -66,6 +67,9 @@ export const coverage = async (
         response.output = `${coverageUp} Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>&nbsp;${detailsEmoji} See Details</summary>${coverageTable}</details>`;
       }
     }
+  } else {
+    response.error = true;
+    response.output = `${failedEmoji} Coverage: No coverage data found`;
   }
 
   return response;

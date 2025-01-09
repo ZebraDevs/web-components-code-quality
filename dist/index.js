@@ -33427,6 +33427,7 @@ const loadCoverageData = (coveragePath) => {
     }
     catch (error) {
         (0, core_1.setFailed)(`Failed to read coverage file: ${error}`);
+        coverageData = undefined;
     }
     return coverageData;
 };
@@ -33467,6 +33468,10 @@ const coverage = async (pastCoverageScore, currentCoverageScore, coveragePassSco
                 response.output = `${main_1.coverageUp} Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>&nbsp;${main_1.detailsEmoji} See Details</summary>${coverageTable}</details>`;
             }
         }
+    }
+    else {
+        response.error = true;
+        response.output = `${main_1.failedEmoji} Coverage: No coverage data found`;
     }
     return response;
 };
