@@ -72,9 +72,9 @@ export const buildComment = async (
 ): Promise<StepResponse> => {
   if (response.error == true) {
     if (problemsCount !== undefined && problemsCount > 0) {
-      response.output = `${failedEmoji} - ${label}: ${problemsCount} problem${
+      response.output = `${failedEmoji} ${label}: ${problemsCount} problem${
         problemsCount > 1 ? "s" : ""
-      } found\n<details><summary>&emsp;&nbsp;${detailsEmoji} See Details</summary>${outputStr}</details>`;
+      } found\n<details><summary>&nbsp;${detailsEmoji} See Details</summary>${outputStr}</details>`;
 
       // response.output = `<details><summary>${failedEmoji} - ${label}: ${problemsCount} problem${
       //   problemsCount > 1 ? "s" : ""
