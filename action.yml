@@ -30,6 +30,16 @@ inputs:
     required: false
     default: "src/test/**/*.test.ts"
 
+  test-results-path:
+    description: "The path to the test results file"
+    required: false
+    default: "./test-results.xml"
+
+  coverage-path:
+    description: "The path to the coverage file"
+    required: false
+    default: "coverage/lcov.info"
+
   run-static-analysis:
     description: "Whether to run static analysis"
     required: false
@@ -45,30 +55,20 @@ inputs:
     required: false
     default: "true"
 
-  test-results-path:
-    description: "The path to the test results file"
-    required: false
-    default: "./test-results.xml"
-
   run-coverage:
     description: "Whether to run coverage"
     required: false
     default: "true"
 
-  coverage-path:
-    description: "The path to the coverage file"
+  create-comment:
+    description: "Whether to create a comment on the PR"
     required: false
-    default: "coverage/lcov.info"
+    default: "true"
 
   coverage-pass-score:
     description: "The minimum coverage score required to pass"
     required: false
     default: "80"
-
-  create-comment:
-    description: "Whether to create a comment on the PR"
-    required: false
-    default: "true"
 
 # Define your outputs here.
 # outputs:

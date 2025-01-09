@@ -43,21 +43,58 @@ jobs:
           cache: npm
 
       - name: Code Quality
-        uses: ZebraDevs/web-components-code-quality@main
+        uses: ZebraDevs/web-components-code-quality@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          working-directory: .
+          web-components-src: src/**/*.ts
+          test-src: src/test/**/*.test.ts
+          test-results-path: ./test-results.xml
+          coverage-path: coverage/lcov.info
+          run-static-analysis: true
+          run-code-formatting: true
+          run-tests: true
+          run-coverage: true
+          create-comment: true
+          coverage-pass-score: 80
+```
+
+### Config
+
+Ensure a report for web test runner.
+
+web-test-runner.config.js
+
+```js
+///.....
+import { defaultReporter } from "@web/test-runner";
+import { junitReporter } from "@web/test-runner-junit-reporter";
+
+export default {
+  ///.....
+  reporters: [
+    defaultReporter({ reportTestResults: false, reportTestProgress: true }),
+    junitReporter({
+      outputPath: "src/test/test-results.xml",
+      reportLogs: true,
+    }),
+  ],
+};
 ```
 
 ## Inputs
 
-| Name                | Description                                                       | Required | Default |
-| ------------------- | ----------------------------------------------------------------- | -------- | ------- |
-| token               | Token used for pushing fixes and commenting on PRs.               | true     |         |
-| run-tests           | Whether tests should be run.                                      | false    | true    |
-| run-analysis        | Whether static analysis should be run.                            | false    | true    |
-| run-coverage        | Whether code coverage should be run.                              | false    | true    |
-| run-prev-coverage   | Whether code coverage should be compared with the base branch.    | false    | true    |
-| run-behind-by       | Whether action should check if HEAD branch is behind base branch. | false    | true    |
-| create-comment      | Whether the action should comment the output status.              | false    | true    |
-| working-directory   | Working directory to run the action in                            | false    | "."     |
-| coverage-pass-score | Coverage passing percentage                                       | false    | "90"    |
+| Name                | Description                                                         | Required | Default                  |
+| ------------------- | ------------------------------------------------------------------- | -------- | ------------------------ |
+| token               | Token used for pushing fixes and commenting on PRs.                 | true     |                          |
+| working-directory   | Working directory to run the action in                              | false    | "."                      |
+| web-components-src  | The path to the directory containing the web components source code | false    | "src/\*_/_.{ts,tsx}"     |
+| test-src            | The path to the directory containing the test source code           | false    | "src/test/\*_/_.test.ts" |
+| test-results-path   | The path to the test results file                                   | false    | "./test-results.xml"     |
+| coverage-path       | The path to the coverage file                                       | false    | "coverage/lcov.info"     |
+| run-static-analysis | Whether to run static analysis                                      | false    | true                     |
+| run-code-formatting | Whether to run code formatting                                      | false    | true                     |
+| run-tests           | Whether tests should be run.                                        | false    | true                     |
+| run-coverage        | Whether to run coverage                                             | false    | true                     |
+| create-comment      | Whether to create a comment on the PR                               | false    | true                     |
+| coverage-pass-score | The minimum coverage score required to pass                         | false    | "80"                     |
