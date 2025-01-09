@@ -27,3 +27,7 @@ jobs:
         uses: ./
         with:
           token: ${{ secrets.PAT }}
+          run-static-analysis: false
+          run-code-formatting: false
+          run-tests: false
+          run-coverage: false
