@@ -32875,20 +32875,13 @@ const buildComment = async (response, label, outputStr, problemsCount) => {
     if (response.error == true) {
         if (problemsCount !== undefined && problemsCount > 0) {
             response.output = `${exports.failedEmoji} ${label}: ${problemsCount} problem${problemsCount > 1 ? "s" : ""} found\n<details><summary>&nbsp;${exports.detailsEmoji} See Details</summary>${outputStr}</details>`;
-            // response.output = `<details><summary>${failedEmoji} - ${label}: ${problemsCount} problem${
-            //   problemsCount > 1 ? "s" : ""
-            // }</summary>${outputStr}</details>\n`;
-            // response.output = `${problemsCount}:${label}:${outputStr}`;
         }
         else {
             response.output = `${exports.failedEmoji} ${label}\n<details><summary>${exports.detailsEmoji} - See Details</summary>${outputStr}</details>`;
-            // response.output = `<details><summary>${failedEmoji} - ${label}</summary>${outputStr}</details>\n`;
-            // response.output = `${label}:${outputStr}`;
         }
     }
     else {
         response.output = `${exports.passedEmoji} ${label}\n`;
-        // response.output = `${label}:${outputStr}`;
     }
     return response;
 };
@@ -33343,17 +33336,17 @@ const coverage = async (pastCoverageScore, currentCoverageScore, coveragePassSco
     if (currentCoverageScore !== undefined && pastCoverageScore !== undefined) {
         if (currentCoverageScore < parseInt(coveragePassScore)) {
             response.error = true;
-            response.output = `${main_1.failedEmoji} Coverage below ${coveragePassScore}%: Current ${currentCoverageScore}%\n<details><summary>${main_1.detailsEmoji} - See Details</summary>${coverageTable}</details>`;
+            response.output = `${main_1.failedEmoji} Coverage below ${coveragePassScore}%: Current ${currentCoverageScore}%\n<details><summary>&nbsp;${main_1.detailsEmoji} See Details</summary>${coverageTable}</details>`;
         }
         else {
             if (pastCoverageScore === currentCoverageScore) {
-                response.output = `${main_1.passedEmoji} Coverage: ${currentCoverageScore}%\n<details><summary>${main_1.detailsEmoji} - See Details</summary>${coverageTable}</details>`;
+                response.output = `${main_1.passedEmoji} Coverage: ${currentCoverageScore}%\n<details><summary>&nbsp;${main_1.detailsEmoji} See Details</summary>${coverageTable}</details>`;
             }
             else if (pastCoverageScore > currentCoverageScore) {
-                response.output = `${main_1.coverageDown} Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>${main_1.detailsEmoji} - See Details</summary>${coverageTable}</details>`;
+                response.output = `${main_1.coverageDown} Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>&nbsp;${main_1.detailsEmoji} See Details</summary>${coverageTable}</details>`;
             }
             else if (pastCoverageScore < currentCoverageScore) {
-                response.output = `${main_1.coverageUp} Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>${main_1.detailsEmoji} - See Details</summary>${coverageTable}</details>`;
+                response.output = `${main_1.coverageUp} Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>&nbsp;${main_1.detailsEmoji} See Details</summary>${coverageTable}</details>`;
             }
         }
     }
