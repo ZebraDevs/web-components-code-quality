@@ -223,7 +223,6 @@ export async function run(): Promise<void> {
     const eslintStr: StepResponse | undefined = doStaticAnalysis
       ? await eslint({
           label: "ESLint",
-          // TODO: change to -format json
           command: "npx eslint -f unix " + wcSrcDirectory,
         })
       : undefined;
