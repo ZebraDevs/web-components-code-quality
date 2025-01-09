@@ -33627,7 +33627,6 @@ const testing = async (command, testResultsPath) => {
     let [response, outputStr] = await (0, main_1.runCommand)(command);
     let testResults = "";
     let failedToReadFile = false;
-    let problemCount = undefined;
     try {
         testResults = fs.readFileSync(testResultsPath, "utf8");
     }
@@ -33637,81 +33636,88 @@ const testing = async (command, testResultsPath) => {
         outputStr = "Failed to read test results file: " + error;
         (0, core_1.setFailed)(`Failed to read test results: ${error}`);
     }
-    if (response.error && !failedToReadFile) {
-        const jsonResults = JSON.parse(xml_js_1.default.xml2json(testResults, { compact: false, spaces: 2 }));
-        const testSuites = jsonResults.elements[0].elements;
-        const testCases = testSuites.flatMap((suite) => suite.elements?.filter((element) => element.name === "testcase") ??
-            []);
-        const failedTestCases = testCases.filter((testCase) => testCase.elements?.some((element) => element.name === "failure"));
-        problemCount = failedTestCases.length;
-        if (problemCount > 0) {
-            outputStr = `
-        <table>
-          <tr>
-            <th>File</th>
-            <th>Test Name</th>
-            <th>Line</th>
-            <th>Type</th>
-            <th>Message</th>
-          </tr>
-          ${failedTestCases
-                .map((testCase) => {
-                const { name: testCaseName, file, line } = testCase.attributes;
-                const failure = testCase.elements.find((element) => element.name === "failure");
-                const { type: failureType, message } = failure.attributes;
-                return `
-              <tr>
-                <td>${file}</td>
-                <td>${testCaseName}</td>
-                <td>${line}</td>
-                <td>${failureType}</td>
-                <td>${message}</td>
-              </tr>
-            `;
-            })
-                .join("")}
-        </table>
-      `;
-        }
-        else {
-            outputStr = "Test Run Failed";
-        }
-    }
-    return await (0, main_1.buildComment)(response, command.label, outputStr, problemCount ?? undefined);
-    // let problemCount = 0;
+    // let problemCount: number | undefined = undefined;
     // if (response.error && !failedToReadFile) {
     //   const jsonResults = JSON.parse(
     //     convert.xml2json(testResults, { compact: false, spaces: 2 }),
     //   );
-    //   outputStr =
-    //     "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Type</th><th>Message</th></tr>";
-    //   const testSuites = jsonResults["elements"][0]["elements"];
-    //   for (const testSuite of testSuites) {
-    //     const testCases =
-    //       testSuite["elements"]?.filter(
-    //         (element: any) => element.name === "testcase",
-    //       ) ?? [];
-    //     for (const testCase of testCases) {
-    //       const testCaseName = testCase["attributes"]["name"];
-    //       const testCaseFailure = testCase["elements"]?.find(
-    //         (element: any) => element.name === "failure",
-    //       );
-    //       if (testCaseFailure) {
-    //         problemCount++;
-    //         const file = testCase["attributes"]["file"];
-    //         const line = testCase["attributes"]["line"];
-    //         const failureType = testCaseFailure["attributes"]["type"];
-    //         const message = testCaseFailure["attributes"]["message"];
-    //         outputStr += `<tr><td>${file}</td><td>${testCaseName}</td><td>${line}</td><td>${failureType}</td><td>${message}</td></tr>`;
-    //       }
-    //     }
-    //   }
-    //   outputStr += "</table>";
-    //   if (problemCount < 1) {
+    //   const testSuites = jsonResults.elements[0].elements;
+    //   const testCases = testSuites.flatMap(
+    //     (suite: any) =>
+    //       suite.elements?.filter((element: any) => element.name === "testcase") ??
+    //       [],
+    //   );
+    //   const failedTestCases = testCases.filter((testCase: any) =>
+    //     testCase.elements?.some((element: any) => element.name === "failure"),
+    //   );
+    //   problemCount = failedTestCases.length;
+    //   if (problemCount! > 0) {
+    //     outputStr = `
+    //       <table>
+    //         <tr>
+    //           <th>File</th>
+    //           <th>Test Name</th>
+    //           <th>Line</th>
+    //           <th>Type</th>
+    //           <th>Message</th>
+    //         </tr>
+    //         ${failedTestCases
+    //           .map((testCase: any) => {
+    //             const { name: testCaseName, file, line } = testCase.attributes;
+    //             const failure = testCase.elements.find(
+    //               (element: any) => element.name === "failure",
+    //             );
+    //             const { type: failureType, message } = failure.attributes;
+    //             return `
+    //             <tr>
+    //               <td>${file}</td>
+    //               <td>${testCaseName}</td>
+    //               <td>${line}</td>
+    //               <td>${failureType}</td>
+    //               <td>${message}</td>
+    //             </tr>
+    //           `;
+    //           })
+    //           .join("")}
+    //       </table>
+    //     `;
+    //   } else {
     //     outputStr = "Test Run Failed";
     //   }
     // }
-    // return await buildComment(response, command.label, outputStr, problemCount);
+    // return await buildComment(
+    //   response,
+    //   command.label,
+    //   outputStr,
+    //   problemCount ?? undefined,
+    // );
+    let problemCount = 0;
+    if (response.error && !failedToReadFile) {
+        const jsonResults = JSON.parse(xml_js_1.default.xml2json(testResults, { compact: false, spaces: 2 }));
+        outputStr =
+            "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Type</th><th>Message</th></tr>";
+        const testSuites = jsonResults["elements"][0]["elements"];
+        for (const testSuite of testSuites) {
+            const testCases = testSuite["elements"]?.filter((element) => element.name === "testcase") ?? [];
+            for (const testCase of testCases) {
+                const testCaseName = testCase["attributes"]["name"];
+                const testCaseFailure = testCase["elements"]?.find((element) => element.name === "failure");
+                if (testCaseFailure) {
+                    problemCount++;
+                    const file = testCase["attributes"]["file"];
+                    const line = testCase["attributes"]["line"];
+                    const failureType = testCaseFailure["attributes"]["type"];
+                    const message = testCaseFailure["attributes"]["message"];
+                    outputStr += `<tr><td>${file}</td><td>${testCaseName}</td><td>${line}</td><td>${failureType}</td><td>${message}</td></tr>`;
+                }
+            }
+        }
+        outputStr += "</table>";
+        if (problemCount < 1) {
+            outputStr = "Test Run Failed";
+        }
+    }
+    return await (0, main_1.buildComment)(response, command.label, outputStr, problemCount);
 };
 exports.testing = testing;
 
