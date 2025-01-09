@@ -1,4 +1,3 @@
-import { setFailed } from "@actions/core";
 import * as fs from "fs";
 import {
   failedEmoji,
@@ -16,7 +15,6 @@ const loadCoverageData = (coveragePath: string): LCOVRecord[] | undefined => {
     const lcov = fs.readFileSync(coveragePath, "utf8");
     coverageData = parseLCOV(lcov);
   } catch (error) {
-    setFailed(`Failed to read coverage file: ${error as string}`);
     coverageData = undefined;
   }
   return coverageData;

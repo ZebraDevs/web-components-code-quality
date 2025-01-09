@@ -33415,7 +33415,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.coverage = exports.getCoverage = void 0;
-const core_1 = __nccwpck_require__(7484);
 const fs = __importStar(__nccwpck_require__(9896));
 const main_1 = __nccwpck_require__(1730);
 const parse_lcov_1 = __importDefault(__nccwpck_require__(2769));
@@ -33426,7 +33425,6 @@ const loadCoverageData = (coveragePath) => {
         coverageData = (0, parse_lcov_1.default)(lcov);
     }
     catch (error) {
-        (0, core_1.setFailed)(`Failed to read coverage file: ${error}`);
         coverageData = undefined;
     }
     return coverageData;
