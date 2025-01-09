@@ -32840,6 +32840,13 @@ exports.coverageDown = "📉";
 String.prototype.isEmpty = function () {
     return this == undefined || this == "" || this == null;
 };
+/**
+ * Executes a given Bash command and returns the output as a string.
+ *
+ * @param command - The Bash command to execute.
+ * @returns A promise that resolves with the command's output as a string.
+ * @throws An error if the command execution fails.
+ */
 const runBashCommand = async (command) => {
     return new Promise((resolve, reject) => {
         try {
@@ -32852,6 +32859,13 @@ const runBashCommand = async (command) => {
     });
 };
 exports.runBashCommand = runBashCommand;
+/**
+ * Executes a given command asynchronously and returns the response and output string.
+ *
+ * @param {Command} command - The command to be executed.
+ * @returns {Promise<[StepResponse, string]>} A promise that resolves to a tuple containing the response and the output string.
+ *
+ */
 const runCommand = async (command) => {
     let response = { output: "", error: false };
     let outputStr = "";
@@ -32871,6 +32885,15 @@ const runCommand = async (command) => {
     return [response, outputStr];
 };
 exports.runCommand = runCommand;
+/**
+ * Builds a comment based on the provided response, label, output string, and problems count.
+ *
+ * @param {StepResponse} response - The response object containing the error status and output.
+ * @param {string} label - A label to be included in the comment.
+ * @param {string} outputStr - An optional string to be included in the comment details.
+ * @param {number} problemsCount - An optional number representing the count of problems found.
+ * @returns {Promise<StepResponse>} A promise that resolves to the updated response object with the constructed comment.
+ */
 const buildComment = async (response, label, outputStr, problemsCount) => {
     if (response.error == true) {
         if (problemsCount !== undefined && problemsCount > 0) {
@@ -32886,17 +32909,59 @@ const buildComment = async (response, label, outputStr, problemsCount) => {
     return response;
 };
 exports.buildComment = buildComment;
+/**
+ * Executes a given command and builds a comment based on the command's response.
+ *
+ * @param {Command} command - The command to be executed.
+ * @returns {Promise<StepResponse>} A promise that resolves to a StepResponse containing the result of the command execution and the generated comment.
+ */
 const commandComment = async (command) => {
     const [response, outputStr] = await (0, exports.runCommand)(command);
     return await (0, exports.buildComment)(response, command.label, outputStr);
 };
 exports.commandComment = commandComment;
+/**
+ * Checks if the "--local" flag is present in the command line arguments.
+ *
+ * @returns {boolean} - Returns `true` if the "--local" flag is found, otherwise `false`.
+ */
 const checkIfLocal = () => {
     const argv = (0, minimist_1.default)(process.argv.slice(2));
     return argv._.findLast((x) => x == "--local") == "--local"
         ? true
         : false;
 };
+/**
+ * Retrieves various inputs required for the application based on the environment.
+ *
+ * @param {boolean} isLocal - Indicates if the environment is local.
+ * @returns {[
+ *   string,
+ *   string,
+ *   string,
+ *   string,
+ *   boolean,
+ *   boolean,
+ *   boolean,
+ *   string,
+ *   boolean,
+ *   string,
+ *   string,
+ *   boolean
+ * ]} An array containing the following inputs:
+ * - token: The GitHub token.
+ * - workingDirectory: The working directory path.
+ * - wcSrcDirectory: The source directory for web components.
+ * - testSrcDirectory: The source directory for tests.
+ * - doStaticAnalysis: Flag indicating if static analysis should be run.
+ * - doCodeFormatting: Flag indicating if code formatting should be run.
+ * - doTests: Flag indicating if tests should be run.
+ * - testResultsPath: The path to the test results file.
+ * - runCoverage: Flag indicating if code coverage should be run.
+ * - coveragePassScore: The minimum coverage pass score.
+ * - coveragePath: The path to the coverage file.
+ * - createComment: Flag indicating if a comment should be created.
+ */
 const getInputs = (isLocal) => {
     // get the token and octokit
     let token = "";
@@ -32906,6 +32971,7 @@ const getInputs = (isLocal) => {
     else {
         token = (0, core_1.getInput)("token");
     }
+    // get directories
     const workingDirectory = isLocal ? "." : (0, core_1.getInput)("working-directory");
     const wcSrcDirectory = isLocal
         ? "src/**/*.{ts,tsx}"
@@ -32926,6 +32992,7 @@ const getInputs = (isLocal) => {
     const testResultsPath = isLocal
         ? "./test-results.xml"
         : (0, core_1.getInput)("test-results-path");
+    // get coverage input
     const runCoverage = isLocal ? true : (0, core_1.getBooleanInput)("run-coverage");
     const coveragePassScore = isLocal
         ? "80"
@@ -32953,8 +33020,27 @@ const getInputs = (isLocal) => {
     ];
 };
 /**
- * The main function for the action.
- * @returns {Promise<void>} Resolves when the action is complete.
+ * Executes the main workflow for the project, including setting up dependencies,
+ * running static analysis, code formatting, tests, and updating changes in the
+ * GitHub repository.
+ *
+ * @returns {Promise<void>} A promise that resolves when the workflow is complete.
+ *
+ * @throws {Error} If any step in the workflow fails, the error is caught and the
+ * workflow run is marked as failed.
+ *
+ * The workflow includes the following steps:
+ * 1. Check if the environment is local.
+ * 2. Retrieve inputs based on the environment.
+ * 3. Change the working directory if specified.
+ * 4. Install dependencies using npm.
+ * 5. Generate a Custom Elements Manifest using `npx cem analyze`.
+ * 6. Run static analysis tools (ESLint, Lit Analyzer, TypeDoc) if enabled.
+ * 7. Format code using Prettier if enabled.
+ * 8. Install Playwright browsers and run tests if enabled.
+ * 9. Calculate and compare code coverage if enabled.
+ * 10. Check for modified files and update changes in the GitHub repository if any.
+ * 11. Create a comment on the GitHub pull request with the results if enabled.
  */
 async function run() {
     const isLocal = checkIfLocal();
@@ -32978,7 +33064,6 @@ async function run() {
         const eslintStr = doStaticAnalysis
             ? await (0, analyze_1.eslint)({
                 label: "ESLint",
-                // TODO: change to -format json
                 command: "npx eslint -f unix " + wcSrcDirectory,
             })
             : undefined;
@@ -33074,6 +33159,19 @@ exports.typeDoc = exports.litAnalyzer = exports.eslint = void 0;
 const main_1 = __nccwpck_require__(1730);
 const exec_1 = __nccwpck_require__(5236);
 const core_1 = __nccwpck_require__(7484);
+/**
+ * Executes an ESLint command and processes the output to generate an HTML table of linting issues.
+ *
+ * @param {Command} command - The command to run ESLint.
+ * @returns {Promise<StepResponse>} - A promise that resolves to a StepResponse containing the linting results.
+ *
+ * The function performs the following steps:
+ * 1. Runs the provided ESLint command.
+ * 2. Parses the output string to extract linting issues.
+ * 3. Constructs an HTML table with the linting issues.
+ * 4. Counts the number of linting issues.
+ * 5. Builds and returns a comment with the linting results.
+ */
 const eslint = async (command) => {
     const [response, outputStr] = await (0, main_1.runCommand)(command);
     const lines = outputStr.split("\n");
@@ -33092,8 +33190,19 @@ const eslint = async (command) => {
     return await (0, main_1.buildComment)(response, command.label, str, problemCount);
 };
 exports.eslint = eslint;
+/**
+ * Analyzes the output of a given command using the lit-analyzer tool.
+ *
+ * @param {Command} command - The command to be executed and analyzed.
+ * @returns {Promise<StepResponse>} A promise that resolves to a StepResponse object containing the analysis results.
+ *
+ * The function executes the provided command and processes its output. If the command execution results in an error,
+ * it parses the output to extract the number of problems found and builds a detailed comment. If the command executes
+ * successfully, it builds a simple success comment.
+ */
 const litAnalyzer = async (command) => {
     let [response, outputStr] = await (0, main_1.runCommand)(command);
+    let problemCount = 0;
     if (response.error == true) {
         const lines = outputStr.split("\n");
         const problemsCountStr = lines
@@ -33105,15 +33214,24 @@ const litAnalyzer = async (command) => {
             }
         })
             .join("");
-        const problemCount = parseInt(problemsCountStr);
+        problemCount = parseInt(problemsCountStr);
         outputStr = outputStr.split("...").pop() || outputStr;
-        return await (0, main_1.buildComment)(response, command.label, outputStr, problemCount);
     }
-    else {
-        return await (0, main_1.buildComment)(response, command.label);
-    }
+    return await (0, main_1.buildComment)(response, command.label, outputStr, problemCount);
 };
 exports.litAnalyzer = litAnalyzer;
+/**
+ * Executes a TypeDoc command and processes the output.
+ *
+ * @param {Command} command - The command to execute.
+ * @returns {Promise<StepResponse>} - A promise that resolves to a StepResponse object containing the output and error status.
+ *
+ * The function attempts to execute the provided command using `exec`. If the command fails, it sets the error status in the response.
+ * It processes the command output to extract error messages and formats them into an HTML table.
+ * Additionally, it counts the number of errors and warnings found in the output.
+ *
+ * The final response is built using the `buildComment` function, which includes the formatted output and problem count.
+ */
 const typeDoc = async (command) => {
     let response = { output: "", error: false };
     let commandOutput = "";
@@ -33468,6 +33586,14 @@ const core_1 = __nccwpck_require__(7484);
 const fs = __importStar(__nccwpck_require__(9896));
 const main_1 = __nccwpck_require__(1730);
 const xml_js_1 = __importDefault(__nccwpck_require__(3675));
+/**
+ * Executes a Playwright command and sets the Playwright version in the environment variables.
+ *
+ * @param {Command} command - The command to be executed.
+ * @returns {Promise<StepResponse>} - A promise that resolves to a StepResponse object.
+ *
+ * @throws {Error} - Throws an error if the Playwright version cannot be retrieved.
+ */
 const playwright = async (command) => {
     await (0, main_1.runBashCommand)("npm ls @playwright/test | grep @playwright | sed 's/.*@//'")
         .then((version) => {
@@ -33480,10 +33606,28 @@ const playwright = async (command) => {
     return await (0, main_1.commandComment)(command);
 };
 exports.playwright = playwright;
+/**
+ * Executes a given command and processes the test results.
+ *
+ * @param command - The command to be executed.
+ * @param testResultsPath - The file path to the test results.
+ * @returns A promise that resolves to a `StepResponse` object containing the results of the command execution and test results processing.
+ *
+ * The function performs the following steps:
+ * 1. Executes the provided command using `runCommand`.
+ * 2. Attempts to read the test results from the specified file path.
+ * 3. If the test results file is successfully read, it parses the XML content and converts it to JSON.
+ * 4. Constructs an HTML table summarizing the test results, including file, test name, line, type, and message for each failed test case.
+ * 5. If no test cases failed, sets the output string to "Test Run Failed".
+ * 6. Returns the result of `buildComment` with the response, command label, output string, and problem count.
+ *
+ * @throws Will set the response error and output string if reading the test results file fails.
+ */
 const testing = async (command, testResultsPath) => {
     let [response, outputStr] = await (0, main_1.runCommand)(command);
     let testResults = "";
     let failedToReadFile = false;
+    let problemCount = undefined;
     try {
         testResults = fs.readFileSync(testResultsPath, "utf8");
     }
@@ -33493,33 +33637,81 @@ const testing = async (command, testResultsPath) => {
         outputStr = "Failed to read test results file: " + error;
         (0, core_1.setFailed)(`Failed to read test results: ${error}`);
     }
-    let problemCount = 0;
-    if (response.error && failedToReadFile == false) {
+    if (response.error && !failedToReadFile) {
         const jsonResults = JSON.parse(xml_js_1.default.xml2json(testResults, { compact: false, spaces: 2 }));
-        outputStr =
-            "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Type</th><th>Message</th></tr>";
-        const testSuites = jsonResults["elements"][0]["elements"];
-        for (const testSuite of testSuites) {
-            const testCases = testSuite["elements"]?.filter((element) => element.name === "testcase") ?? [];
-            for (const testCase of testCases) {
-                const testCaseName = testCase["attributes"]["name"];
-                const testCaseFailure = testCase["elements"]?.find((element) => element.name === "failure");
-                if (testCaseFailure) {
-                    problemCount++;
-                    const file = testCase["attributes"]["file"];
-                    const line = testCase["attributes"]["line"];
-                    const failureType = testCaseFailure["attributes"]["type"];
-                    const message = testCaseFailure["attributes"]["message"];
-                    outputStr += `<tr><td>${file}</td><td>${testCaseName}</td><td>${line}</td><td>${failureType}</td><td>${message}</td></tr>`;
-                }
-            }
+        const testSuites = jsonResults.elements[0].elements;
+        const testCases = testSuites.flatMap((suite) => suite.elements?.filter((element) => element.name === "testcase") ??
+            []);
+        const failedTestCases = testCases.filter((testCase) => testCase.elements?.some((element) => element.name === "failure"));
+        problemCount = failedTestCases.length;
+        if (problemCount > 0) {
+            outputStr = `
+        <table>
+          <tr>
+            <th>File</th>
+            <th>Test Name</th>
+            <th>Line</th>
+            <th>Type</th>
+            <th>Message</th>
+          </tr>
+          ${failedTestCases
+                .map((testCase) => {
+                const { name: testCaseName, file, line } = testCase.attributes;
+                const failure = testCase.elements.find((element) => element.name === "failure");
+                const { type: failureType, message } = failure.attributes;
+                return `
+              <tr>
+                <td>${file}</td>
+                <td>${testCaseName}</td>
+                <td>${line}</td>
+                <td>${failureType}</td>
+                <td>${message}</td>
+              </tr>
+            `;
+            })
+                .join("")}
+        </table>
+      `;
         }
-        outputStr += "</table>";
-        if (problemCount < 1) {
+        else {
             outputStr = "Test Run Failed";
         }
     }
-    return await (0, main_1.buildComment)(response, command.label, outputStr, problemCount);
+    return await (0, main_1.buildComment)(response, command.label, outputStr, problemCount ?? undefined);
+    // let problemCount = 0;
+    // if (response.error && !failedToReadFile) {
+    //   const jsonResults = JSON.parse(
+    //     convert.xml2json(testResults, { compact: false, spaces: 2 }),
+    //   );
+    //   outputStr =
+    //     "<table><tr><th>File</th><th>Test Name</th><th>Line</th><th>Type</th><th>Message</th></tr>";
+    //   const testSuites = jsonResults["elements"][0]["elements"];
+    //   for (const testSuite of testSuites) {
+    //     const testCases =
+    //       testSuite["elements"]?.filter(
+    //         (element: any) => element.name === "testcase",
+    //       ) ?? [];
+    //     for (const testCase of testCases) {
+    //       const testCaseName = testCase["attributes"]["name"];
+    //       const testCaseFailure = testCase["elements"]?.find(
+    //         (element: any) => element.name === "failure",
+    //       );
+    //       if (testCaseFailure) {
+    //         problemCount++;
+    //         const file = testCase["attributes"]["file"];
+    //         const line = testCase["attributes"]["line"];
+    //         const failureType = testCaseFailure["attributes"]["type"];
+    //         const message = testCaseFailure["attributes"]["message"];
+    //         outputStr += `<tr><td>${file}</td><td>${testCaseName}</td><td>${line}</td><td>${failureType}</td><td>${message}</td></tr>`;
+    //       }
+    //     }
+    //   }
+    //   outputStr += "</table>";
+    //   if (problemCount < 1) {
+    //     outputStr = "Test Run Failed";
+    //   }
+    // }
+    // return await buildComment(response, command.label, outputStr, problemCount);
 };
 exports.testing = testing;
 

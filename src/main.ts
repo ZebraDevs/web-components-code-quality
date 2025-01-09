@@ -10,13 +10,29 @@ import minimist from "minimist";
 import { execSync } from "child_process";
 import { checkModifiedFiles, updateChanges } from "./scripts/post";
 
+/**
+ * Represents a command with a label and an associated command string.
+ * Optionally, it can include a list of related commands.
+ *
+ * @type {Object} Command
+ * @property {string} label - A label for the command.
+ * @property {string} command - The command to execute.
+ */
 export type Command = {
   label: string;
   command: string;
   commandList?: string[];
 };
 
+/**
+ * Represents the response of a step in a process.
+ *
+ * @type {Object} StepResponse
+ * @property {string} output - The output message of the step.
+ * @property {boolean} error - Indicates whether an error occurred during the step.
+ */
 export type StepResponse = { output: string; error: boolean };
+
 export const failedEmoji = "❌";
 export const passedEmoji = "✅";
 export const detailsEmoji = "➡️";
@@ -25,6 +41,13 @@ export const coverageDown = "📉";
 
 declare global {
   interface String {
+    /**
+     * Extends the global String interface to include an `isEmpty` method.
+     *
+     * The `isEmpty` method checks if the string is empty.
+     *
+     * @returns {boolean} - Returns `true` if the string is empty, otherwise `false`.
+     */
     isEmpty(): boolean;
   }
 }
@@ -33,6 +56,13 @@ String.prototype.isEmpty = function (): boolean {
   return this == undefined || this == "" || this == null;
 };
 
+/**
+ * Executes a given Bash command and returns the output as a string.
+ *
+ * @param command - The Bash command to execute.
+ * @returns A promise that resolves with the command's output as a string.
+ * @throws An error if the command execution fails.
+ */
 export const runBashCommand = async (command: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     try {
@@ -44,6 +74,13 @@ export const runBashCommand = async (command: string): Promise<string> => {
   });
 };
 
+/**
+ * Executes a given command asynchronously and returns the response and output string.
+ *
+ * @param {Command} command - The command to be executed.
+ * @returns {Promise<[StepResponse, string]>} A promise that resolves to a tuple containing the response and the output string.
+ *
+ */
 export const runCommand = async (
   command: Command,
 ): Promise<[StepResponse, string]> => {
@@ -64,6 +101,15 @@ export const runCommand = async (
   return [response, outputStr];
 };
 
+/**
+ * Builds a comment based on the provided response, label, output string, and problems count.
+ *
+ * @param {StepResponse} response - The response object containing the error status and output.
+ * @param {string} label - A label to be included in the comment.
+ * @param {string} outputStr - An optional string to be included in the comment details.
+ * @param {number} problemsCount - An optional number representing the count of problems found.
+ * @returns {Promise<StepResponse>} A promise that resolves to the updated response object with the constructed comment.
+ */
 export const buildComment = async (
   response: StepResponse,
   label: string,
@@ -84,6 +130,12 @@ export const buildComment = async (
   return response;
 };
 
+/**
+ * Executes a given command and builds a comment based on the command's response.
+ *
+ * @param {Command} command - The command to be executed.
+ * @returns {Promise<StepResponse>} A promise that resolves to a StepResponse containing the result of the command execution and the generated comment.
+ */
 export const commandComment = async (
   command: Command,
 ): Promise<StepResponse> => {
@@ -91,6 +143,11 @@ export const commandComment = async (
   return await buildComment(response, command.label, outputStr);
 };
 
+/**
+ * Checks if the "--local" flag is present in the command line arguments.
+ *
+ * @returns {boolean} - Returns `true` if the "--local" flag is found, otherwise `false`.
+ */
 const checkIfLocal = (): boolean => {
   const argv = minimist(process.argv.slice(2));
 
@@ -99,6 +156,37 @@ const checkIfLocal = (): boolean => {
     : false;
 };
 
+/**
+ * Retrieves various inputs required for the application based on the environment.
+ *
+ * @param {boolean} isLocal - Indicates if the environment is local.
+ * @returns {[
+ *   string,
+ *   string,
+ *   string,
+ *   string,
+ *   boolean,
+ *   boolean,
+ *   boolean,
+ *   string,
+ *   boolean,
+ *   string,
+ *   string,
+ *   boolean
+ * ]} An array containing the following inputs:
+ * - token: The GitHub token.
+ * - workingDirectory: The working directory path.
+ * - wcSrcDirectory: The source directory for web components.
+ * - testSrcDirectory: The source directory for tests.
+ * - doStaticAnalysis: Flag indicating if static analysis should be run.
+ * - doCodeFormatting: Flag indicating if code formatting should be run.
+ * - doTests: Flag indicating if tests should be run.
+ * - testResultsPath: The path to the test results file.
+ * - runCoverage: Flag indicating if code coverage should be run.
+ * - coveragePassScore: The minimum coverage pass score.
+ * - coveragePath: The path to the coverage file.
+ * - createComment: Flag indicating if a comment should be created.
+ */
 const getInputs = (
   isLocal: boolean,
 ): [
@@ -123,6 +211,7 @@ const getInputs = (
     token = getInput("token");
   }
 
+  // get directories
   const workingDirectory = isLocal ? "." : getInput("working-directory");
 
   const wcSrcDirectory = isLocal
@@ -150,6 +239,7 @@ const getInputs = (
     ? "./test-results.xml"
     : getInput("test-results-path");
 
+  // get coverage input
   const runCoverage: boolean = isLocal ? true : getBooleanInput("run-coverage");
   const coveragePassScore: string = isLocal
     ? "80"
@@ -180,8 +270,27 @@ const getInputs = (
 };
 
 /**
- * The main function for the action.
- * @returns {Promise<void>} Resolves when the action is complete.
+ * Executes the main workflow for the project, including setting up dependencies,
+ * running static analysis, code formatting, tests, and updating changes in the
+ * GitHub repository.
+ *
+ * @returns {Promise<void>} A promise that resolves when the workflow is complete.
+ *
+ * @throws {Error} If any step in the workflow fails, the error is caught and the
+ * workflow run is marked as failed.
+ *
+ * The workflow includes the following steps:
+ * 1. Check if the environment is local.
+ * 2. Retrieve inputs based on the environment.
+ * 3. Change the working directory if specified.
+ * 4. Install dependencies using npm.
+ * 5. Generate a Custom Elements Manifest using `npx cem analyze`.
+ * 6. Run static analysis tools (ESLint, Lit Analyzer, TypeDoc) if enabled.
+ * 7. Format code using Prettier if enabled.
+ * 8. Install Playwright browsers and run tests if enabled.
+ * 9. Calculate and compare code coverage if enabled.
+ * 10. Check for modified files and update changes in the GitHub repository if any.
+ * 11. Create a comment on the GitHub pull request with the results if enabled.
  */
 export async function run(): Promise<void> {
   const isLocal = checkIfLocal();

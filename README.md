@@ -10,6 +10,7 @@ This action is designed to format and test Web Component repositories on pull re
 - prettier
 - playwright
 - web-test-runner
+- @web/test-runner-junit-reporter
 - typedoc
 
 ### Usage
