@@ -3,6 +3,14 @@ import { getOctokit } from "@actions/github";
 import { Context } from "@actions/github/lib/context";
 import { failedEmoji, passedEmoji, StepResponse } from "src/main";
 
+/**
+ * Generates a formatted message for a group of steps.
+ *
+ * @param {string} name - The name of the group.
+ * @param {StepResponse[]} steps - An array of step responses.
+ * @param {boolean} showOnPass - A boolean indicating whether to show the message even if all steps pass.
+ * @returns {string} A formatted string message for the group of steps.
+ */
 const group = (
   name: string,
   steps: StepResponse[],
@@ -20,6 +28,12 @@ const group = (
   }
 };
 
+/**
+ * Generates an HTML list item (`<li>`) element containing the provided string.
+ *
+ * @param {string} str - The string to be included within the list item.
+ * @returns {string} The HTML string representing the list item.
+ */
 const li = (str: string): string => {
   return `
 <li>
@@ -28,6 +42,25 @@ const li = (str: string): string => {
 `;
 };
 
+/**
+ * Posts a comment on a GitHub issue or pull request summarizing the results of various checks.
+ * If a comment with the summary already exists, it updates the comment instead.
+ *
+ * @param {ReturnType<typeof getOctokit>} ocotokit - The Octokit instance for making GitHub API requests.
+ * @param {Context} context - The context of the GitHub action, including issue and repository information.
+ * @param {StepResponse | undefined} npmIStr - The result of the npm install step.
+ * @param {StepResponse | undefined} cemStr - The result of the custom element manifest step.
+ * @param {StepResponse | undefined} eslintStr - The result of the ESLint step.
+ * @param {StepResponse | undefined} litAnalyzerStr - The result of the Lit Analyzer step.
+ * @param {StepResponse | undefined} prettierStr - The result of the Prettier formatting step.
+ * @param {StepResponse | undefined} playwrightStr - The result of the Playwright testing step.
+ * @param {StepResponse | undefined} testingStr - The result of the general testing step.
+ * @param {StepResponse | undefined} coverageStr - The result of the code coverage step.
+ * @param {StepResponse | undefined} typeDocStr - The result of the TypeDoc documentation generation step.
+ * @param {StepResponse | undefined} checkModifiedFilesStr - The result of the check for modified files step.
+ * @param {StepResponse | undefined} updateChangesStr - The result of the update changes step.
+ * @returns {Promise<StepResponse>} A promise that resolves to a StepResponse indicating the success or failure of the comment operation.
+ */
 export const comment = async (
   ocotokit: ReturnType<typeof getOctokit>,
   context: Context,
