@@ -1,21 +1,22 @@
 {
-  "name": "typescript-action",
-  "description": "GitHub Actions TypeScript template",
-  "version": "0.0.0",
-  "author": "",
-  "private": true,
-  "homepage": "https://github.com/actions/typescript-action",
+  "name": "web-components-code-quality",
+  "description": "This action is designed to format and test Web Component repositories on pull requests. It helps ensure that your code meets the required quality standards.",
+  "version": "0.0.1",
+  "author": "Zebra Technologies",
+  "private": false,
+  "homepage": "https://github.com/ZebraDevs/web-components-code-quality",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/typescript-action.git"
+    "url": "git+https://github.com/ZebraDevs/web-components-code-quality.git"
   },
   "bugs": {
-    "url": "https://github.com/actions/typescript-action/issues"
+    "url": "https://github.com/ZebraDevs/web-components-code-quality/issues"
   },
   "keywords": [
     "actions",
     "node",
-    "setup"
+    "web components",
+    "code quality"
   ],
   "exports": {
     ".": "./dist/index.js"
@@ -24,15 +25,19 @@
     "node": ">=21"
   },
   "scripts": {
+    "setup": "npm i && npm run bundle",
+    "analyze": "cem analyze",
     "bundle": "npm run format:write && npm run package",
-    "ci-test": "npx jest",
     "coverage": "npx make-coverage-badge --output-path ./badges/coverage.svg",
+    "docs": "npx typedoc --logLevel Warn",
     "format:write": "npx prettier --write .",
     "format:check": "npx prettier --check .",
+    "lint:lit-analyzer": "lit-analyzer --quiet",
     "lint": "npx eslint . -c ./.github/linters/.eslintrc.yml",
     "local-action": "npx local-action . src/main.ts .env",
     "package": "npx ncc build src/index.ts -o dist --source-map --license licenses.txt",
     "package:watch": "npm run package -- --watch",
+    "prettier": "prettier src --write --ignore-unknown",
     "test": "npx jest",
     "all": "npm run format:write && npm run lint && npm run test && npm run coverage && npm run package"
   },
@@ -67,25 +72,40 @@
     ]
   },
   "dependencies": {
-    "@actions/core": "^1.11.1"
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.0",
+    "@playwright/test": "^1.49.1",
+    "actions-toolkit": "^6.0.1",
+    "minimist": "^1.2.8",
+    "octokit": "^4.0.2",
+    "parse-lcov": "^1.0.4",
+    "undici-types": "^7.1.0",
+    "xml-js": "^1.6.11"
   },
   "devDependencies": {
+    "@custom-elements-manifest/analyzer": "^0.10.3",
     "@github/local-action": "^2.2.0",
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.14",
-    "@types/node": "^22.9.0",
+    "@types/minimist": "^1.2.5",
+    "@types/node": "^22.10.1",
     "@typescript-eslint/eslint-plugin": "^8.14.0",
     "@typescript-eslint/parser": "^8.14.0",
     "@vercel/ncc": "^0.38.3",
+    "@web/dev-server-esbuild": "^1.0.3",
+    "custom-elements-manifest": "^2.1.0",
     "eslint": "^8.57.0",
     "eslint-plugin-jest": "^28.9.0",
     "eslint-plugin-jsonc": "^2.18.2",
     "eslint-plugin-prettier": "^5.2.1",
     "jest": "^29.7.0",
+    "lit-analyzer": "^2.0.3",
     "make-coverage-badge": "^1.2.0",
-    "prettier": "^3.3.3",
+    "prettier": "3.4.2",
     "prettier-eslint": "^16.3.0",
+    "quibble": "^0.9.2",
     "ts-jest": "^29.2.5",
+    "typedoc": "^0.27.3",
     "typescript": "^5.6.3"
   }
 }

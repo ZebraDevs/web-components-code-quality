@@ -100,3 +100,9 @@ __tests__/runner/*
 # IDE files
 .idea
 *.code-workspace
+
+# TS Docs
+docs
+
+# VSCode
+.vscode
