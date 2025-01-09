@@ -32819,7 +32819,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.commandComment = exports.buildComment = exports.runCommand = exports.runBashCommand = exports.coverageDown = exports.coverageUp = exports.passedEmoji = exports.failedEmoji = void 0;
+exports.commandComment = exports.buildComment = exports.runCommand = exports.runBashCommand = exports.coverageDown = exports.coverageUp = exports.detailsEmoji = exports.passedEmoji = exports.failedEmoji = void 0;
 exports.run = run;
 const core_1 = __nccwpck_require__(7484);
 const exec_1 = __nccwpck_require__(5236);
@@ -32834,6 +32834,7 @@ const child_process_1 = __nccwpck_require__(5317);
 const post_1 = __nccwpck_require__(3884);
 exports.failedEmoji = "❌";
 exports.passedEmoji = "✅";
+exports.detailsEmoji = "➡️";
 exports.coverageUp = "📈";
 exports.coverageDown = "📉";
 String.prototype.isEmpty = function () {
@@ -32873,14 +32874,14 @@ exports.runCommand = runCommand;
 const buildComment = async (response, label, outputStr, problemsCount) => {
     if (response.error == true) {
         if (problemsCount !== undefined && problemsCount > 0) {
-            response.output = `${exports.failedEmoji} - ${label}: ${problemsCount} problem${problemsCount > 1 ? "s" : ""} found\n<details><summary>See Details</summary>${outputStr}</details>`;
+            response.output = `${exports.failedEmoji} - ${label}: ${problemsCount} problem${problemsCount > 1 ? "s" : ""} found\n<details><summary>${exports.detailsEmoji} - See Details</summary>${outputStr}</details>`;
             // response.output = `<details><summary>${failedEmoji} - ${label}: ${problemsCount} problem${
             //   problemsCount > 1 ? "s" : ""
             // }</summary>${outputStr}</details>\n`;
             // response.output = `${problemsCount}:${label}:${outputStr}`;
         }
         else {
-            response.output = `${exports.failedEmoji} - ${label}\n<details><summary>See Details</summary>${outputStr}</details>`;
+            response.output = `${exports.failedEmoji} - ${label}\n<details><summary>${exports.detailsEmoji} - See Details</summary>${outputStr}</details>`;
             // response.output = `<details><summary>${failedEmoji} - ${label}</summary>${outputStr}</details>\n`;
             // response.output = `${label}:${outputStr}`;
         }
@@ -33175,13 +33176,19 @@ exports.typeDoc = typeDoc;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.comment = void 0;
 const core_1 = __nccwpck_require__(7484);
+const main_1 = __nccwpck_require__(1730);
 const group = (name, steps, showOnPass) => {
     const isError = steps.some((step) => step.error);
-    let message = `### ${name}\n`;
-    steps.forEach((step) => {
-        message += `${step !== undefined ? li(step.output) : ""}`;
-    });
-    return message;
+    if (showOnPass || isError) {
+        let message = `### ${isError ? main_1.failedEmoji : main_1.passedEmoji} ${name}\n`;
+        steps.forEach((step) => {
+            message += `${step !== undefined ? li(step.output) : ""}`;
+        });
+        return message;
+    }
+    else {
+        return "";
+    }
     // const isError = steps.some((step) => step.error);
     // let message = "";
     // if (isError) {
@@ -33212,11 +33219,9 @@ const group = (name, steps, showOnPass) => {
 };
 const li = (str) => {
     return `
-  
 <li>
   ${str}
 </li>
-
 `;
 };
 const comment = async (ocotokit, context, npmIStr, cemStr, eslintStr, litAnalyzerStr, prettierStr, playwrightStr, testingStr, coverageStr, typeDocStr, checkModifiedFilesStr, updateChangesStr) => {
@@ -33266,8 +33271,6 @@ ${group("Analysis", analysis, true)}
 ${group("Formatting", formatting, true)}
 ${group("Testing", testing, true)}
 ${group("Post Checks", postChecks, false)}
-
-
 `;
         const { data: comments } = await ocotokit.rest.issues.listComments({
             issue_number: context.issue.number,
@@ -33378,17 +33381,17 @@ const coverage = async (pastCoverageScore, currentCoverageScore, coveragePassSco
     if (currentCoverageScore !== undefined && pastCoverageScore !== undefined) {
         if (currentCoverageScore < parseInt(coveragePassScore)) {
             response.error = true;
-            response.output = `${main_1.failedEmoji} - Coverage below ${coveragePassScore}%: Current ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
+            response.output = `${main_1.failedEmoji} - Coverage below ${coveragePassScore}%: Current ${currentCoverageScore}%\n<details><summary>${main_1.detailsEmoji} - See Details</summary>${coverageTable}</details>`;
         }
         else {
             if (pastCoverageScore === currentCoverageScore) {
-                response.output = `${main_1.passedEmoji} - Coverage: ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
+                response.output = `${main_1.passedEmoji} - Coverage: ${currentCoverageScore}%\n<details><summary>${main_1.detailsEmoji} - See Details</summary>${coverageTable}</details>`;
             }
             else if (pastCoverageScore > currentCoverageScore) {
-                response.output = `${main_1.coverageDown} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
+                response.output = `${main_1.coverageDown} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>${main_1.detailsEmoji} - See Details</summary>${coverageTable}</details>`;
             }
             else if (pastCoverageScore < currentCoverageScore) {
-                response.output = `${main_1.coverageUp} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>See Details</summary>${coverageTable}</details>`;
+                response.output = `${main_1.coverageUp} - Coverage: from ${pastCoverageScore}% to ${currentCoverageScore}%\n<details><summary>${main_1.detailsEmoji} - See Details</summary>${coverageTable}</details>`;
             }
         }
     }

@@ -9,11 +9,15 @@ const group = (
   showOnPass: boolean,
 ): string => {
   const isError = steps.some((step) => step.error);
-  let message = `### ${name}\n`;
-  steps.forEach((step) => {
-    message += `${step !== undefined ? li(step.output) : ""}`;
-  });
-  return message;
+  if (showOnPass || isError) {
+    let message = `### ${isError ? failedEmoji : passedEmoji} ${name}\n`;
+    steps.forEach((step) => {
+      message += `${step !== undefined ? li(step.output) : ""}`;
+    });
+    return message;
+  } else {
+    return "";
+  }
 
   // const isError = steps.some((step) => step.error);
   // let message = "";
@@ -47,11 +51,9 @@ const group = (
 
 const li = (str: string): string => {
   return `
-  
 <li>
   ${str}
 </li>
-
 `;
 };
 
@@ -106,8 +108,6 @@ ${group("Analysis", analysis, true)}
 ${group("Formatting", formatting, true)}
 ${group("Testing", testing, true)}
 ${group("Post Checks", postChecks, false)}
-
-
 `;
 
     const { data: comments } = await ocotokit.rest.issues.listComments({

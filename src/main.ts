@@ -19,6 +19,7 @@ export type Command = {
 export type StepResponse = { output: string; error: boolean };
 export const failedEmoji = "❌";
 export const passedEmoji = "✅";
+export const detailsEmoji = "➡️";
 export const coverageUp = "📈";
 export const coverageDown = "📉";
 
@@ -73,7 +74,7 @@ export const buildComment = async (
     if (problemsCount !== undefined && problemsCount > 0) {
       response.output = `${failedEmoji} - ${label}: ${problemsCount} problem${
         problemsCount > 1 ? "s" : ""
-      } found\n<details><summary>See Details</summary>${outputStr}</details>`;
+      } found\n<details><summary>${detailsEmoji} - See Details</summary>${outputStr}</details>`;
 
       // response.output = `<details><summary>${failedEmoji} - ${label}: ${problemsCount} problem${
       //   problemsCount > 1 ? "s" : ""
@@ -81,7 +82,7 @@ export const buildComment = async (
 
       // response.output = `${problemsCount}:${label}:${outputStr}`;
     } else {
-      response.output = `${failedEmoji} - ${label}\n<details><summary>See Details</summary>${outputStr}</details>`;
+      response.output = `${failedEmoji} - ${label}\n<details><summary>${detailsEmoji} - See Details</summary>${outputStr}</details>`;
 
       // response.output = `<details><summary>${failedEmoji} - ${label}</summary>${outputStr}</details>\n`;
 
