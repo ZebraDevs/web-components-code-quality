@@ -33201,20 +33201,20 @@ exports.eslint = eslint;
  * successfully, it builds a simple success comment.
  */
 const litAnalyzer = async (command) => {
-    let [response, outputStr] = await (0, main_1.runCommand)(command);
+    const [response, initialOutputStr] = await (0, main_1.runCommand)(command);
+    let outputStr = initialOutputStr;
     let problemCount = 0;
-    if (response.error == true) {
+    if (response.error) {
         const lines = outputStr.split("\n");
-        const problemsCountStr = lines
-            .map((line) => {
+        const problemsCountStr = lines.reduce((acc, line) => {
             const match = line.match(/^\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|$/);
             if (match) {
-                const [filesChecked, filesWithProblems, problems, errors, warnings] = match;
-                return problems;
+                const [, , , problems] = match;
+                return acc + problems;
             }
-        })
-            .join("");
-        problemCount = parseInt(problemsCountStr);
+            return acc;
+        }, "");
+        problemCount = parseInt(problemsCountStr, 10) || 0;
         outputStr = outputStr.split("...").pop() || outputStr;
     }
     return await (0, main_1.buildComment)(response, command.label, outputStr, problemCount);
@@ -33288,6 +33288,14 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.comment = void 0;
 const core_1 = __nccwpck_require__(7484);
 const main_1 = __nccwpck_require__(1730);
+/**
+ * Generates a formatted message for a group of steps.
+ *
+ * @param {string} name - The name of the group.
+ * @param {StepResponse[]} steps - An array of step responses.
+ * @param {boolean} showOnPass - A boolean indicating whether to show the message even if all steps pass.
+ * @returns {string} A formatted string message for the group of steps.
+ */
 const group = (name, steps, showOnPass) => {
     const isError = steps.some((step) => step.error);
     if (showOnPass || isError) {
@@ -33301,6 +33309,12 @@ const group = (name, steps, showOnPass) => {
         return "";
     }
 };
+/**
+ * Generates an HTML list item (`<li>`) element containing the provided string.
+ *
+ * @param {string} str - The string to be included within the list item.
+ * @returns {string} The HTML string representing the list item.
+ */
 const li = (str) => {
     return `
 <li>
@@ -33308,6 +33322,25 @@ const li = (str) => {
 </li>
 `;
 };
+/**
+ * Posts a comment on a GitHub issue or pull request summarizing the results of various checks.
+ * If a comment with the summary already exists, it updates the comment instead.
+ *
+ * @param {ReturnType<typeof getOctokit>} ocotokit - The Octokit instance for making GitHub API requests.
+ * @param {Context} context - The context of the GitHub action, including issue and repository information.
+ * @param {StepResponse | undefined} npmIStr - The result of the npm install step.
+ * @param {StepResponse | undefined} cemStr - The result of the custom element manifest step.
+ * @param {StepResponse | undefined} eslintStr - The result of the ESLint step.
+ * @param {StepResponse | undefined} litAnalyzerStr - The result of the Lit Analyzer step.
+ * @param {StepResponse | undefined} prettierStr - The result of the Prettier formatting step.
+ * @param {StepResponse | undefined} playwrightStr - The result of the Playwright testing step.
+ * @param {StepResponse | undefined} testingStr - The result of the general testing step.
+ * @param {StepResponse | undefined} coverageStr - The result of the code coverage step.
+ * @param {StepResponse | undefined} typeDocStr - The result of the TypeDoc documentation generation step.
+ * @param {StepResponse | undefined} checkModifiedFilesStr - The result of the check for modified files step.
+ * @param {StepResponse | undefined} updateChangesStr - The result of the update changes step.
+ * @returns {Promise<StepResponse>} A promise that resolves to a StepResponse indicating the success or failure of the comment operation.
+ */
 const comment = async (ocotokit, context, npmIStr, cemStr, eslintStr, litAnalyzerStr, prettierStr, playwrightStr, testingStr, coverageStr, typeDocStr, checkModifiedFilesStr, updateChangesStr) => {
     try {
         let setup = [];
@@ -33418,6 +33451,12 @@ exports.coverage = exports.getCoverage = void 0;
 const fs = __importStar(__nccwpck_require__(9896));
 const main_1 = __nccwpck_require__(1730);
 const parse_lcov_1 = __importDefault(__nccwpck_require__(2769));
+/**
+ * Loads and parses LCOV coverage data from the specified file path.
+ *
+ * @param {string} coveragePath - The file path to the LCOV coverage data.
+ * @returns {LCOVRecord[] | undefined} An array of LCOVRecord objects if the file is successfully read and parsed, otherwise undefined.
+ */
 const loadCoverageData = (coveragePath) => {
     let coverageData;
     try {
@@ -33429,6 +33468,12 @@ const loadCoverageData = (coveragePath) => {
     }
     return coverageData;
 };
+/**
+ * Calculates the code coverage percentage from the given coverage data file.
+ *
+ * @param {string} coveragePath - The path to the coverage data file.
+ * @returns {number} The code coverage percentage, rounded to two decimal places.
+ */
 const getCoverage = (coveragePath) => {
     let coverage = 0;
     let coverageData = loadCoverageData(coveragePath);
@@ -33446,6 +33491,15 @@ const getCoverage = (coveragePath) => {
     return Number((coverage * 100).toFixed(2));
 };
 exports.getCoverage = getCoverage;
+/**
+ * Calculates and returns the coverage analysis result based on past and current coverage scores.
+ *
+ * @param {number | undefined} pastCoverageScore - The coverage score from the previous run. Can be undefined.
+ * @param {number | undefined} currentCoverageScore - The coverage score from the current run. Can be undefined.
+ * @param {string} coveragePassScore - The minimum coverage percentage required to pass as a string.
+ * @param {string} coveragePath - The file path to the coverage data.
+ * @returns {Promise<StepResponse>} A promise that resolves to a `StepResponse` object containing the output message and error status.
+ */
 const coverage = async (pastCoverageScore, currentCoverageScore, coveragePassScore, coveragePath) => {
     let response = { output: "", error: false };
     let coverageData = loadCoverageData(coveragePath);
@@ -33474,6 +33528,18 @@ const coverage = async (pastCoverageScore, currentCoverageScore, coveragePassSco
     return response;
 };
 exports.coverage = coverage;
+/**
+ * Converts an array of LCOVRecord objects into an HTML table string representation.
+ *
+ * @param {LCOVRecord[]} coverageData - An array of LCOVRecord objects containing coverage data for files.
+ * @returns {string} A string representing an HTML table with coverage data for each file.
+ *
+ * The table includes the following columns:
+ * - File: The name of the file.
+ * - Lines: The percentage of lines covered and the ratio of hit lines to found lines.
+ * - Branches: The percentage of branches covered and the ratio of hit branches to found branches.
+ * - Functions: The percentage of functions covered and the ratio of hit functions to found functions.
+ */
 const coverageDataToTable = (coverageData) => {
     let table = "<table><tr><th>File</th><th>Lines</th><th></th><th>Branches</th><th></th><th>Functions</th><th></th></tr>";
     coverageData.forEach((file) => {
@@ -33511,6 +33577,17 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.updateChanges = exports.checkModifiedFiles = void 0;
 const core_1 = __nccwpck_require__(7484);
 const main_1 = __nccwpck_require__(1730);
+/**
+ * Checks if there are any modified files by running a given bash command.
+ *
+ * @param {Command} command - The command to run in the bash shell.
+ * @returns {Promise<[StepResponse, boolean]>} A promise that resolves to a tuple containing the step response and a boolean indicating if files were modified.
+ *
+ * The function executes the provided bash command and processes the output.
+ * If the output is not empty, it sets `filesModified` to true.
+ * It builds a comment based on the command label and the output or error message.
+ * In case of an error, it sets the step as failed and includes the error message in the comment.
+ */
 const checkModifiedFiles = async (command) => {
     let filesModified = false;
     const result = await (0, main_1.runBashCommand)(command.command)
@@ -33532,6 +33609,13 @@ const checkModifiedFiles = async (command) => {
     return [result, filesModified];
 };
 exports.checkModifiedFiles = checkModifiedFiles;
+/**
+ * Updates changes by executing a list of commands and building a response comment.
+ *
+ * @param {Command} command - The command object containing a list of commands to execute and a label.
+ * @returns {Promise<StepResponse>} - A promise that resolves to a StepResponse object containing the output and error status.
+ *
+ */
 const updateChanges = async (command) => {
     let response = { output: "", error: false };
     for (const cmd of command.commandList) {
@@ -33639,61 +33723,6 @@ const testing = async (command, testResultsPath) => {
         outputStr = "Failed to read test results file: " + error;
         (0, core_1.setFailed)(`Failed to read test results: ${error}`);
     }
-    // let problemCount: number | undefined = undefined;
-    // if (response.error && !failedToReadFile) {
-    //   const jsonResults = JSON.parse(
-    //     convert.xml2json(testResults, { compact: false, spaces: 2 }),
-    //   );
-    //   const testSuites = jsonResults.elements[0].elements;
-    //   const testCases = testSuites.flatMap(
-    //     (suite: any) =>
-    //       suite.elements?.filter((element: any) => element.name === "testcase") ??
-    //       [],
-    //   );
-    //   const failedTestCases = testCases.filter((testCase: any) =>
-    //     testCase.elements?.some((element: any) => element.name === "failure"),
-    //   );
-    //   problemCount = failedTestCases.length;
-    //   if (problemCount! > 0) {
-    //     outputStr = `
-    //       <table>
-    //         <tr>
-    //           <th>File</th>
-    //           <th>Test Name</th>
-    //           <th>Line</th>
-    //           <th>Type</th>
-    //           <th>Message</th>
-    //         </tr>
-    //         ${failedTestCases
-    //           .map((testCase: any) => {
-    //             const { name: testCaseName, file, line } = testCase.attributes;
-    //             const failure = testCase.elements.find(
-    //               (element: any) => element.name === "failure",
-    //             );
-    //             const { type: failureType, message } = failure.attributes;
-    //             return `
-    //             <tr>
-    //               <td>${file}</td>
-    //               <td>${testCaseName}</td>
-    //               <td>${line}</td>
-    //               <td>${failureType}</td>
-    //               <td>${message}</td>
-    //             </tr>
-    //           `;
-    //           })
-    //           .join("")}
-    //       </table>
-    //     `;
-    //   } else {
-    //     outputStr = "Test Run Failed";
-    //   }
-    // }
-    // return await buildComment(
-    //   response,
-    //   command.label,
-    //   outputStr,
-    //   problemCount ?? undefined,
-    // );
     let problemCount = 0;
     if (response.error && !failedToReadFile) {
         const jsonResults = JSON.parse(xml_js_1.default.xml2json(testResults, { compact: false, spaces: 2 }));
