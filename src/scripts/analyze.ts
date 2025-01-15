@@ -50,27 +50,28 @@ export const eslint = async (command: Command): Promise<StepResponse> => {
  * successfully, it builds a simple success comment.
  */
 export const litAnalyzer = async (command: Command): Promise<StepResponse> => {
-  let [response, outputStr] = await runCommand(command);
+  const [response, initialOutputStr] = await runCommand(command);
+  let outputStr = initialOutputStr;
   let problemCount = 0;
-  if (response.error == true) {
-    const lines = outputStr.split("\n");
-    const problemsCountStr = lines
-      .map((line) => {
-        const match = line.match(
-          /^\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|$/,
-        );
-        if (match) {
-          const [filesChecked, filesWithProblems, problems, errors, warnings] =
-            match;
-          return problems;
-        }
-      })
-      .join("");
 
-    problemCount = parseInt(problemsCountStr);
+  if (response.error) {
+    const lines = outputStr.split("\n");
+    const problemsCountStr = lines.reduce((acc, line) => {
+      const match = line.match(
+        /^\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|$/,
+      );
+      if (match) {
+        const [, , , problems] = match;
+        return acc + problems;
+      }
+      return acc;
+    }, "");
+
+    problemCount = parseInt(problemsCountStr, 10) || 0;
 
     outputStr = outputStr.split("...").pop() || outputStr;
   }
+
   return await buildComment(response, command.label, outputStr, problemCount);
 };
 
