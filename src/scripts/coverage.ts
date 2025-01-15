@@ -9,6 +9,12 @@ import {
 } from "src/main";
 import parseLCOV, { LCOVRecord } from "parse-lcov";
 
+/**
+ * Loads and parses LCOV coverage data from the specified file path.
+ *
+ * @param {string} coveragePath - The file path to the LCOV coverage data.
+ * @returns {LCOVRecord[] | undefined} An array of LCOVRecord objects if the file is successfully read and parsed, otherwise undefined.
+ */
 const loadCoverageData = (coveragePath: string): LCOVRecord[] | undefined => {
   let coverageData: LCOVRecord[] | undefined;
   try {
@@ -20,6 +26,12 @@ const loadCoverageData = (coveragePath: string): LCOVRecord[] | undefined => {
   return coverageData;
 };
 
+/**
+ * Calculates the code coverage percentage from the given coverage data file.
+ *
+ * @param {string} coveragePath - The path to the coverage data file.
+ * @returns {number} The code coverage percentage, rounded to two decimal places.
+ */
 export const getCoverage = (coveragePath: string): number => {
   let coverage = 0;
   let coverageData = loadCoverageData(coveragePath);
@@ -41,6 +53,15 @@ export const getCoverage = (coveragePath: string): number => {
   return Number((coverage * 100).toFixed(2));
 };
 
+/**
+ * Calculates and returns the coverage analysis result based on past and current coverage scores.
+ *
+ * @param {number | undefined} pastCoverageScore - The coverage score from the previous run. Can be undefined.
+ * @param {number | undefined} currentCoverageScore - The coverage score from the current run. Can be undefined.
+ * @param {string} coveragePassScore - The minimum coverage percentage required to pass as a string.
+ * @param {string} coveragePath - The file path to the coverage data.
+ * @returns {Promise<StepResponse>} A promise that resolves to a `StepResponse` object containing the output message and error status.
+ */
 export const coverage = async (
   pastCoverageScore: number | undefined,
   currentCoverageScore: number | undefined,
@@ -73,6 +94,18 @@ export const coverage = async (
   return response;
 };
 
+/**
+ * Converts an array of LCOVRecord objects into an HTML table string representation.
+ *
+ * @param {LCOVRecord[]} coverageData - An array of LCOVRecord objects containing coverage data for files.
+ * @returns {string} A string representing an HTML table with coverage data for each file.
+ *
+ * The table includes the following columns:
+ * - File: The name of the file.
+ * - Lines: The percentage of lines covered and the ratio of hit lines to found lines.
+ * - Branches: The percentage of branches covered and the ratio of hit branches to found branches.
+ * - Functions: The percentage of functions covered and the ratio of hit functions to found functions.
+ */
 const coverageDataToTable = (coverageData: LCOVRecord[]): string => {
   let table =
     "<table><tr><th>File</th><th>Lines</th><th></th><th>Branches</th><th></th><th>Functions</th><th></th></tr>";

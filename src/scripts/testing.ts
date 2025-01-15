@@ -67,66 +67,6 @@ export const testing = async (
     setFailed(`Failed to read test results: ${error as string}`);
   }
 
-  // let problemCount: number | undefined = undefined;
-  // if (response.error && !failedToReadFile) {
-  //   const jsonResults = JSON.parse(
-  //     convert.xml2json(testResults, { compact: false, spaces: 2 }),
-  //   );
-
-  //   const testSuites = jsonResults.elements[0].elements;
-  //   const testCases = testSuites.flatMap(
-  //     (suite: any) =>
-  //       suite.elements?.filter((element: any) => element.name === "testcase") ??
-  //       [],
-  //   );
-
-  //   const failedTestCases = testCases.filter((testCase: any) =>
-  //     testCase.elements?.some((element: any) => element.name === "failure"),
-  //   );
-
-  //   problemCount = failedTestCases.length;
-
-  //   if (problemCount! > 0) {
-  //     outputStr = `
-  //       <table>
-  //         <tr>
-  //           <th>File</th>
-  //           <th>Test Name</th>
-  //           <th>Line</th>
-  //           <th>Type</th>
-  //           <th>Message</th>
-  //         </tr>
-  //         ${failedTestCases
-  //           .map((testCase: any) => {
-  //             const { name: testCaseName, file, line } = testCase.attributes;
-  //             const failure = testCase.elements.find(
-  //               (element: any) => element.name === "failure",
-  //             );
-  //             const { type: failureType, message } = failure.attributes;
-  //             return `
-  //             <tr>
-  //               <td>${file}</td>
-  //               <td>${testCaseName}</td>
-  //               <td>${line}</td>
-  //               <td>${failureType}</td>
-  //               <td>${message}</td>
-  //             </tr>
-  //           `;
-  //           })
-  //           .join("")}
-  //       </table>
-  //     `;
-  //   } else {
-  //     outputStr = "Test Run Failed";
-  //   }
-  // }
-  // return await buildComment(
-  //   response,
-  //   command.label,
-  //   outputStr,
-  //   problemCount ?? undefined,
-  // );
-
   let problemCount = 0;
   if (response.error && !failedToReadFile) {
     const jsonResults = JSON.parse(
