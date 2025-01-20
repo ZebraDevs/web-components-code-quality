@@ -79,7 +79,7 @@
     "minimist": "^1.2.8",
     "octokit": "^4.0.2",
     "parse-lcov": "^1.0.4",
-    "undici-types": "^7.1.0",
+    "undici-types": "^7.2.3",
     "xml-js": "^1.6.11"
   },
   "devDependencies": {
