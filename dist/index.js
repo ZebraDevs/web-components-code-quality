@@ -33033,14 +33033,13 @@ const getInputs = (isLocal) => {
  * 1. Check if the environment is local.
  * 2. Retrieve inputs based on the environment.
  * 3. Change the working directory if specified.
- * 4. Install dependencies using npm.
- * 5. Generate a Custom Elements Manifest using `npx cem analyze`.
- * 6. Run static analysis tools (ESLint, Lit Analyzer, TypeDoc) if enabled.
- * 7. Format code using Prettier if enabled.
- * 8. Install Playwright browsers and run tests if enabled.
- * 9. Calculate and compare code coverage if enabled.
- * 10. Check for modified files and update changes in the GitHub repository if any.
- * 11. Create a comment on the GitHub pull request with the results if enabled.
+ * 4. Generate a Custom Elements Manifest using `npx cem analyze`.
+ * 5. Run static analysis tools (ESLint, Lit Analyzer, TypeDoc) if enabled.
+ * 6. Format code using Prettier if enabled.
+ * 7. Install Playwright browsers and run tests if enabled.
+ * 8. Calculate and compare code coverage if enabled.
+ * 9. Check for modified files and update changes in the GitHub repository if any.
+ * 10. Create a comment on the GitHub pull request with the results if enabled.
  */
 async function run() {
     const isLocal = checkIfLocal();
@@ -33051,11 +33050,6 @@ async function run() {
         if (workingDirectory && workingDirectory !== currentDirectory) {
             (0, process_1.chdir)(workingDirectory);
         }
-        // run set up
-        const npmIStr = await (0, exports.commandComment)({
-            label: "Install Dependencies",
-            command: "npm i --ignore-scripts",
-        });
         const cemStr = await (0, exports.commandComment)({
             label: "Custom Elements Manifest",
             command: "npx cem analyze",
@@ -33136,7 +33130,7 @@ async function run() {
             : undefined;
         // createComment
         if (createComment) {
-            await (0, comment_1.comment)((0, github_1.getOctokit)(token), github_1.context, npmIStr, cemStr, eslintStr, litAnalyzerStr, prettierStr, playwrightStr, testingStr, coverageStr, typeDocStr, checkModifiedFilesStr, updateChangesStr);
+            await (0, comment_1.comment)((0, github_1.getOctokit)(token), github_1.context, cemStr, eslintStr, litAnalyzerStr, prettierStr, playwrightStr, testingStr, coverageStr, typeDocStr, checkModifiedFilesStr, updateChangesStr);
         }
     }
     catch (error) {
@@ -33328,7 +33322,6 @@ const li = (str) => {
  *
  * @param {ReturnType<typeof getOctokit>} ocotokit - The Octokit instance for making GitHub API requests.
  * @param {Context} context - The context of the GitHub action, including issue and repository information.
- * @param {StepResponse | undefined} npmIStr - The result of the npm install step.
  * @param {StepResponse | undefined} cemStr - The result of the custom element manifest step.
  * @param {StepResponse | undefined} eslintStr - The result of the ESLint step.
  * @param {StepResponse | undefined} litAnalyzerStr - The result of the Lit Analyzer step.
@@ -33341,15 +33334,13 @@ const li = (str) => {
  * @param {StepResponse | undefined} updateChangesStr - The result of the update changes step.
  * @returns {Promise<StepResponse>} A promise that resolves to a StepResponse indicating the success or failure of the comment operation.
  */
-const comment = async (ocotokit, context, npmIStr, cemStr, eslintStr, litAnalyzerStr, prettierStr, playwrightStr, testingStr, coverageStr, typeDocStr, checkModifiedFilesStr, updateChangesStr) => {
+const comment = async (ocotokit, context, cemStr, eslintStr, litAnalyzerStr, prettierStr, playwrightStr, testingStr, coverageStr, typeDocStr, checkModifiedFilesStr, updateChangesStr) => {
     try {
         let setup = [];
         let analysis = [];
         let formatting = [];
         let testing = [];
         let postChecks = [];
-        if (npmIStr !== undefined)
-            setup.push(npmIStr);
         if (cemStr !== undefined)
             setup.push(cemStr);
         if (eslintStr !== undefined)
