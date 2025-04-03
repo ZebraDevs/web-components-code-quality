@@ -41,28 +41,35 @@
           "default": "\"✅\""
         },
         {
-          "kind": "function",
-          "name": "buildComment",
-          "return": {
-            "type": {
-              "text": "Promise<string[]>"
-            }
+          "kind": "variable",
+          "name": "detailsEmoji",
+          "type": {
+            "text": "string"
           },
-          "parameters": [
-            {
-              "name": "commands",
-              "type": {
-                "text": "{ label: string; command: string }[]"
-              }
-            }
-          ]
+          "default": "\"➡️\""
+        },
+        {
+          "kind": "variable",
+          "name": "coverageUp",
+          "type": {
+            "text": "string"
+          },
+          "default": "\"📈\""
+        },
+        {
+          "kind": "variable",
+          "name": "coverageDown",
+          "type": {
+            "text": "string"
+          },
+          "default": "\"📉\""
         },
         {
           "kind": "function",
-          "name": "runCommand",
+          "name": "runBashCommand",
           "return": {
             "type": {
-              "text": "Promise<string | boolean>"
+              "text": ""
             }
           },
           "parameters": [
@@ -70,15 +77,91 @@
               "name": "command",
               "type": {
                 "text": "string"
-              }
+              },
+              "description": "The Bash command to execute."
+            }
+          ],
+          "description": "Executes a given Bash command and returns the output as a string."
+        },
+        {
+          "kind": "function",
+          "name": "runCommand",
+          "return": {
+            "type": {
+              "text": "Promise<[StepResponse, string]>"
+            }
+          },
+          "parameters": [
+            {
+              "name": "command",
+              "type": {
+                "text": "Command"
+              },
+              "description": "The command to be executed."
+            }
+          ],
+          "description": "Executes a given command asynchronously and returns the response and output string."
+        },
+        {
+          "kind": "function",
+          "name": "buildComment",
+          "return": {
+            "type": {
+              "text": "Promise<StepResponse>"
+            }
+          },
+          "parameters": [
+            {
+              "name": "response",
+              "type": {
+                "text": "StepResponse"
+              },
+              "description": "The response object containing the error status and output."
             },
             {
               "name": "label",
               "type": {
                 "text": "string"
-              }
+              },
+              "description": "A label to be included in the comment."
+            },
+            {
+              "name": "outputStr",
+              "optional": true,
+              "type": {
+                "text": "string"
+              },
+              "description": "An optional string to be included in the comment details."
+            },
+            {
+              "name": "problemsCount",
+              "optional": true,
+              "type": {
+                "text": "number"
+              },
+              "description": "An optional number representing the count of problems found."
             }
-          ]
+          ],
+          "description": "Builds a comment based on the provided response, label, output string, and problems count."
+        },
+        {
+          "kind": "function",
+          "name": "commandComment",
+          "return": {
+            "type": {
+              "text": "Promise<StepResponse>"
+            }
+          },
+          "parameters": [
+            {
+              "name": "command",
+              "type": {
+                "text": "Command"
+              },
+              "description": "The command to be executed."
+            }
+          ],
+          "description": "Executes a given command and builds a comment based on the command's response."
         },
         {
           "kind": "function",
@@ -88,7 +171,7 @@
               "text": "Promise<void>"
             }
           },
-          "description": "The main function for the action."
+          "description": "Executes the main workflow for the project, including setting up dependencies,\nrunning static analysis, code formatting, tests, and updating changes in the\nGitHub repository."
         }
       ],
       "exports": [
@@ -110,9 +193,33 @@
         },
         {
           "kind": "js",
-          "name": "buildComment",
+          "name": "detailsEmoji",
           "declaration": {
-            "name": "buildComment",
+            "name": "detailsEmoji",
+            "module": "src/main.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "coverageUp",
+          "declaration": {
+            "name": "coverageUp",
+            "module": "src/main.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "coverageDown",
+          "declaration": {
+            "name": "coverageDown",
+            "module": "src/main.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "runBashCommand",
+          "declaration": {
+            "name": "runBashCommand",
             "module": "src/main.ts"
           }
         },
@@ -121,6 +228,22 @@
           "name": "runCommand",
           "declaration": {
             "name": "runCommand",
+            "module": "src/main.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "buildComment",
+          "declaration": {
+            "name": "buildComment",
+            "module": "src/main.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "commandComment",
+          "declaration": {
+            "name": "commandComment",
             "module": "src/main.ts"
           }
         },
@@ -136,36 +259,6 @@
     },
     {
       "kind": "javascript-module",
-      "path": "docs/assets/hierarchy.js",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "docs/assets/icons.js",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "docs/assets/main.js",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "docs/assets/navigation.js",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "docs/assets/search.js",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
       "path": "src/scripts/analyze.ts",
       "declarations": [
         {
@@ -173,7 +266,7 @@
           "name": "eslint",
           "return": {
             "type": {
-              "text": "Promise<stepResponse>"
+              "text": "Promise<StepResponse>"
             }
           },
           "parameters": [
@@ -181,16 +274,18 @@
               "name": "command",
               "type": {
                 "text": "Command"
-              }
+              },
+              "description": "The command to run ESLint."
             }
-          ]
+          ],
+          "description": "Executes an ESLint command and processes the output to generate an HTML table of linting issues."
         },
         {
           "kind": "function",
           "name": "litAnalyzer",
           "return": {
             "type": {
-              "text": "Promise<stepResponse>"
+              "text": "Promise<StepResponse>"
             }
           },
           "parameters": [
@@ -198,18 +293,30 @@
               "name": "command",
               "type": {
                 "text": "Command"
-              }
+              },
+              "description": "The command to be executed and analyzed."
             }
-          ]
+          ],
+          "description": "Analyzes the output of a given command using the lit-analyzer tool."
         },
         {
           "kind": "function",
-          "name": "analyze",
+          "name": "typeDoc",
           "return": {
             "type": {
-              "text": "Promise<stepResponse>"
+              "text": "Promise<StepResponse>"
             }
-          }
+          },
+          "parameters": [
+            {
+              "name": "command",
+              "type": {
+                "text": "Command"
+              },
+              "description": "The command to execute."
+            }
+          ],
+          "description": "Executes a TypeDoc command and processes the output."
         }
       ],
       "exports": [
@@ -231,9 +338,9 @@
         },
         {
           "kind": "js",
-          "name": "analyze",
+          "name": "typeDoc",
           "declaration": {
-            "name": "analyze",
+            "name": "typeDoc",
             "module": "src/scripts/analyze.ts"
           }
         }
@@ -248,7 +355,7 @@
           "name": "comment",
           "return": {
             "type": {
-              "text": "Promise<stepResponse>"
+              "text": "Promise<StepResponse>"
             }
           },
           "parameters": [
@@ -256,51 +363,88 @@
               "name": "ocotokit",
               "type": {
                 "text": "ReturnType<typeof getOctokit>"
-              }
+              },
+              "description": "The Octokit instance for making GitHub API requests."
             },
             {
               "name": "context",
               "type": {
                 "text": "Context"
-              }
+              },
+              "description": "The context of the GitHub action, including issue and repository information."
             },
             {
-              "name": "setupStr",
+              "name": "cemStr",
               "type": {
-                "text": "stepResponse | undefined"
-              }
-            },
-            {
-              "name": "analyzeStr",
-              "type": {
-                "text": "stepResponse | undefined"
-              }
+                "text": "StepResponse | undefined"
+              },
+              "description": "The result of the custom element manifest step."
             },
             {
               "name": "eslintStr",
               "type": {
-                "text": "stepResponse | undefined"
-              }
+                "text": "StepResponse | undefined"
+              },
+              "description": "The result of the ESLint step."
             },
             {
               "name": "litAnalyzerStr",
               "type": {
-                "text": "stepResponse | undefined"
-              }
+                "text": "StepResponse | undefined"
+              },
+              "description": "The result of the Lit Analyzer step."
             },
             {
-              "name": "codeFormattingStr",
+              "name": "prettierStr",
               "type": {
-                "text": "stepResponse | undefined"
-              }
+                "text": "StepResponse | undefined"
+              },
+              "description": "The result of the Prettier formatting step."
+            },
+            {
+              "name": "playwrightStr",
+              "type": {
+                "text": "StepResponse | undefined"
+              },
+              "description": "The result of the Playwright testing step."
             },
             {
               "name": "testingStr",
               "type": {
-                "text": "stepResponse | undefined"
-              }
+                "text": "StepResponse | undefined"
+              },
+              "description": "The result of the general testing step."
+            },
+            {
+              "name": "coverageStr",
+              "type": {
+                "text": "StepResponse | undefined"
+              },
+              "description": "The result of the code coverage step."
+            },
+            {
+              "name": "typeDocStr",
+              "type": {
+                "text": "StepResponse | undefined"
+              },
+              "description": "The result of the TypeDoc documentation generation step."
+            },
+            {
+              "name": "checkModifiedFilesStr",
+              "type": {
+                "text": "StepResponse | undefined"
+              },
+              "description": "The result of the check for modified files step."
+            },
+            {
+              "name": "updateChangesStr",
+              "type": {
+                "text": "StepResponse | undefined"
+              },
+              "description": "The result of the update changes step."
             }
-          ]
+          ],
+          "description": "Posts a comment on a GitHub issue or pull request summarizing the results of various checks.\nIf a comment with the summary already exists, it updates the comment instead."
         }
       ],
       "exports": [
@@ -317,55 +461,152 @@
     {
       "kind": "javascript-module",
       "path": "src/scripts/coverage.ts",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/scripts/formatting.ts",
       "declarations": [
         {
           "kind": "function",
-          "name": "formatting",
+          "name": "getCoverage",
           "return": {
             "type": {
-              "text": "Promise<stepResponse>"
+              "text": "number"
             }
-          }
+          },
+          "parameters": [
+            {
+              "name": "coveragePath",
+              "type": {
+                "text": "string"
+              },
+              "description": "The path to the coverage data file."
+            }
+          ],
+          "description": "Calculates the code coverage percentage from the given coverage data file."
+        },
+        {
+          "kind": "variable",
+          "name": "coverage",
+          "type": {
+            "text": "number"
+          },
+          "default": "0"
+        },
+        {
+          "kind": "function",
+          "name": "coverage",
+          "return": {
+            "type": {
+              "text": "Promise<StepResponse>"
+            }
+          },
+          "parameters": [
+            {
+              "name": "pastCoverageScore",
+              "type": {
+                "text": "number | undefined"
+              },
+              "description": "The coverage score from the previous run. Can be undefined."
+            },
+            {
+              "name": "currentCoverageScore",
+              "type": {
+                "text": "number | undefined"
+              },
+              "description": "The coverage score from the current run. Can be undefined."
+            },
+            {
+              "name": "coveragePassScore",
+              "type": {
+                "text": "string"
+              },
+              "description": "The minimum coverage percentage required to pass as a string."
+            },
+            {
+              "name": "coveragePath",
+              "type": {
+                "text": "string"
+              },
+              "description": "The file path to the coverage data."
+            }
+          ],
+          "description": "Calculates and returns the coverage analysis result based on past and current coverage scores."
         }
       ],
       "exports": [
         {
           "kind": "js",
-          "name": "formatting",
+          "name": "getCoverage",
           "declaration": {
-            "name": "formatting",
-            "module": "src/scripts/formatting.ts"
+            "name": "getCoverage",
+            "module": "src/scripts/coverage.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "coverage",
+          "declaration": {
+            "name": "coverage",
+            "module": "src/scripts/coverage.ts"
           }
         }
       ]
     },
     {
       "kind": "javascript-module",
-      "path": "src/scripts/setup.ts",
+      "path": "src/scripts/post.ts",
       "declarations": [
         {
           "kind": "function",
-          "name": "setup",
+          "name": "checkModifiedFiles",
           "return": {
             "type": {
-              "text": "Promise<stepResponse>"
+              "text": "Promise<[StepResponse, boolean]>"
             }
-          }
+          },
+          "parameters": [
+            {
+              "name": "command",
+              "type": {
+                "text": "Command"
+              },
+              "description": "The command to run in the bash shell."
+            }
+          ],
+          "description": "Checks if there are any modified files by running a given bash command."
+        },
+        {
+          "kind": "function",
+          "name": "updateChanges",
+          "return": {
+            "type": {
+              "text": "Promise<StepResponse>"
+            }
+          },
+          "parameters": [
+            {
+              "name": "command",
+              "type": {
+                "text": "Command"
+              },
+              "description": "The command object containing a list of commands to execute and a label."
+            }
+          ],
+          "description": "Updates changes by executing a list of commands and building a response comment."
         }
       ],
       "exports": [
         {
           "kind": "js",
-          "name": "setup",
+          "name": "checkModifiedFiles",
           "declaration": {
-            "name": "setup",
-            "module": "src/scripts/setup.ts"
+            "name": "checkModifiedFiles",
+            "module": "src/scripts/post.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "updateChanges",
+          "declaration": {
+            "name": "updateChanges",
+            "module": "src/scripts/post.ts"
           }
         }
       ]
@@ -376,15 +617,59 @@
       "declarations": [
         {
           "kind": "function",
+          "name": "playwright",
+          "return": {
+            "type": {
+              "text": "Promise<StepResponse>"
+            }
+          },
+          "parameters": [
+            {
+              "name": "command",
+              "type": {
+                "text": "Command"
+              },
+              "description": "The command to be executed."
+            }
+          ],
+          "description": "Executes a Playwright command and sets the Playwright version in the environment variables."
+        },
+        {
+          "kind": "function",
           "name": "testing",
           "return": {
             "type": {
-              "text": "Promise<stepResponse>"
+              "text": ""
             }
-          }
+          },
+          "parameters": [
+            {
+              "name": "command",
+              "type": {
+                "text": "Command"
+              },
+              "description": "The command to be executed."
+            },
+            {
+              "name": "testResultsPath",
+              "type": {
+                "text": "string"
+              },
+              "description": "The file path to the test results."
+            }
+          ],
+          "description": "Executes a given command and processes the test results."
         }
       ],
       "exports": [
+        {
+          "kind": "js",
+          "name": "playwright",
+          "declaration": {
+            "name": "playwright",
+            "module": "src/scripts/testing.ts"
+          }
+        },
         {
           "kind": "js",
           "name": "testing",
@@ -394,24 +679,6 @@
           }
         }
       ]
-    },
-    {
-      "kind": "javascript-module",
-      "path": "coverage/lcov-report/block-navigation.js",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "coverage/lcov-report/prettify.js",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "coverage/lcov-report/sorter.js",
-      "declarations": [],
-      "exports": []
     }
   ]
 }
