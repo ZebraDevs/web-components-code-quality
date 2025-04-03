@@ -48,7 +48,6 @@ const li = (str: string): string => {
  *
  * @param {ReturnType<typeof getOctokit>} ocotokit - The Octokit instance for making GitHub API requests.
  * @param {Context} context - The context of the GitHub action, including issue and repository information.
- * @param {StepResponse | undefined} npmIStr - The result of the npm install step.
  * @param {StepResponse | undefined} cemStr - The result of the custom element manifest step.
  * @param {StepResponse | undefined} eslintStr - The result of the ESLint step.
  * @param {StepResponse | undefined} litAnalyzerStr - The result of the Lit Analyzer step.
@@ -64,7 +63,6 @@ const li = (str: string): string => {
 export const comment = async (
   ocotokit: ReturnType<typeof getOctokit>,
   context: Context,
-  npmIStr: StepResponse | undefined,
   cemStr: StepResponse | undefined,
   eslintStr: StepResponse | undefined,
   litAnalyzerStr: StepResponse | undefined,
@@ -82,7 +80,6 @@ export const comment = async (
     let formatting = [];
     let testing = [];
     let postChecks = [];
-    if (npmIStr !== undefined) setup.push(npmIStr);
     if (cemStr !== undefined) setup.push(cemStr);
     if (eslintStr !== undefined) analysis.push(eslintStr);
     if (litAnalyzerStr !== undefined) analysis.push(litAnalyzerStr);
@@ -108,7 +105,7 @@ ${group("Post Checks", postChecks, false)}
       owner: context.repo.owner,
       repo: context.repo.repo,
     });
-    const comment = comments.find((comment) =>
+    const comment = comments.find((comment: any) =>
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       comment.body!.includes("PR Checks Complete"),
     );

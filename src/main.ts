@@ -283,14 +283,13 @@ const getInputs = (
  * 1. Check if the environment is local.
  * 2. Retrieve inputs based on the environment.
  * 3. Change the working directory if specified.
- * 4. Install dependencies using npm.
- * 5. Generate a Custom Elements Manifest using `npx cem analyze`.
- * 6. Run static analysis tools (ESLint, Lit Analyzer, TypeDoc) if enabled.
- * 7. Format code using Prettier if enabled.
- * 8. Install Playwright browsers and run tests if enabled.
- * 9. Calculate and compare code coverage if enabled.
- * 10. Check for modified files and update changes in the GitHub repository if any.
- * 11. Create a comment on the GitHub pull request with the results if enabled.
+ * 4. Generate a Custom Elements Manifest using `npx cem analyze`.
+ * 5. Run static analysis tools (ESLint, Lit Analyzer, TypeDoc) if enabled.
+ * 6. Format code using Prettier if enabled.
+ * 7. Install Playwright browsers and run tests if enabled.
+ * 8. Calculate and compare code coverage if enabled.
+ * 9. Check for modified files and update changes in the GitHub repository if any.
+ * 10. Create a comment on the GitHub pull request with the results if enabled.
  */
 export async function run(): Promise<void> {
   const isLocal = checkIfLocal();
@@ -316,12 +315,6 @@ export async function run(): Promise<void> {
     if (workingDirectory && workingDirectory !== currentDirectory) {
       chdir(workingDirectory);
     }
-
-    // run set up
-    const npmIStr: StepResponse | undefined = await commandComment({
-      label: "Install Dependencies",
-      command: "npm i --ignore-scripts",
-    });
 
     const cemStr: StepResponse | undefined = await commandComment({
       label: "Custom Elements Manifest",
@@ -429,7 +422,6 @@ export async function run(): Promise<void> {
       await comment(
         getOctokit(token),
         context,
-        npmIStr,
         cemStr,
         eslintStr,
         litAnalyzerStr,
