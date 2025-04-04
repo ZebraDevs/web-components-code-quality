@@ -43,6 +43,9 @@ jobs:
           node-version-file: .node-version
           cache: npm
 
+      - name: Install dependencies
+        run: npm ci
+
       - name: Code Quality
         uses: ZebraDevs/web-components-code-quality@v1
         with:
