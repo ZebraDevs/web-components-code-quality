@@ -33020,6 +33020,12 @@ const getInputs = (isLocal) => {
     const createComment = isLocal
         ? true
         : (0, core_1.getBooleanInput)("create-comment");
+    const eslintConfigPath = isLocal
+        ? "eslint.config.*"
+        : (0, core_1.getInput)("eslint-config-path");
+    const testConfigPath = isLocal
+        ? "web-test-runner.config.*"
+        : (0, core_1.getInput)("test-config-path");
     return [
         token,
         workingDirectory,
@@ -33033,6 +33039,8 @@ const getInputs = (isLocal) => {
         coveragePassScore,
         coveragePath,
         createComment,
+        eslintConfigPath,
+        testConfigPath,
     ];
 };
 /**
@@ -33060,7 +33068,7 @@ const getInputs = (isLocal) => {
 async function run() {
     const isLocal = checkIfLocal();
     try {
-        const [token, workingDirectory, wcSrcDirectory, testSrcDirectory, doStaticAnalysis, doCodeFormatting, doTests, testResultsPath, runCoverage, coveragePassScore, coveragePath, createComment,] = getInputs(isLocal);
+        const [token, workingDirectory, wcSrcDirectory, testSrcDirectory, doStaticAnalysis, doCodeFormatting, doTests, testResultsPath, runCoverage, coveragePassScore, coveragePath, createComment, eslintConfigPath, testConfigPath,] = getInputs(isLocal);
         // Check if the working directory is different from the current directory
         const currentDirectory = (0, process_1.cwd)();
         if (workingDirectory && workingDirectory !== currentDirectory) {
@@ -33074,7 +33082,10 @@ async function run() {
         const eslintStr = doStaticAnalysis
             ? await (0, analyze_1.eslint)({
                 label: "ESLint",
-                command: "npx eslint -f unix " + wcSrcDirectory,
+                command: "npx eslint -f unix " +
+                    wcSrcDirectory +
+                    " --config " +
+                    eslintConfigPath,
             })
             : undefined;
         const litAnalyzerStr = doStaticAnalysis
@@ -33117,7 +33128,8 @@ async function run() {
                 label: "Testing",
                 command: 'npx web-test-runner \"' +
                     testSrcDirectory +
-                    '\" --node-resolve --coverage',
+                    '\" --node-resolve --coverage --config ' +
+                    testConfigPath,
             }, testResultsPath)
             : undefined;
         const currentCoverageScore = runCoverage
