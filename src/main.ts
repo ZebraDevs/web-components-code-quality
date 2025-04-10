@@ -202,6 +202,8 @@ const getInputs = (
   string,
   string,
   boolean,
+  string,
+  string,
 ] => {
   // get the token and octokit
   let token = "";
@@ -253,6 +255,14 @@ const getInputs = (
     ? true
     : getBooleanInput("create-comment");
 
+  const eslintConfigPath: string = isLocal
+    ? "eslint.config.*"
+    : getInput("eslint-config-path");
+
+  const testConfigPath: string = isLocal
+    ? "web-test-runner.config.*"
+    : getInput("test-config-path");
+
   return [
     token,
     workingDirectory,
@@ -266,6 +276,8 @@ const getInputs = (
     coveragePassScore,
     coveragePath,
     createComment,
+    eslintConfigPath,
+    testConfigPath,
   ];
 };
 
@@ -308,6 +320,8 @@ export async function run(): Promise<void> {
       coveragePassScore,
       coveragePath,
       createComment,
+      eslintConfigPath,
+      testConfigPath,
     ] = getInputs(isLocal);
 
     // Check if the working directory is different from the current directory
@@ -325,7 +339,11 @@ export async function run(): Promise<void> {
     const eslintStr: StepResponse | undefined = doStaticAnalysis
       ? await eslint({
           label: "ESLint",
-          command: "npx eslint -f unix " + wcSrcDirectory,
+          command:
+            "npx eslint -f unix " +
+            wcSrcDirectory +
+            " --config " +
+            eslintConfigPath,
         })
       : undefined;
 
@@ -377,7 +395,8 @@ export async function run(): Promise<void> {
             command:
               'npx web-test-runner \"' +
               testSrcDirectory +
-              '\" --node-resolve --coverage',
+              '\" --node-resolve --coverage --config ' +
+              testConfigPath,
           },
           testResultsPath,
         )

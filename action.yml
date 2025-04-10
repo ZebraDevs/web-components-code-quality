@@ -70,8 +70,15 @@ inputs:
     required: false
     default: "80"
 
-# Define your outputs here.
-# outputs:
+  eslint-config-path:
+    description: "The path to the ESLint configuration file"
+    required: false
+    default: "eslint.config.*"
+
+  test-config-path:
+    description: "The path to the test configuration file"
+    required: false
+    default: "web-test-runner.config.*"
 
 runs:
   using: node20
