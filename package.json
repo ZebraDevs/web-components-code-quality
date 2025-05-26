@@ -73,7 +73,7 @@
   },
   "dependencies": {
     "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.0",
+    "@actions/github": "^6.0.1",
     "@playwright/test": "^1.51.1",
     "actions-toolkit": "^6.0.1",
     "minimist": "^1.2.8",
