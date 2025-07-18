@@ -104,4 +104,5 @@ export default {
 | coverage-pass-score | The minimum coverage score required to pass                         | false    | "80"                                                                  |
 | eslint-config-path  | The path to the ESLint configuration file                           | false    | "eslint.config.\*"                                                    |
 | test-config-path    | The path to the test configuration file                             | false    | "web-test-runner.config.\*"                                           |
-| eslint-cmd          | The command used for eslint                                         | false    | "npx eslint -f unix $web-components-src --config $eslint-config-path" |
+| eslint-cmd          | Override command used for eslint                                    | false    | "npx eslint -f unix $web-components-src --config $eslint-config-path" |
+| lit-analyzer-cmd    | Override command used for lit analyzer                              | false    | npx lit-analyzer --quiet --format markdown                            |

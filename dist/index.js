@@ -33035,6 +33035,7 @@ const getInputs = (isLocal) => {
         ? "web-test-runner.config.*"
         : (0, core_1.getInput)("test-config-path");
     const esLintCmd = isLocal ? "" : (0, core_1.getInput)("eslint-cmd");
+    const litAnalyzerCmd = isLocal ? "" : (0, core_1.getInput)("lit-analyzer-cmd");
     return [
         token,
         workingDirectory,
@@ -33051,6 +33052,7 @@ const getInputs = (isLocal) => {
         eslintConfigPath,
         testConfigPath,
         esLintCmd,
+        litAnalyzerCmd,
     ];
 };
 /**
@@ -33078,7 +33080,7 @@ const getInputs = (isLocal) => {
 async function run() {
     const isLocal = checkIfLocal();
     try {
-        const [token, workingDirectory, wcSrcDirectory, testSrcDirectory, doStaticAnalysis, doCodeFormatting, doTests, testResultsPath, runCoverage, coveragePassScore, coveragePath, createComment, eslintConfigPath, testConfigPath, esLintCmd,] = getInputs(isLocal);
+        const [token, workingDirectory, wcSrcDirectory, testSrcDirectory, doStaticAnalysis, doCodeFormatting, doTests, testResultsPath, runCoverage, coveragePassScore, coveragePath, createComment, eslintConfigPath, testConfigPath, esLintCmd, litAnalyzerCmd,] = getInputs(isLocal);
         // Check if the working directory is different from the current directory
         const currentDirectory = (0, process_1.cwd)();
         if (workingDirectory && workingDirectory !== currentDirectory) {
@@ -33103,7 +33105,9 @@ async function run() {
         const litAnalyzerStr = doStaticAnalysis
             ? await (0, analyze_1.litAnalyzer)({
                 label: "Lit Analyzer",
-                command: "npx lit-analyzer --quiet --format markdown",
+                command: litAnalyzerCmd.isEmpty()
+                    ? "npx lit-analyzer --quiet --format markdown"
+                    : litAnalyzerCmd,
             })
             : undefined;
         const typeDocStr = doStaticAnalysis

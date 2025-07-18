@@ -205,6 +205,7 @@ const getInputs = (
   string,
   string,
   string,
+  string,
 ] => {
   // get the token and octokit
   let token = "";
@@ -266,6 +267,8 @@ const getInputs = (
 
   const esLintCmd: string = isLocal ? "" : getInput("eslint-cmd");
 
+  const litAnalyzerCmd: string = isLocal ? "" : getInput("lit-analyzer-cmd");
+
   return [
     token,
     workingDirectory,
@@ -282,6 +285,7 @@ const getInputs = (
     eslintConfigPath,
     testConfigPath,
     esLintCmd,
+    litAnalyzerCmd,
   ];
 };
 
@@ -327,6 +331,7 @@ export async function run(): Promise<void> {
       eslintConfigPath,
       testConfigPath,
       esLintCmd,
+      litAnalyzerCmd,
     ] = getInputs(isLocal);
 
     // Check if the working directory is different from the current directory
@@ -356,7 +361,9 @@ export async function run(): Promise<void> {
     const litAnalyzerStr: StepResponse | undefined = doStaticAnalysis
       ? await litAnalyzer({
           label: "Lit Analyzer",
-          command: "npx lit-analyzer --quiet --format markdown",
+          command: litAnalyzerCmd.isEmpty()
+            ? "npx lit-analyzer --quiet --format markdown"
+            : litAnalyzerCmd,
         })
       : undefined;
 

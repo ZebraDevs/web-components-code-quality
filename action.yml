@@ -84,6 +84,12 @@ inputs:
     description: "The command to run ESLint"
     required: false
     default: ""
+
+  lit-analyzer-cmd:
+    description: "The command to run lit analyzer"
+    required: false
+    default: ""
+
 runs:
   using: node20
   main: dist/index.js
