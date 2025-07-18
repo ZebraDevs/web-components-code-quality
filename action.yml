@@ -80,6 +80,10 @@ inputs:
     required: false
     default: "web-test-runner.config.*"
 
+  eslint-cmd:
+    description: "The command to run ESLint"
+    required: false
+    default: ""
 runs:
   using: node20
   main: dist/index.js

@@ -204,6 +204,7 @@ const getInputs = (
   boolean,
   string,
   string,
+  string,
 ] => {
   // get the token and octokit
   let token = "";
@@ -263,6 +264,8 @@ const getInputs = (
     ? "web-test-runner.config.*"
     : getInput("test-config-path");
 
+  const esLintCmd: string = isLocal ? "" : getInput("eslint-cmd");
+
   return [
     token,
     workingDirectory,
@@ -278,6 +281,7 @@ const getInputs = (
     createComment,
     eslintConfigPath,
     testConfigPath,
+    esLintCmd,
   ];
 };
 
@@ -322,6 +326,7 @@ export async function run(): Promise<void> {
       createComment,
       eslintConfigPath,
       testConfigPath,
+      esLintCmd,
     ] = getInputs(isLocal);
 
     // Check if the working directory is different from the current directory
@@ -339,11 +344,12 @@ export async function run(): Promise<void> {
     const eslintStr: StepResponse | undefined = doStaticAnalysis
       ? await eslint({
           label: "ESLint",
-          command:
-            "npx eslint -f unix " +
-            wcSrcDirectory +
-            " --config " +
-            eslintConfigPath,
+          command: esLintCmd.isEmpty()
+            ? "npx eslint -f unix " +
+              wcSrcDirectory +
+              " --config " +
+              eslintConfigPath
+            : esLintCmd,
         })
       : undefined;
 
