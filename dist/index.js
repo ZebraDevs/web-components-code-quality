@@ -1882,6 +1882,7 @@ class Context {
         this.action = process.env.GITHUB_ACTION;
         this.actor = process.env.GITHUB_ACTOR;
         this.job = process.env.GITHUB_JOB;
+        this.runAttempt = parseInt(process.env.GITHUB_RUN_ATTEMPT, 10);
         this.runNumber = parseInt(process.env.GITHUB_RUN_NUMBER, 10);
         this.runId = parseInt(process.env.GITHUB_RUN_ID, 10);
         this.apiUrl = (_a = process.env.GITHUB_API_URL) !== null && _a !== void 0 ? _a : `https://api.github.com`;
@@ -3569,13 +3570,28 @@ var import_graphql = __nccwpck_require__(7);
 var import_auth_token = __nccwpck_require__(7864);
 
 // pkg/dist-src/version.js
-var VERSION = "5.2.1";
+var VERSION = "5.2.2";
 
 // pkg/dist-src/index.js
 var noop = () => {
 };
 var consoleWarn = console.warn.bind(console);
 var consoleError = console.error.bind(console);
+function createLogger(logger = {}) {
+  if (typeof logger.debug !== "function") {
+    logger.debug = noop;
+  }
+  if (typeof logger.info !== "function") {
+    logger.info = noop;
+  }
+  if (typeof logger.warn !== "function") {
+    logger.warn = consoleWarn;
+  }
+  if (typeof logger.error !== "function") {
+    logger.error = consoleError;
+  }
+  return logger;
+}
 var userAgentTrail = `octokit-core.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`;
 var Octokit = class {
   static {
@@ -3649,15 +3665,7 @@ var Octokit = class {
     }
     this.request = import_request.request.defaults(requestDefaults);
     this.graphql = (0, import_graphql.withCustomRequest)(this.request).defaults(requestDefaults);
-    this.log = Object.assign(
-      {
-        debug: noop,
-        info: noop,
-        warn: consoleWarn,
-        error: consoleError
-      },
-      options.log
-    );
+    this.log = createLogger(options.log);
     this.hook = hook;
     if (!options.authStrategy) {
       if (!options.auth) {
@@ -33026,6 +33034,8 @@ const getInputs = (isLocal) => {
     const testConfigPath = isLocal
         ? "web-test-runner.config.*"
         : (0, core_1.getInput)("test-config-path");
+    const esLintCmd = isLocal ? "" : (0, core_1.getInput)("eslint-cmd");
+    const litAnalyzerCmd = isLocal ? "" : (0, core_1.getInput)("lit-analyzer-cmd");
     return [
         token,
         workingDirectory,
@@ -33041,6 +33051,8 @@ const getInputs = (isLocal) => {
         createComment,
         eslintConfigPath,
         testConfigPath,
+        esLintCmd,
+        litAnalyzerCmd,
     ];
 };
 /**
@@ -33068,7 +33080,7 @@ const getInputs = (isLocal) => {
 async function run() {
     const isLocal = checkIfLocal();
     try {
-        const [token, workingDirectory, wcSrcDirectory, testSrcDirectory, doStaticAnalysis, doCodeFormatting, doTests, testResultsPath, runCoverage, coveragePassScore, coveragePath, createComment, eslintConfigPath, testConfigPath,] = getInputs(isLocal);
+        const [token, workingDirectory, wcSrcDirectory, testSrcDirectory, doStaticAnalysis, doCodeFormatting, doTests, testResultsPath, runCoverage, coveragePassScore, coveragePath, createComment, eslintConfigPath, testConfigPath, esLintCmd, litAnalyzerCmd,] = getInputs(isLocal);
         // Check if the working directory is different from the current directory
         const currentDirectory = (0, process_1.cwd)();
         if (workingDirectory && workingDirectory !== currentDirectory) {
@@ -33082,16 +33094,20 @@ async function run() {
         const eslintStr = doStaticAnalysis
             ? await (0, analyze_1.eslint)({
                 label: "ESLint",
-                command: "npx eslint -f unix " +
-                    wcSrcDirectory +
-                    " --config " +
-                    eslintConfigPath,
+                command: esLintCmd.isEmpty()
+                    ? "npx eslint -f unix " +
+                        wcSrcDirectory +
+                        " --config " +
+                        eslintConfigPath
+                    : esLintCmd,
             })
             : undefined;
         const litAnalyzerStr = doStaticAnalysis
             ? await (0, analyze_1.litAnalyzer)({
                 label: "Lit Analyzer",
-                command: "npx lit-analyzer --quiet --format markdown",
+                command: litAnalyzerCmd.isEmpty()
+                    ? "npx lit-analyzer --quiet --format markdown"
+                    : litAnalyzerCmd,
             })
             : undefined;
         const typeDocStr = doStaticAnalysis

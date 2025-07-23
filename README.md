@@ -88,19 +88,21 @@ export default {
 
 ## Inputs
 
-| Name                | Description                                                         | Required | Default                     |
-| ------------------- | ------------------------------------------------------------------- | -------- | --------------------------- |
-| token               | Token used for pushing fixes and commenting on PRs.                 | true     |                             |
-| working-directory   | Working directory to run the action in                              | false    | "."                         |
-| web-components-src  | The path to the directory containing the web components source code | false    | "src/\*_/_.{ts,tsx}"        |
-| test-src            | The path to the directory containing the test source code           | false    | "src/test/\*_/_.test.ts"    |
-| test-results-path   | The path to the test results file                                   | false    | "./test-results.xml"        |
-| coverage-path       | The path to the coverage file                                       | false    | "coverage/lcov.info"        |
-| run-static-analysis | Whether to run static analysis                                      | false    | true                        |
-| run-code-formatting | Whether to run code formatting                                      | false    | true                        |
-| run-tests           | Whether tests should be run.                                        | false    | true                        |
-| run-coverage        | Whether to run coverage                                             | false    | true                        |
-| create-comment      | Whether to create a comment on the PR                               | false    | true                        |
-| coverage-pass-score | The minimum coverage score required to pass                         | false    | "80"                        |
-| eslint-config-path  | The path to the ESLint configuration file                           | false    | "eslint.config.\*"          |
-| test-config-path    | The path to the test configuration file                             | false    | "web-test-runner.config.\*" |
+| Name                | Description                                                         | Required | Default                                                               |
+| ------------------- | ------------------------------------------------------------------- | -------- | --------------------------------------------------------------------- |
+| token               | Token used for pushing fixes and commenting on PRs.                 | true     |                                                                       |
+| working-directory   | Working directory to run the action in                              | false    | "."                                                                   |
+| web-components-src  | The path to the directory containing the web components source code | false    | "src/\*_/_.{ts,tsx}"                                                  |
+| test-src            | The path to the directory containing the test source code           | false    | "src/test/\*_/_.test.ts"                                              |
+| test-results-path   | The path to the test results file                                   | false    | "./test-results.xml"                                                  |
+| coverage-path       | The path to the coverage file                                       | false    | "coverage/lcov.info"                                                  |
+| run-static-analysis | Whether to run static analysis                                      | false    | true                                                                  |
+| run-code-formatting | Whether to run code formatting                                      | false    | true                                                                  |
+| run-tests           | Whether tests should be run.                                        | false    | true                                                                  |
+| run-coverage        | Whether to run coverage                                             | false    | true                                                                  |
+| create-comment      | Whether to create a comment on the PR                               | false    | true                                                                  |
+| coverage-pass-score | The minimum coverage score required to pass                         | false    | "80"                                                                  |
+| eslint-config-path  | The path to the ESLint configuration file                           | false    | "eslint.config.\*"                                                    |
+| test-config-path    | The path to the test configuration file                             | false    | "web-test-runner.config.\*"                                           |
+| eslint-cmd          | Override command used for eslint                                    | false    | "npx eslint -f unix $web-components-src --config $eslint-config-path" |
+| lit-analyzer-cmd    | Override command used for lit analyzer                              | false    | npx lit-analyzer --quiet --format markdown                            |
