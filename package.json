@@ -104,5 +104,6 @@
     "ts-jest": "^29.4.1",
     "typedoc": "^0.28.12",
     "typescript": "^5.9.2"
-  }
+  },
+  "customElements": "custom-elements.json"
 }
