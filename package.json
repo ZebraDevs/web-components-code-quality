@@ -75,7 +75,7 @@
     "@actions/core": "^1.11.1",
     "@actions/exec": "^1.1.1",
     "@actions/github": "^6.0.1",
-    "@playwright/test": "^1.54.1",
+    "@playwright/test": "^1.55.0",
     "minimist": "^1.2.8",
     "octokit": "^4.1.2",
     "parse-lcov": "^1.0.4",
