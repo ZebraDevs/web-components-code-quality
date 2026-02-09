@@ -5,7 +5,74 @@
     {
       "kind": "javascript-module",
       "path": "dist/index.js",
-      "declarations": [],
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "maxSockets",
+          "type": {
+            "text": "number"
+          },
+          "default": "100"
+        },
+        {
+          "kind": "variable",
+          "name": "headers"
+        },
+        {
+          "kind": "variable",
+          "name": "request"
+        },
+        {
+          "kind": "function",
+          "name": "request",
+          "parameters": [
+            {
+              "name": "opts"
+            },
+            {
+              "name": "callback"
+            }
+          ]
+        },
+        {
+          "kind": "variable",
+          "name": "boundary",
+          "default": "`----formdata-undici-0${`${random(1e11)}`.padStart(11, '0')}`"
+        },
+        {
+          "kind": "function",
+          "name": "processResponse",
+          "parameters": [
+            {
+              "name": "response"
+            }
+          ]
+        },
+        {
+          "kind": "variable",
+          "name": "timingInfo"
+        },
+        {
+          "kind": "variable",
+          "name": "taskDestination",
+          "type": {
+            "text": "null"
+          },
+          "default": "null"
+        },
+        {
+          "kind": "variable",
+          "name": "crossOriginIsolatedCapability",
+          "type": {
+            "text": "boolean"
+          },
+          "default": "false"
+        },
+        {
+          "kind": "function",
+          "name": "processResponseEndOfBody"
+        }
+      ],
       "exports": []
     },
     {
