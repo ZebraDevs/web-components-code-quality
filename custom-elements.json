@@ -8,19 +8,19 @@
       "declarations": [
         {
           "kind": "variable",
-          "name": "maxSockets",
-          "type": {
-            "text": "number"
-          },
-          "default": "100"
-        },
-        {
-          "kind": "variable",
           "name": "headers"
         },
         {
           "kind": "variable",
           "name": "request"
+        },
+        {
+          "kind": "variable",
+          "name": "maxSockets",
+          "type": {
+            "text": "number"
+          },
+          "default": "100"
         },
         {
           "kind": "function",

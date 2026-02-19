@@ -3,7 +3,6 @@
   "description": "This action is designed to format and test Web Component repositories on pull requests. It helps ensure that your code meets the required quality standards.",
   "version": "1.3.4",
   "author": "Zebra Technologies",
-  "private": false,
   "homepage": "https://github.com/ZebraDevs/web-components-code-quality",
   "repository": {
     "type": "git",
@@ -75,7 +74,7 @@
     "@actions/core": "^1.11.1",
     "@actions/exec": "^1.1.1",
     "@actions/github": "^6.0.1",
-    "@playwright/test": "^1.56.1",
+    "@playwright/test": "^1.58.2",
     "minimist": "^1.2.8",
     "octokit": "^5.0.5",
     "parse-lcov": "^1.0.4",
@@ -83,18 +82,18 @@
   },
   "devDependencies": {
     "@custom-elements-manifest/analyzer": "^0.11.0",
-    "@github/local-action": "^5.1.0",
+    "@github/local-action": "^5.2.0",
     "@jest/globals": "^30.2.0",
     "@types/jest": "^30.0.0",
     "@types/minimist": "^1.2.5",
-    "@types/node": "^24.1.0",
-    "@typescript-eslint/eslint-plugin": "^8.55.0",
-    "@typescript-eslint/parser": "^8.37.0",
+    "@types/node": "^24.10.13",
+    "@typescript-eslint/eslint-plugin": "^8.56.0",
+    "@typescript-eslint/parser": "^8.56.0",
     "@vercel/ncc": "^0.38.4",
     "@web/dev-server-esbuild": "^1.0.5",
     "custom-elements-manifest": "^2.1.0",
-    "eslint": "^9.31.0",
-    "eslint-plugin-jest": "^29.13.0",
+    "eslint": "^9.39.2",
+    "eslint-plugin-jest": "^29.15.0",
     "eslint-plugin-prettier": "^5.5.5",
     "jest": "^30.2.0",
     "lit-analyzer": "^2.0.3",
@@ -102,8 +101,9 @@
     "prettier": "3.8.1",
     "prettier-eslint": "^16.4.2",
     "ts-jest": "^29.4.6",
-    "typedoc": "^0.28.16",
+    "typedoc": "^0.28.17",
     "typescript": "^5.9.3"
   },
-  "customElements": "custom-elements.json"
+  "customElements": "custom-elements.json",
+  "packageManager": "yarn@4.12.0"
 }
