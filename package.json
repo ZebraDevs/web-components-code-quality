@@ -72,7 +72,7 @@
   "dependencies": {
     "@actions/core": "^1.11.1",
     "@actions/exec": "^1.1.1",
-    "@actions/github": "^6.0.1",
+    "@actions/github": "^9.1.0",
     "minimist": "^1.2.8",
     "parse-lcov": "^1.0.4",
     "xml-js": "^1.6.11"

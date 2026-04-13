@@ -112,6 +112,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@actions/github@npm:^9.1.0":
+  version: 9.1.0
+  resolution: "@actions/github@npm:9.1.0"
+  dependencies:
+    "@actions/http-client": "npm:^3.0.2"
+    "@octokit/core": "npm:^7.0.6"
+    "@octokit/plugin-paginate-rest": "npm:^14.0.0"
+    "@octokit/plugin-rest-endpoint-methods": "npm:^17.0.0"
+    "@octokit/request": "npm:^10.0.7"
+    "@octokit/request-error": "npm:^7.1.0"
+    undici: "npm:^6.23.0"
+  checksum: 10c0/af8836a3472de479ac4d4bab49ace6a3971c8ffe283ca87546db3331e6d59dbf8880469cb49f466d60770926dc68041238f02eb2de55d309c493f01a39298098
+  languageName: node
+  linkType: hard
+
 "@actions/glob@npm:^0.5.1":
   version: 0.5.1
   resolution: "@actions/glob@npm:0.5.1"
@@ -876,7 +891,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@octokit/endpoint@npm:^11.0.2":
+"@octokit/endpoint@npm:^11.0.2, @octokit/endpoint@npm:^11.0.3":
   version: 11.0.3
   resolution: "@octokit/endpoint@npm:11.0.3"
   dependencies:
@@ -1060,7 +1075,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@octokit/request-error@npm:^7.0.2":
+"@octokit/request-error@npm:^7.0.2, @octokit/request-error@npm:^7.1.0":
   version: 7.1.0
   resolution: "@octokit/request-error@npm:7.1.0"
   dependencies:
@@ -1079,6 +1094,20 @@ __metadata:
     fast-content-type-parse: "npm:^3.0.0"
     universal-user-agent: "npm:^7.0.2"
   checksum: 10c0/f789a75bf681b204ccd3d538921db662e148ed980005158d80ec4f16811e9ab73f375d4f30ef697852abd748a62f025060ea1b0c5198ec9c2e8d04e355064390
+  languageName: node
+  linkType: hard
+
+"@octokit/request@npm:^10.0.7":
+  version: 10.0.8
+  resolution: "@octokit/request@npm:10.0.8"
+  dependencies:
+    "@octokit/endpoint": "npm:^11.0.3"
+    "@octokit/request-error": "npm:^7.0.2"
+    "@octokit/types": "npm:^16.0.0"
+    fast-content-type-parse: "npm:^3.0.0"
+    json-with-bigint: "npm:^3.5.3"
+    universal-user-agent: "npm:^7.0.2"
+  checksum: 10c0/7ee384dbeb489d4e00856eeaaf6a70060c61b036919c539809c3288e2ba14b8f3f63a5b16b8d5b7fdc93d7b6fa5c45bc3d181a712031279f6e192f019e52d7fe
   languageName: node
   linkType: hard
 
@@ -2966,6 +2995,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"json-with-bigint@npm:^3.5.3":
+  version: 3.5.8
+  resolution: "json-with-bigint@npm:3.5.8"
+  checksum: 10c0/a0c4e37626d74a9a493539f9f9a94855933fa15ea2f028859a787229a42c5f11803db6f94f1ce7b1d89756c1e80a7c1f11006bac266ec7ce819b75701765ca0a
+  languageName: node
+  linkType: hard
+
 "json5@npm:^2.2.2, json5@npm:^2.2.3":
   version: 2.2.3
   resolution: "json5@npm:2.2.3"
@@ -4471,7 +4507,7 @@ __metadata:
   dependencies:
     "@actions/core": "npm:^1.11.1"
     "@actions/exec": "npm:^1.1.1"
-    "@actions/github": "npm:^6.0.1"
+    "@actions/github": "npm:^9.1.0"
     "@custom-elements-manifest/analyzer": "npm:^0.11.0"
     "@github/local-action": "npm:^7.0.1"
     "@types/minimist": "npm:^1.2.5"
