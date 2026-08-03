@@ -35,7 +35,8 @@ export const playwright = async (command: Command): Promise<StepResponse> => {
     clis.length > 0
       ? clis.map((cli) => ({
           ...command,
-          command: `node ${cli} install --with-deps`,
+          label: `${command.label} (${cli})`,
+          command: `node "${cli}" install --with-deps`,
         }))
       : [command];
 
