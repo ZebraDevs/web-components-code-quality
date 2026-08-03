@@ -34597,23 +34597,37 @@ const fs = __importStar(__nccwpck_require__(9896));
 const main_1 = __nccwpck_require__(1730);
 const xml_js_1 = __importDefault(__nccwpck_require__(3675));
 /**
- * Executes a Playwright command and sets the Playwright version in the environment variables.
+ * Installs Playwright browser binaries for every version of the `playwright`
+ * package present in `node_modules`. Projects may depend on multiple versions
+ * simultaneously (e.g. `@playwright/test` and `@web/test-runner-playwright`
+ * can resolve to different releases), and each version needs its own binaries
+ * installed at its own cache path.
  *
- * @param {Command} command - The command to be executed.
+ * @param {Command} command - The base command (used as a fallback label/command).
  * @returns {Promise<StepResponse>} - A promise that resolves to a StepResponse object.
- *
- * @throws {Error} - Throws an error if the Playwright version cannot be retrieved.
  */
 const playwright = async (command) => {
-    await (0, main_1.runBashCommand)("npm ls @playwright/test | grep @playwright | sed 's/.*@//'")
-        .then((version) => {
-        process.env.PLAYWRIGHT_VERSION = version.trim();
-    })
-        .catch((error) => {
-        (0, core_1.setFailed)(`Failed to get Playwright version: ${error}`);
-        return { output: error.message, error: true };
-    });
-    return await (0, main_1.commandComment)(command);
+    let clis = [];
+    try {
+        const found = await (0, main_1.runBashCommand)("find node_modules -name 'cli.js' -path '*/playwright/cli.js' ! -path '*/playwright-core/*'");
+        clis = found.trim().split("\n").filter(Boolean);
+    }
+    catch (_) {
+        // fall through to default command if find fails
+    }
+    const installCommands = clis.length > 0
+        ? clis.map((cli) => ({
+            ...command,
+            command: `node ${cli} install --with-deps`,
+        }))
+        : [command];
+    let response = { output: "", error: false };
+    for (const cmd of installCommands) {
+        response = await (0, main_1.commandComment)(cmd);
+        if (response.error)
+            return response;
+    }
+    return response;
 };
 exports.playwright = playwright;
 /**
