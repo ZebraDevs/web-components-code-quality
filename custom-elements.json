@@ -16,61 +16,12 @@
         },
         {
           "kind": "variable",
-          "name": "headers"
+          "name": "url",
+          "default": "new URL(opts.origin)"
         },
         {
           "kind": "variable",
-          "name": "request"
-        },
-        {
-          "kind": "function",
-          "name": "request",
-          "parameters": [
-            {
-              "name": "opts"
-            },
-            {
-              "name": "callback"
-            }
-          ]
-        },
-        {
-          "kind": "variable",
-          "name": "boundary",
-          "default": "`----formdata-undici-0${`${random(1e11)}`.padStart(11, '0')}`"
-        },
-        {
-          "kind": "function",
-          "name": "processResponse",
-          "parameters": [
-            {
-              "name": "response"
-            }
-          ]
-        },
-        {
-          "kind": "variable",
-          "name": "timingInfo"
-        },
-        {
-          "kind": "variable",
-          "name": "taskDestination",
-          "type": {
-            "text": "null"
-          },
-          "default": "null"
-        },
-        {
-          "kind": "variable",
-          "name": "crossOriginIsolatedCapability",
-          "type": {
-            "text": "boolean"
-          },
-          "default": "false"
-        },
-        {
-          "kind": "function",
-          "name": "processResponseEndOfBody"
+          "name": "status"
         }
       ],
       "exports": []
@@ -696,10 +647,10 @@
               "type": {
                 "text": "Command"
               },
-              "description": "The command to be executed."
+              "description": "The base command (used as a fallback label/command)."
             }
           ],
-          "description": "Executes a Playwright command and sets the Playwright version in the environment variables."
+          "description": "Installs Playwright browser binaries for every version of the `playwright`\npackage present in `node_modules`. Projects may depend on multiple versions\nsimultaneously (e.g. `@playwright/test` and `@web/test-runner-playwright`\ncan resolve to different releases), and each version needs its own binaries\ninstalled at its own cache path."
         },
         {
           "kind": "function",
