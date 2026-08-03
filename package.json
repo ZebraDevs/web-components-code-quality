@@ -69,10 +69,15 @@
       "./src/**"
     ]
   },
+  "resolutions": {
+    "tar": "^7.5.22",
+    "fast-xml-parser": "^5.10.1",
+    "undici": "^6.27.0"
+  },
   "dependencies": {
     "@actions/core": "^1.11.1",
     "@actions/exec": "^1.1.1",
-    "@actions/github": "^6.0.1",
+    "@actions/github": "^8.0.1",
     "minimist": "^1.2.8",
     "parse-lcov": "^1.0.4",
     "xml-js": "^1.6.11"
@@ -81,16 +86,16 @@
     "@custom-elements-manifest/analyzer": "^0.11.0",
     "@github/local-action": "^7.0.1",
     "@types/minimist": "^1.2.5",
-    "@types/node": "^25.9.4",
+    "@types/node": "^25.9.5",
     "@vercel/ncc": "^0.38.4",
-    "eslint": "^10.5.0",
+    "eslint": "^10.8.0",
     "lit-analyzer": "^2.0.3",
     "make-coverage-badge": "^1.2.0",
-    "prettier": "3.8.4",
-    "ts-jest": "^29.4.11",
-    "typedoc": "^0.28.19",
+    "prettier": "3.9.6",
+    "ts-jest": "^29.4.12",
+    "typedoc": "^0.28.20",
     "typescript": "^5.9.3"
   },
   "customElements": "custom-elements.json",
-  "packageManager": "yarn@4.17.0"
+  "packageManager": "yarn@4.18.0"
 }
